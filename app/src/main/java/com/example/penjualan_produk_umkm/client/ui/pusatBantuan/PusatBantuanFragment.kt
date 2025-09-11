@@ -1,4 +1,4 @@
-package com.example.penjualan_produk_umkm.client.ui.PusatBantuan
+package com.example.penjualan_produk_umkm.client.ui.pusatBantuan
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

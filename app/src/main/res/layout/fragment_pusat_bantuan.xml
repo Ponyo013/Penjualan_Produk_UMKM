@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".client.ui.PusatBantuan.PusatBantuanFragment">
+    tools:context=".client.ui.pusatBantuan.PusatBantuanFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView
