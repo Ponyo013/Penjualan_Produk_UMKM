@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Penjualan_Produk_UMKM</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    
+
     <!-- Icon Description -->
     <string name="desc_notification_icon">Notification icon</string>
     <string name="desc_cart_icon">Cart icon</string>
