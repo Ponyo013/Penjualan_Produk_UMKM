@@ -5,4 +5,7 @@
     <!-- Icon Description -->
     <string name="desc_notification_icon">Notification icon</string>
     <string name="desc_cart_icon">Cart icon</string>
+
+    <!-- App bar title   -->
+    <string name="app_bar_title">Default Title</string>
 </resources>

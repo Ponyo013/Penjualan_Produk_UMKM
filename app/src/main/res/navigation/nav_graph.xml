@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/NotificationFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.NotificationFragment"
-        android:label="Notification"
+        android:label="Notifications"
         tools:layout="@layout/fragment_notification"/>
 
 

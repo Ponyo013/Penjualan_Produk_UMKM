@@ -5,10 +5,12 @@
     android:layout_height="match_parent"
     tools:context=".client.ui.beranda.NotificationFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/topBarFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.TopBarFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="ini tempat notifikasi" />
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="18dp"
+        tools:layout="@layout/fragment_top_bar" />
 
 </FrameLayout>
