@@ -1,12 +1,10 @@
 package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
 import androidx.navigation.fragment.findNavController
 import com.example.penjualan_produk_umkm.R
 
@@ -42,16 +40,19 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         return inflater.inflate(R.layout.fragment_beranda, container, false)
     }
 
+    private fun setupNavigationClick(view: View, destinationId: Int) {
+        view.setOnClickListener {
+            findNavController().navigate(destinationId)
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val headerLayout: View = view.findViewById(R.id.header_layout)
-        val notificationIcon: FrameLayout = headerLayout.findViewById(R.id.notification_icon)
 
-        notificationIcon.setOnClickListener {
-            Log.d("BerandaFragment", "Notification clicked!")
-            findNavController().navigate(R.id.action_berandaFragment_to_notificationFragment)
-        }
+        setupNavigationClick(headerLayout.findViewById(R.id.notification_icon), R.id.action_berandaFragment_to_notificationFragment)
+        setupNavigationClick(headerLayout.findViewById(R.id.cart_icon), R.id.action_BerandaFragment_to_CartFragment)
     }
 
     companion object {

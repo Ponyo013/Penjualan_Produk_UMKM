@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_berandaFragment_to_notificationFragment"
             app:destination="@id/NotificationFragment" />
+        <action
+            android:id="@+id/action_BerandaFragment_to_CartFragment"
+            app:destination="@id/CartFragment" />
     </fragment>
 
     <fragment
@@ -21,5 +24,10 @@
         android:label="Notifications"
         tools:layout="@layout/fragment_notification"/>
 
+    <fragment
+        android:id="@+id/CartFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.CartFragment"
+        android:label="Cart"
+        tools:layout="@layout/fragment_notification"/>
 
 </navigation>

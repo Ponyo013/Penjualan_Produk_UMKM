@@ -54,7 +54,8 @@ class TopBarFragment : Fragment() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             toolbar.title = when (destination.id) {
                 R.id.NotificationFragment -> "Notifications"
-                else -> "My App"
+                R.id.CartFragment -> "My Cart"
+                else -> ""
             }
 
             // Apply font to the new title TextView
