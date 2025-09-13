@@ -30,4 +30,10 @@
         android:label="Cart"
         tools:layout="@layout/fragment_notification"/>
 
+    <fragment
+        android:id="@+id/detailProdukFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.detailProduk.DetailProdukFragment"
+        android:label="detailProduk"
+        tools:layout="@layout/fragment_detail_produk"/>
+
 </navigation>

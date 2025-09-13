@@ -5,10 +5,9 @@
     android:layout_height="match_parent"
     tools:context=".client.ui.detailProduk.DetailProdukFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+    <!-- Header -->
+    <include
+        layout="@layout/fragment_header"
+        android:id="@+id/header_layout"/>
 
 </FrameLayout>
