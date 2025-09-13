@@ -5,6 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
+import androidx.navigation.fragment.findNavController
 import com.example.penjualan_produk_umkm.R
 // ini detail produk
 // TODO: Rename parameter arguments, choose names that match
@@ -36,6 +38,32 @@ class DetailProdukFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_detail_produk, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val navController = findNavController()
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val headerLayout: View = view.findViewById(R.id.header_layout)
+            val logo: ImageView = headerLayout.findViewById(R.id.logo_icon)
+            val notif: FrameLayout = headerLayout.findViewById(R.id.notification_icon)
+
+            when (destination.id) {
+                R.id.detailProdukFragment -> {
+                    logo.setImageResource(R.drawable.back_icon)
+                    logo.setOnClickListener {
+                        navController.navigateUp()
+                    }
+                    notif.visibility = View.GONE
+                }
+                else -> {
+                    logo.setImageResource(R.drawable.logo)
+                    logo.setOnClickListener(null)
+                    notif.visibility = View.VISIBLE
+                }
+            }
+        }
     }
 
     companion object {

@@ -34,6 +34,10 @@
         android:id="@+id/detailProdukFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.detailProduk.DetailProdukFragment"
         android:label="detailProduk"
-        tools:layout="@layout/fragment_detail_produk"/>
+        tools:layout="@layout/fragment_detail_produk">
+        <action
+            android:id="@+id/action_detailProdukFragment_to_BerandaFragment"
+            app:destination="@id/BerandaFragment" />
+    </fragment>
 
 </navigation>
