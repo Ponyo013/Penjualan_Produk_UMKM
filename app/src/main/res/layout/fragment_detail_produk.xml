@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Top Bar -->
         <FrameLayout
             android:id="@+id/header_container"
             android:layout_width="0dp"
@@ -25,16 +26,20 @@
                 layout="@layout/fragment_header"/>
         </FrameLayout>
 
+        <!-- Image Product -->
         <ImageView
             android:id="@+id/banner_image"
             android:layout_width="0dp"
             android:layout_height="320dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="18dp"
+            android:contentDescription="@null"
             android:scaleType="centerCrop"
+            android:background="@color/grey"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/header_container" />
 
+        <!-- Product Name -->
         <TextView
             android:id="@+id/nama_produk"
             android:layout_width="match_parent"
@@ -49,6 +54,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Product Price -->
         <TextView
             android:id="@+id/harga_produk"
             android:layout_width="match_parent"
@@ -62,7 +68,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/nama_produk" />
 
-
+        <!-- Add to Cart Button -->
         <Button
             android:id="@+id/btn_add_to_cart"
             android:layout_width="0dp"
@@ -88,8 +94,68 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btn_add_to_cart" />
 
+        <!-- Rating -->
+        <FrameLayout
+            android:id="@+id/rating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider_line">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Star Icon -->
+                <ImageView
+                    android:id="@+id/star_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/desc_star_icon"
+                    android:src="@drawable/star_icon"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Rating Text -->
+                <TextView
+                    android:id="@+id/rating_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="20dp"
+                    android:text="@string/rating_text"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toEndOf="@id/star_icon"
+                    app:layout_constraintTop_toTopOf="@id/star_icon" />
+
+                <!-- Review Count -->
+                <TextView
+                    android:id="@+id/review_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="@string/review_count"
+                    android:textColor="@android:color/secondary_text_dark"
+                    android:textSize="14sp"
+                    android:layout_marginTop="2dp"
+                    app:layout_constraintStart_toStartOf="@id/rating_text"
+                    app:layout_constraintTop_toBottomOf="@id/rating_text" />
+
+                <!-- Chevron Icon -->
+                <ImageView
+                    android:id="@+id/chevron_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/desc_chev_icon"
+                    android:src="@drawable/chevron_icon"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </FrameLayout>
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 </FrameLayout>

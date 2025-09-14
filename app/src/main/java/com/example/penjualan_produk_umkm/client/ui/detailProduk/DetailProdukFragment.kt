@@ -43,6 +43,7 @@ class DetailProdukFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Navigation
         val navController = findNavController()
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val headerLayout: View = view.findViewById(R.id.header_layout)
@@ -64,6 +65,9 @@ class DetailProdukFragment : Fragment() {
                 }
             }
         }
+
+        // View Pager Navigation
+
     }
 
     companion object {

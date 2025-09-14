@@ -5,12 +5,17 @@
     <!-- Icon Description -->
     <string name="desc_notification_icon">Notification icon</string>
     <string name="desc_cart_icon">Cart icon</string>
+    <string name="desc_star_icon">Star icon</string>
+    <string name="desc_chev_icon">Chevron icon</string>
 
     <!-- App bar title   -->
     <string name="app_bar_title">Default Title</string>
 
-    <!-- Text   -->
+    <!-- Text Detail Produk -->
     <string name="nama_produk">Nama Produk</string>
     <string name="harga_produk">Rp xxx.xxx.xxx</string>
     <string name="add_to_cart">Masukkan ke Keranjang</string>
+    <string name="rating_text">Dinilai 4.2</string>
+    <string name="review_count">252 Ulasan</string>
+
 </resources>
