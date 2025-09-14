@@ -52,12 +52,16 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             val headerLayout: View = view.findViewById(R.id.header_layout)
             val logo: ImageView = headerLayout.findViewById(R.id.logo_icon)
             val notif: FrameLayout = headerLayout.findViewById(R.id.notification_icon)
+            val cart: FrameLayout = headerLayout.findViewById(R.id.cart_icon)
 
             when (destination.id) {
                 R.id.detailProdukFragment -> {
                     logo.setImageResource(R.drawable.back_icon)
                     logo.setOnClickListener {
                         navController.navigateUp()
+                    }
+                    cart.setOnClickListener {
+                        navController.navigate(R.id.CartFragment)
                     }
                     notif.visibility = View.GONE
                 }
