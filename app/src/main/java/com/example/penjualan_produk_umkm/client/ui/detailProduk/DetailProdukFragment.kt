@@ -7,8 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.navigation.fragment.findNavController
+import androidx.viewpager2.widget.ViewPager2
 import com.example.penjualan_produk_umkm.R
-// ini detail produk
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
@@ -19,7 +22,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [DetailProdukFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class DetailProdukFragment : Fragment() {
+class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -67,7 +70,17 @@ class DetailProdukFragment : Fragment() {
         }
 
         // View Pager Navigation
+        val viewPager: ViewPager2 = view.findViewById(R.id.view_pager)
+        val tabLayout: TabLayout = view.findViewById(R.id.tab_layout)
 
+        viewPager.adapter = DetailPagerAdapter(this)
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Deskripsi"
+                1 -> "Spesifikasi"
+                else -> ""
+            }
+        }.attach()
     }
 
     companion object {

@@ -6,4 +6,20 @@
     </style>
 
     <style name="Theme.Penjualan_Produk_UMKM" parent="Base.Theme.Penjualan_Produk_UMKM" />
+
+    <style name="CustomTabLayout" parent="Widget.MaterialComponents.TabLayout">
+        <item name="tabTextAppearance">@style/CustomTabTextAppearance</item>
+
+        <!-- Indicator -->
+        <item name="tabIndicatorColor">@color/Secondary_1</item>
+
+        <!-- Text colors (unselected / selected) -->
+        <item name="tabTextColor">@color/text_secondary</item>
+        <item name="tabSelectedTextColor">@color/Secondary_1</item>
+    </style>
+
+    <style name="CustomTabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="fontFamily">@font/montserrat_bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

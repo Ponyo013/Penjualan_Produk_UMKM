@@ -19,7 +19,7 @@
     <FrameLayout
         android:id="@+id/notification_icon"
         android:layout_width="41dp"
-        android:layout_height="match_parent"
+        android:layout_height="41dp"
         android:layout_marginEnd="16dp"
         android:background="@drawable/circle_frame"
         app:layout_constraintTop_toTopOf="parent"
@@ -38,7 +38,7 @@
     <FrameLayout
         android:id="@+id/cart_icon"
         android:layout_width="41dp"
-        android:layout_height="match_parent"
+        android:layout_height="41dp"
         android:background="@drawable/circle_frame"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
