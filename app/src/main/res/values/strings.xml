@@ -7,6 +7,8 @@
     <string name="desc_cart_icon">Cart icon</string>
     <string name="desc_star_icon">Star icon</string>
     <string name="desc_chev_icon">Chevron icon</string>
+    <string name="welcomeimg">WelcomeImg</string>
+
 
     <!-- App bar title   -->
     <string name="app_bar_title">Default Title</string>
@@ -20,5 +22,11 @@
     <string name="judul_produk">Judul Produk</string>
     <string name="deskripsi_produk">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
     <string name="heading_spesifikasi">Komponen Sepeda</string>
+
+    <!-- Text Welcome Page   -->
+    <string name="deskripsi_welcome">Temukan pengalaman belanja yang lebih mudah dan efisien bersama kami.</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="welcome_text">Selamat Datang di DwiUsaha</string>
 
 </resources>

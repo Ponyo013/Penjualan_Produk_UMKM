@@ -2,7 +2,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/detailProdukFragment">
+    app:startDestination="@id/welcomeFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.form.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" />
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.form.RegisterFragment"
+        android:label="fragment_register"
+        tools:layout="@layout/fragment_register" />
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.form.WelcomeFragment"
+        android:label="fragment_welcome"
+        tools:layout="@layout/fragment_welcome" />
 
     <fragment
         android:id="@+id/BerandaFragment"
@@ -39,5 +57,6 @@
             android:id="@+id/action_detailProdukFragment_to_BerandaFragment"
             app:destination="@id/BerandaFragment" />
     </fragment>
+
 
 </navigation>
