@@ -2,4 +2,5 @@
 <resources>
     <dimen name="default_margin_x">32dp</dimen>
     <dimen name="default_margin_top">8dp</dimen>
+    <dimen name="default_margin_toolbar">14dp</dimen>
 </resources>

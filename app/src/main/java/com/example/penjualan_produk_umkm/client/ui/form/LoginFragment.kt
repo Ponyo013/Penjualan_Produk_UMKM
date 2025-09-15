@@ -5,6 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.appbar.MaterialToolbar
 import com.example.penjualan_produk_umkm.R
 
 // TODO: Rename parameter arguments, choose names that match
@@ -17,7 +21,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [LoginFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class LoginFragment : Fragment() {
+class LoginFragment : Fragment(R.layout.fragment_login) {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -36,6 +40,17 @@ class LoginFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_login, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
+
+        val navController = findNavController()
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+
+        toolbar.setupWithNavController(navController, appBarConfiguration)
     }
 
     companion object {
