@@ -19,5 +19,6 @@
     <string name="review_count">252 Ulasan</string>
     <string name="judul_produk">Judul Produk</string>
     <string name="deskripsi_produk">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
+    <string name="heading_spesifikasi">Komponen Sepeda</string>
 
 </resources>
