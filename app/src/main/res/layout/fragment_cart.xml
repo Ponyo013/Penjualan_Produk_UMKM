@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".client.ui.beranda.CartFragment">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/topBarFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.TopBarFragment"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:layout_marginHorizontal="14dp"
-        tools:layout="@layout/fragment_top_bar"/>
-</FrameLayout>
+        android:layout_height="?attr/actionBarSize"
+        android:layout_marginHorizontal="@dimen/default_margin_toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/back_icon"
+        app:title="Keranjangku"
+        app:titleTextAppearance="@style/Toolbar.TitleTextStyle"
+        app:titleCentered="true" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

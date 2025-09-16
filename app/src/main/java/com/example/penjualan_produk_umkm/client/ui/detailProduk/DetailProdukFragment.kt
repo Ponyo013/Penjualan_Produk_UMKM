@@ -5,8 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.appbar.MaterialToolbar
 import androidx.viewpager2.widget.ViewPager2
 import com.example.penjualan_produk_umkm.R
 import com.google.android.material.tabs.TabLayout
@@ -46,30 +46,17 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Navigation
-        val navController = findNavController()
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            val headerLayout: View = view.findViewById(R.id.header_layout)
-            val logo: ImageView = headerLayout.findViewById(R.id.logo_icon)
-            val notif: FrameLayout = headerLayout.findViewById(R.id.notification_icon)
-            val cart: FrameLayout = headerLayout.findViewById(R.id.cart_icon)
+        // Tool bar
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar.inflateMenu(R.menu.menu_detailproduk)
 
-            when (destination.id) {
-                R.id.detailProdukFragment -> {
-                    logo.setImageResource(R.drawable.back_icon)
-                    logo.setOnClickListener {
-                        navController.navigateUp()
-                    }
-                    cart.setOnClickListener {
-                        navController.navigate(R.id.CartFragment)
-                    }
-                    notif.visibility = View.GONE
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_cart -> {
+                    findNavController().navigate(R.id.action_detailProdukFragment_to_CartFragment)
+                    true
                 }
-                else -> {
-                    logo.setImageResource(R.drawable.logo)
-                    logo.setOnClickListener(null)
-                    notif.visibility = View.VISIBLE
-                }
+                else -> false
             }
         }
 

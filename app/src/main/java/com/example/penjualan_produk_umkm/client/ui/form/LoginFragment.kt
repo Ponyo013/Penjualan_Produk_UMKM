@@ -90,10 +90,15 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val loginButton = view.findViewById<MaterialButton>(R.id.login_button)
 
         loginButton.setOnClickListener {
-            val username = usernameEditText.text.toString()
-            val password = passwordEditText.text.toString()
+            val username = usernameEditText.text.toString().trim()
+            val password = passwordEditText.text.toString().trim()
 
-            Toast.makeText(requireContext(), "Login berhasil sebagai $username dengan password: $password", Toast.LENGTH_SHORT).show()
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(requireContext(), "Username dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Login berhasil sebagai $username", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_loginFragment_to_BerandaFragment)
+            }
         }
     }
 
