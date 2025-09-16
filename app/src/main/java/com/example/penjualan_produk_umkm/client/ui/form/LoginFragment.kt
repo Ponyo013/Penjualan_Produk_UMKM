@@ -1,15 +1,25 @@
 package com.example.penjualan_produk_umkm.client.ui.form
 
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.appbar.MaterialToolbar
 import com.example.penjualan_produk_umkm.R
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -45,12 +55,46 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Navigation back
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
-
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
-
         toolbar.setupWithNavController(navController, appBarConfiguration)
+
+        // Register hyperlink
+        val tv = view.findViewById<TextView>(R.id.tvNoHaveAccount)
+        val text = getString(R.string.login_hyperlink)
+        val spannable = SpannableString(text)
+
+        val start = text.indexOf("Register")
+        val end = start + "Register".length
+
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = false
+                ds.color = Color.BLUE
+            }
+        }
+        spannable.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        tv.text = spannable
+        tv.movementMethod = LinkMovementMethod.getInstance()
+
+        // === LOGIN BUTTON ===
+        val usernameEditText = view.findViewById<TextInputEditText>(R.id.editTextUsername)
+        val passwordEditText = view.findViewById<TextInputEditText>(R.id.editTextPassword)
+        val loginButton = view.findViewById<MaterialButton>(R.id.login_button)
+
+        loginButton.setOnClickListener {
+            val username = usernameEditText.text.toString()
+            val password = passwordEditText.text.toString()
+
+            Toast.makeText(requireContext(), "Login berhasil sebagai $username dengan password: $password", Toast.LENGTH_SHORT).show()
+        }
     }
 
     companion object {

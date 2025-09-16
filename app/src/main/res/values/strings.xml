@@ -9,7 +9,6 @@
     <string name="desc_chev_icon">Chevron icon</string>
     <string name="welcomeimg">WelcomeImg</string>
 
-
     <!-- App bar title   -->
     <string name="app_bar_title">Default Title</string>
 
@@ -23,14 +22,26 @@
     <string name="deskripsi_produk">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
     <string name="heading_spesifikasi">Komponen Sepeda</string>
 
-    <!-- Text Welcome Page   -->
+    <!-- Text Welcome Page -->
     <string name="deskripsi_welcome">Temukan pengalaman belanja yang lebih mudah dan efisien bersama kami.</string>
     <string name="register">Register</string>
     <string name="login">Login</string>
     <string name="welcome_text">Selamat Datang di DwiUsaha</string>
+
+    <!-- Register -->
     <string name="input_email">Masukkan Username atau Email</string>
     <string name="input_sandi">Masukkan Sandi</string>
     <string name="input_konfirmasi_sandi">Konfirmasi Sandi</string>
     <string name="btn_register">Register</string>
     <string name="heading_text_register">Register Akun</string>
+    <string name="register_heading">Register</string>
+    <string name="register_desc">Silakan buat akun untuk dapat melanjutkan login ke aplikasi.</string>
+    <string name="register_hyperlink">Sudah punya akun? Log in</string>
+
+    <!-- Login -->
+    <string name="login_heading">Login</string>
+    <string name="login_desc">Login ke dalam akun anda</string>
+    <string name="login_button">Login</string>
+    <string name="forgot_password">lupa kata sandi?</string>
+    <string name="login_hyperlink">belum punya akun? Register</string>
 </resources>
