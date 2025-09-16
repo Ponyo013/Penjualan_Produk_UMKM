@@ -9,6 +9,18 @@
         <item name="android:windowBackground">@android:color/white</item>
     </style>
 
+    <style name="Widget.Penjualan_Produk_UMKM.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="shapeAppearance">@style/ShapeAppearance.Penjualan_Produk_UMKM.SmallComponent</item>
+
+        <item name="boxStrokeColor">@color/Secondary_2</item>
+        <item name="hintTextColor">@color/Secondary_2</item>
+    </style>
+
+    <style name="ShapeAppearance.Penjualan_Produk_UMKM.SmallComponent" parent="ShapeAppearance.Material3.Corner.None">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
     <style name="CustomTabLayout" parent="Widget.MaterialComponents.TabLayout">
         <item name="tabTextAppearance">@style/CustomTabTextAppearance</item>
 

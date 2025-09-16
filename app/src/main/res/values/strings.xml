@@ -28,4 +28,9 @@
     <string name="register">Register</string>
     <string name="login">Login</string>
     <string name="welcome_text">Selamat Datang di DwiUsaha</string>
+    <string name="input_email">Masukkan Username atau Email</string>
+    <string name="input_sandi">Masukkan Sandi</string>
+    <string name="input_konfirmasi_sandi">Konfirmasi Sandi</string>
+    <string name="btn_register">Register</string>
+    <string name="heading_text_register">Register Akun</string>
 </resources>
