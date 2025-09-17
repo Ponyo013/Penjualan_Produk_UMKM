@@ -48,11 +48,6 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val headerLayout: View = view.findViewById(R.id.header_layout)
-
-        setupNavigationClick(headerLayout.findViewById(R.id.notification_icon), R.id.action_berandaFragment_to_notificationFragment)
-        setupNavigationClick(headerLayout.findViewById(R.id.cart_icon), R.id.action_BerandaFragment_to_CartFragment)
     }
 
     companion object {
