@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.fragment.findNavController
 import com.example.penjualan_produk_umkm.R
 
@@ -36,8 +37,19 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_beranda, container, false)
+        val view = inflater.inflate(R.layout.fragment_beranda, container, false)
+
+        // Search Bar Using Compose
+        val composeView = view.findViewById<ComposeView>(R.id.compose_search_bar)
+        composeView.setContent {
+            SearchBar(
+                onSearch = { query ->
+                    println("Searching for: $query")
+                }
+            )
+        }
+
+        return view
     }
 
     private fun setupNavigationClick(view: View, destinationId: Int) {
