@@ -46,11 +46,12 @@
     <string name="login_hyperlink">belum punya akun? Register</string>
 
     <!-- Beranda -->
-    <string name="category_produk">Kategori Produk</string>
+    <string name="category_produk">Kategori</string>
     <string name="kategori_sukucd">Sparepart</string>
-    <string name="mtb">Sepeda MTB</string>
-    <string name="bmx">Sepeda BMX</string>
-    <string name="mini">Sepeda Mini</string>
+    <string name="mtb">MTB</string>
+    <string name="bmx">BMX</string>
+    <string name="mini">Mini</string>
     <string name="kids">Sepeda Anak</string>
     <string name="popular_product">Produk Populer</string>
+    <string name="rating_sample">4.8</string>
 </resources>

@@ -49,13 +49,16 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         // Tool bar
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.menu_detailproduk)
-
+        toolbar.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_cart -> {
                     findNavController().navigate(R.id.action_detailProdukFragment_to_CartFragment)
                     true
                 }
+
                 else -> false
             }
         }

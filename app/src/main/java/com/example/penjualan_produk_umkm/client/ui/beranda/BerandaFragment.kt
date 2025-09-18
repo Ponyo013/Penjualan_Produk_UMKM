@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.fragment.findNavController
 import com.example.penjualan_produk_umkm.R
@@ -39,6 +40,12 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_beranda, container, false)
 
+        // Product Card (Sementara ya nanti kita pakai compose)
+        val productsContainer = view.findViewById<LinearLayout>(R.id.products_container)
+        val productCard = layoutInflater.inflate(R.layout.item_product, productsContainer, false)
+
+        productsContainer.addView(productCard)
+
         // Search Bar Using Compose
         val composeView = view.findViewById<ComposeView>(R.id.compose_search_bar)
         composeView.setContent {
@@ -60,6 +67,10 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setupNavigationClick(view.findViewById(R.id.notification_icon), R.id.action_berandaFragment_to_notificationFragment)
+        setupNavigationClick(view.findViewById(R.id.cart_icon), R.id.action_BerandaFragment_to_CartFragment)
+        setupNavigationClick(view.findViewById(R.id.products_container), R.id.action_BerandaFragment_to_detailProdukFragment)
     }
 
     companion object {
