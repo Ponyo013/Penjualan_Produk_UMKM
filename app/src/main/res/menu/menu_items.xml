@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item android:title="Beranda"
+    <item
         android:id="@+id/beranda"
         android:icon="@drawable/home"
-        />
-
-
-    <item android:title="Pesanan"
+        android:title="@string/beranda" />
+    <item
         android:id="@+id/pesanan"
         android:icon="@drawable/pesanan"
-        />
-
-    <item android:title="Profil"
+        android:title="@string/pesanan" />
+    <item
         android:id="@+id/profil"
         android:icon="@drawable/profil"
-        />
-
-    <item android:title="PusatBantuan"
-        android:id="@+id/pusatbantuan"
+        android:title="@string/profil" />
+    <item
+        android:id="@+id/pusat_bantuan"
         android:icon="@drawable/pusatbantuan"
-        />
-
+        android:title="@string/pusatbantuan" />
 </menu>

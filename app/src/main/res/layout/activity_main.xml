@@ -1,34 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#d2d2d2"
+    android:background="#FFFFFFFF"
     tools:context=".MainActivity">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="haloo halooo"
-        android:layout_weight="1"
         android:layout_gravity="center"
-        android:textSize="40sp"/>
+        android:text="haloo halooo"
+        android:textSize="40sp" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottomBarCard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/bottom_navigation"
-        android:layout_margin="30dp"
-        android:background="@drawable/bg_bottom_bar"
-        app:elevation="2dp"
+        android:layout_height="65dp"
         android:layout_gravity="bottom"
-        app:itemIconSize="30dp"
-        app:menu="@menu/menu_items"
-        app:labelVisibilityMode="unlabeled"
-        app:itemIconTint="@drawable/item_selector"/>
+        app:cardCornerRadius="0dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#FFFFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:background="#F3F4F8"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
+
+            <ImageButton
+                android:id="@+id/beranda_icon"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/home"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/beranda"
+                android:padding="0dp"
+                app:tint="@color/bottom_nav_selector" />
+
+            <ImageButton
+                android:id="@+id/pesanan_icon"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/pesanan"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/pesanan"
+                android:padding="0dp"
+                app:tint="@color/bottom_nav_selector" />
+
+            <ImageButton
+                android:id="@+id/profil_icon"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/profil"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/profil"
+                android:padding="0dp"
+                app:tint="@color/bottom_nav_selector" />
+
+            <ImageButton
+                android:id="@+id/pusatbantuan_icon"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/pusatbantuan"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/pusatbantuan"
+                android:padding="0dp"
+                app:tint="@color/bottom_nav_selector" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 
-</LinearLayout>
+</FrameLayout>

@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">Penjualan_Produk_UMKM</string>
+    <string name="beranda">Beranda</string>
+    <string name="pesanan">Pesanan</string>
+    <string name="profil">Profil</string>
+    <string name="pusatbantuan">Pusat Bantuan</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
