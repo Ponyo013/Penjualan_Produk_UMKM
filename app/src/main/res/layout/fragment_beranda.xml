@@ -155,7 +155,6 @@
                             android:text="@string/kategori_sukucd"
                             android:textSize="14sp"
                             android:fontFamily="@font/lato_regular"
-                            android:textStyle="bold"
                             android:textColor="@android:color/black"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -183,7 +182,6 @@
                             android:textAlignment="center"
                             android:textSize="14sp"
                             android:fontFamily="@font/lato_regular"
-                            android:textStyle="bold"
                             android:textColor="@android:color/black"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -211,7 +209,6 @@
                             android:textAlignment="center"
                             android:textSize="14sp"
                             android:fontFamily="@font/lato_regular"
-                            android:textStyle="bold"
                             android:textColor="@android:color/black"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -239,9 +236,7 @@
                             android:text="@string/mini"
                             android:textAlignment="center"
                             android:textSize="14sp"
-
                             android:fontFamily="@font/lato_regular"
-                            android:textStyle="bold"
                             android:textColor="@android:color/black"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -270,7 +265,6 @@
                             android:textAlignment="center"
                             android:textSize="14sp"
                             android:fontFamily="@font/lato_regular"
-                            android:textStyle="bold"
                             android:textColor="@android:color/black"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -294,11 +288,7 @@
                 android:textSize="16sp"
                 android:text="@string/popular_product"
                 android:fontFamily="@font/montserrat_bold"/>
-
-
-
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

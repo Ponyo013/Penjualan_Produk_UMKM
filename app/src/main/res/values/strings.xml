@@ -47,10 +47,10 @@
 
     <!-- Beranda -->
     <string name="category_produk">Kategori Produk</string>
-    <string name="kategori_sukucd">Suku\nCadang</string>
-    <string name="mtb">Sepeda\nMTB</string>
-    <string name="bmx">Sepeda\nBMX</string>
-    <string name="mini">Sepeda\nMini</string>
-    <string name="kids">Sepeda\nAnak</string>
+    <string name="kategori_sukucd">Sparepart</string>
+    <string name="mtb">Sepeda MTB</string>
+    <string name="bmx">Sepeda BMX</string>
+    <string name="mini">Sepeda Mini</string>
+    <string name="kids">Sepeda Anak</string>
     <string name="popular_product">Produk Populer</string>
 </resources>
