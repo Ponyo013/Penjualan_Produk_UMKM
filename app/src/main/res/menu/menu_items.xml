@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item android:title="Beranda"
-        android:id="@+id/beranda"
+        android:id="@+id/BerandaFragment"
         android:icon="@drawable/home"
         />
 
-
     <item android:title="Pesanan"
-        android:id="@+id/pesanan"
+        android:id="@+id/pesananFragment"
         android:icon="@drawable/pesanan"
         />
 
     <item android:title="Profil"
-        android:id="@+id/profil"
+        android:id="@+id/profileFragment"
         android:icon="@drawable/profil"
         />
 
     <item android:title="PusatBantuan"
-        android:id="@+id/pusatbantuan"
+        android:id="@+id/pusatBantuanFragment"
         android:icon="@drawable/pusatbantuan"
         />
-
 </menu>
