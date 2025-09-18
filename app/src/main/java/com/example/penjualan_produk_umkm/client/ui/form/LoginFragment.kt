@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -97,7 +98,13 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 Toast.makeText(requireContext(), "Username dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Login berhasil sebagai $username", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_loginFragment_to_BerandaFragment)
+                findNavController().navigate(
+                    R.id.action_loginFragment_to_BerandaFragment,
+                    null,
+                    NavOptions.Builder()
+                        .setPopUpTo(R.id.welcomeFragment, true) // hapus login dari backstack
+                        .build()
+                )
             }
         }
     }
