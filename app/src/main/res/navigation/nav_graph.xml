@@ -1,0 +1,80 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/BerandaFragment">
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.form.WelcomeFragment"
+        tools:layout="@layout/fragment_welcome" >
+        <action
+            android:id="@+id/action_welcomeFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_welcomeFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.form.LoginFragment"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_BerandaFragment"
+            app:destination="@id/BerandaFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.form.RegisterFragment"
+        tools:layout="@layout/fragment_register" >
+        <action
+            android:id="@+id/action_registerFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/BerandaFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.BerandaFragment"
+        android:label="BerandaFragment"
+        tools:layout="@layout/fragment_beranda">
+
+        <action
+            android:id="@+id/action_berandaFragment_to_notificationFragment"
+            app:destination="@id/NotificationFragment" />
+        <action
+            android:id="@+id/action_BerandaFragment_to_CartFragment"
+            app:destination="@id/CartFragment" />
+        <action
+            android:id="@+id/action_BerandaFragment_to_detailProdukFragment"
+            app:destination="@id/detailProdukFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/NotificationFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.NotificationFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notification"/>
+
+    <fragment
+        android:id="@+id/CartFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.CartFragment"
+        android:label="Cart"
+        tools:layout="@layout/fragment_cart"/>
+
+    <fragment
+        android:id="@+id/detailProdukFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.detailProduk.DetailProdukFragment"
+        android:label="detailProduk"
+        tools:layout="@layout/fragment_detail_produk">
+        <action
+            android:id="@+id/action_detailProdukFragment_to_CartFragment"
+            app:destination="@id/CartFragment" />
+    </fragment>
+
+
+</navigation>

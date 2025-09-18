@@ -5,7 +5,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
+import androidx.compose.ui.platform.ComposeView
+import androidx.navigation.fragment.findNavController
 import com.example.penjualan_produk_umkm.R
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -17,7 +21,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [BerandaFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class BerandaFragment : Fragment() {
+class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -34,8 +38,39 @@ class BerandaFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_beranda, container, false)
+        val view = inflater.inflate(R.layout.fragment_beranda, container, false)
+
+        // Product Card (Sementara ya nanti kita pakai compose)
+        val productsContainer = view.findViewById<LinearLayout>(R.id.products_container)
+        val productCard = layoutInflater.inflate(R.layout.item_product, productsContainer, false)
+
+        productsContainer.addView(productCard)
+
+        // Search Bar Using Compose
+        val composeView = view.findViewById<ComposeView>(R.id.compose_search_bar)
+        composeView.setContent {
+            SearchBar(
+                onSearch = { query ->
+                    println("Searching for: $query")
+                }
+            )
+        }
+
+        return view
+    }
+
+    private fun setupNavigationClick(view: View, destinationId: Int) {
+        view.setOnClickListener {
+            findNavController().navigate(destinationId)
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupNavigationClick(view.findViewById(R.id.notification_icon), R.id.action_berandaFragment_to_notificationFragment)
+        setupNavigationClick(view.findViewById(R.id.cart_icon), R.id.action_BerandaFragment_to_CartFragment)
+        setupNavigationClick(view.findViewById(R.id.products_container), R.id.action_BerandaFragment_to_detailProdukFragment)
     }
 
     companion object {

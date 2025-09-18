@@ -1,5 +1,57 @@
 <resources>
     <string name="app_name">Penjualan_Produk_UMKM</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Icon Description -->
+    <string name="desc_notification_icon">Notification icon</string>
+    <string name="desc_cart_icon">Cart icon</string>
+    <string name="desc_star_icon">Star icon</string>
+    <string name="desc_chev_icon">Chevron icon</string>
+    <string name="welcomeimg">WelcomeImg</string>
+
+    <!-- App bar title   -->
+    <string name="app_bar_title">Default Title</string>
+
+    <!-- Text Detail Produk -->
+    <string name="nama_produk">Nama Produk</string>
+    <string name="harga_produk">Rp xxx.xxx.xxx</string>
+    <string name="add_to_cart">Masukkan ke Keranjang</string>
+    <string name="rating_text">Dinilai 4.2</string>
+    <string name="review_count">252 Ulasan</string>
+    <string name="judul_produk">Judul Produk</string>
+    <string name="deskripsi_produk">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
+    <string name="heading_spesifikasi">Komponen Sepeda</string>
+
+    <!-- Text Welcome Page -->
+    <string name="deskripsi_welcome">Temukan pengalaman belanja yang lebih mudah dan efisien bersama kami.</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="welcome_text">Selamat Datang di DwiUsaha</string>
+
+    <!-- Register -->
+    <string name="input_email">Masukkan Username atau Email</string>
+    <string name="input_sandi">Masukkan Sandi</string>
+    <string name="input_konfirmasi_sandi">Konfirmasi Sandi</string>
+    <string name="btn_register">Register</string>
+    <string name="heading_text_register">Register Akun</string>
+    <string name="register_heading">Register</string>
+    <string name="register_desc">Silakan buat akun untuk dapat melanjutkan login ke aplikasi.</string>
+    <string name="register_hyperlink">Sudah punya akun? Log in</string>
+
+    <!-- Login -->
+    <string name="login_heading">Login</string>
+    <string name="login_desc">Login ke dalam akun anda</string>
+    <string name="login_button">Login</string>
+    <string name="forgot_password">lupa kata sandi?</string>
+    <string name="login_hyperlink">belum punya akun? Register</string>
+
+    <!-- Beranda -->
+    <string name="category_produk">Kategori</string>
+    <string name="kategori_sukucd">Sparepart</string>
+    <string name="mtb">MTB</string>
+    <string name="bmx">BMX</string>
+    <string name="mini">Mini</string>
+    <string name="kids">Sepeda Anak</string>
+    <string name="popular_product">Produk Populer</string>
+    <string name="rating_sample">4.8</string>
 </resources>
