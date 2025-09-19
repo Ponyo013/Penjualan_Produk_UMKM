@@ -76,22 +76,5 @@
             app:destination="@id/CartFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/pesananFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.pesanan.PesananFragment"
-        android:label="fragment_pesanan"
-        tools:layout="@layout/fragment_pesanan" />
-
-    <fragment
-        android:id="@+id/profileFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.profile.ProfileFragment"
-        android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
-
-    <fragment
-        android:id="@+id/pusatBantuanFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.pusatBantuan.PusatBantuanFragment"
-        android:label="fragment_pusat_bantuan"
-        tools:layout="@layout/fragment_pusat_bantuan" />
 
 </navigation>
