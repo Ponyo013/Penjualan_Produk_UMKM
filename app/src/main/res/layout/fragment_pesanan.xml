@@ -5,10 +5,14 @@
     android:layout_height="match_parent"
     tools:context=".client.ui.pesanan.PesananFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:text="@string/pesanan_head"
+        android:paddingVertical="14dp"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:textAlignment="center"
+        android:fontFamily="@font/montserrat_bold"/>
 
 </FrameLayout>

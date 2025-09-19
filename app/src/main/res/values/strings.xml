@@ -54,4 +54,11 @@
     <string name="kids">Sepeda Anak</string>
     <string name="popular_product">Produk Populer</string>
     <string name="rating_sample">4.8</string>
+    <string name="beranda">beranda nav</string>
+    <string name="pesanan">pesanan nav</string>
+    <string name="profil">profil nav</string>
+    <string name="pusatbantuan">pusat nav</string>
+    <string name="pesanan_head">Pesanan</string>
+    <string name="profile_heading">Profile</string>
+    <string name="pusatBantuan_heading">Pusat Bantuan</string>
 </resources>
