@@ -5,39 +5,6 @@
     app:startDestination="@id/BerandaFragment">
 
     <fragment
-        android:id="@+id/welcomeFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.form.WelcomeFragment"
-        tools:layout="@layout/fragment_welcome" >
-        <action
-            android:id="@+id/action_welcomeFragment_to_registerFragment"
-            app:destination="@id/registerFragment" />
-        <action
-            android:id="@+id/action_welcomeFragment_to_loginFragment"
-            app:destination="@id/loginFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/loginFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.form.LoginFragment"
-        tools:layout="@layout/fragment_login" >
-        <action
-            android:id="@+id/action_loginFragment_to_registerFragment"
-            app:destination="@id/registerFragment" />
-        <action
-            android:id="@+id/action_loginFragment_to_BerandaFragment"
-            app:destination="@id/BerandaFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/registerFragment"
-        android:name="com.example.penjualan_produk_umkm.client.ui.form.RegisterFragment"
-        tools:layout="@layout/fragment_register" >
-        <action
-            android:id="@+id/action_registerFragment_to_loginFragment"
-            app:destination="@id/loginFragment" />
-    </fragment>
-
-    <fragment
         android:id="@+id/BerandaFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.BerandaFragment"
         android:label="BerandaFragment"

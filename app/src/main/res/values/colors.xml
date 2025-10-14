@@ -6,7 +6,12 @@
     <color name="Secondary_1">#1E2E4F</color>
     <color name="Secondary_2">#3B507D</color>
     <color name="Secondary_3">#031C38</color>
-    <color name="text_secondary">#C6C5C6</color>
+
+    <!-- For Text   -->
+    <color name="text_secondary">#8C8C8C</color>
+    <color name="text_secondary_dark">#4A4A4A</color>
     <color name="text_description">#424242</color>
+
+    <!-- Logo -->
     <color name="star">#FDCC0D</color>
 </resources>

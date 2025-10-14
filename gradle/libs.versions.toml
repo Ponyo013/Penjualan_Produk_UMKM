@@ -4,19 +4,20 @@ kotlin = "2.2.20"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
 material = "1.13.0"
-material3 = "1.3.2"
+material3 = "1.4.0"
 constraintlayout = "2.2.1"
-navigation = "2.9.4"
+navigation = "2.9.5"
 activityCompose = "1.11.0"
 lifecycleViewmodelCompose = "2.9.4"
-composeUi = "1.9.1"
-composeFoundation = "1.9.1"
-composeRuntime = "1.9.1"
+composeUi = "1.9.3"
+composeFoundation = "1.9.3"
+composeRuntime = "1.9.3"
 junit = "4.13.2"
 androidxJunit = "1.3.0"
 espressoCore = "3.7.0"
-uiToolingPreview = "1.9.1"
-uiTooling = "1.9.1"
+uiToolingPreview = "1.9.3"
+uiTooling = "1.9.3"
+activity = "1.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +41,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "a
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

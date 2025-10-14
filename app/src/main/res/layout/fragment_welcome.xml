@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout  xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".client.ui.form.WelcomeFragment">
+    tools:context=".auth.WelcomeFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginHorizontal="@dimen/default_margin_x">
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- On board Image -->
         <ImageView
             android:id="@+id/img_welcome"
             android:layout_width="350dp"
             android:layout_height="350dp"
-            android:layout_marginTop="80dp"
+
             android:contentDescription="@string/welcomeimg"
             android:src="@drawable/welcome"
             app:layout_constraintEnd_toEndOf="parent"
@@ -47,49 +50,13 @@
             android:fontFamily="@font/lato_regular"
             android:gravity="center"
             android:text="@string/deskripsi_welcome"
-            android:textColor="@android:color/secondary_text_dark"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp"
             android:textStyle="bold"
+            android:layout_marginHorizontal="@dimen/default_margin_x"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_heading" />
 
-        <!-- Login Button -->
-        <Button
-            android:id="@+id/btn_login"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:backgroundTint="@color/Secondary_1"
-            android:fontFamily="@font/montserrat_bold"
-            android:paddingVertical="16dp"
-            android:text="@string/login"
-            android:textAllCaps="false"
-            android:textSize="20sp"
-            app:cornerRadius="20dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_description"
-            app:layout_constraintWidth_max="320dp" />
-
-        <!-- Register Button -->
-        <Button
-            android:id="@+id/btn_register"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:backgroundTint="@color/Secondary_2"
-            android:fontFamily="@font/montserrat_bold"
-            android:paddingVertical="16dp"
-            android:text="@string/register"
-            android:textAllCaps="false"
-            android:textSize="20sp"
-            app:cornerRadius="20dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_login"
-            app:layout_constraintWidth_max="320dp" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout >
