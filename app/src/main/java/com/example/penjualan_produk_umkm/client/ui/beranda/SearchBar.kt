@@ -7,17 +7,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.TextFieldDefaults
-import com.example.penjualan_produk_umkm.client.ui.*
 import androidx.compose.material3.Text
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import  com.example.penjualan_produk_umkm.client.ui.montserrat
+import com.example.penjualan_produk_umkm.style.Secondary2
+import com.example.penjualan_produk_umkm.style.Secondary3
+import  com.example.penjualan_produk_umkm.style.Montserrat
 
 @Preview
 @Composable
@@ -45,7 +46,7 @@ fun SearchBar(
                 text = "Cari Produk...",
                 color = Secondary3,
                 fontSize = 14.sp,
-                fontFamily = montserrat,
+                fontFamily = Montserrat,
                 )
         },
         leadingIcon = {
@@ -66,7 +67,7 @@ fun SearchBar(
         ),
         textStyle = LocalTextStyle.current.copy(
             fontSize = 16.sp,
-            fontFamily = montserrat,
+            fontFamily = Montserrat,
             color = Secondary3
         ),
         trailingIcon = {

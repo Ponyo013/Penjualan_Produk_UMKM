@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
     // Compose
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.foundation)
@@ -60,6 +61,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.foundation.layout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
