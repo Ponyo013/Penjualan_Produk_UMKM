@@ -24,6 +24,9 @@ val LightColors = lightColorScheme(
     secondary = Secondary3,
     onSecondary = White,
 
+    tertiary = Secondary1,
+    onTertiary = White,
+
     background = White,
     onBackground = Black,
 

@@ -2,16 +2,23 @@ package com.example.penjualan_produk_umkm.owner.dashboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.AllInbox
+import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.Markunread
+import androidx.compose.material.icons.outlined.MonetizationOn
+import androidx.compose.material.icons.outlined.StarRate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.style.UMKMTheme
@@ -53,7 +61,8 @@ fun DashboardScreen(navController: NavController) {
                     // Icon Icon
                     actions = {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -67,6 +76,23 @@ fun DashboardScreen(navController: NavController) {
                                 Image(
                                     painter = painterResource(id = R.drawable.notification_icon),
                                     contentDescription = "Icon Notifikasi"
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Settings,
+                                    contentDescription = "Icon Pencarian",
+                                    tint = MaterialTheme.colorScheme.primary
+
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
@@ -85,51 +111,8 @@ fun DashboardScreen(navController: NavController) {
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Ringkasan omset dan pesanan
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Omset",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                        Text(
-                            text = "Rp 1.250.000",
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        )
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            // Ambil Tanggal
-                            Tanggal()
-
-                            Text(
-                                text = "10 pesanan",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                )
-                            )
-                        }
-
-
-                    }
-                }
+                // Ringkasan Omset Pesanan
+                RingkasanOmsetPesanan()
 
                 // Card Status Pesanan
                 Card(
@@ -165,12 +148,23 @@ fun DashboardScreen(navController: NavController) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
-                            
                         ) {
                             StatusKategoriList()
                         }
-
                     }
+                }
+
+                // Grafik penjualan/Jumlah Pengunjung/Jumlah Produk terjual/Jumlah ulasan baru/ Rata rata rating toko
+
+                // Buttons - Produk, Keuangan, Peforma Toko
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Buttons(navController = navController as NavHostController)
                 }
             }
 
@@ -190,6 +184,143 @@ private fun Tanggal() {
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
         )
     )
+}
+
+@Composable
+fun Buttons(navController: NavHostController){
+    val buttonKategori = listOf(
+        "Produk" to Icons.Filled.AllInbox,
+        "Keuangan" to Icons.Outlined.MonetizationOn,
+        "Peforma" to Icons.Filled.AutoGraph,
+        "Pesan" to Icons.Outlined.Markunread,
+        "Ulasan" to Icons.Outlined.StarRate,
+    )
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Row 1 (3 buttons)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            buttonKategori.take(3).forEach { (label, ikon) ->
+                OptButton(label, ikon) {
+                    if (label == "Produk") {
+                        navController.navigate("produkManage")
+                    }
+                }
+            }
+        }
+
+        // Row 2 (2 buttons)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            buttonKategori.drop(3).forEach { (label, ikon) ->
+                OptButton(label, ikon) {
+                    if (label == "Pesan") {
+                        navController.navigate("pesan")
+                    } else if (label == "Ulasan") {
+                        navController.navigate("ulasan")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
+    Column(
+        modifier = Modifier
+            .clickable { onClick() }
+            .wrapContentWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier.wrapContentWidth()
+                .background(
+                    MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = ikon,
+                contentDescription = label,
+                tint = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .size(28.dp)
+            )
+        }
+
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Medium
+            )
+        )
+    }
+}
+
+@Composable
+fun RingkasanOmsetPesanan(){
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Omset",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Text(
+                text = "Rp 1.250.000",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Ambil Tanggal
+                Tanggal()
+
+                Text(
+                    text = "10 pesanan",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                )
+            }
+
+
+        }
+    }
 }
 
 @Composable
@@ -221,7 +352,7 @@ fun StatusItem(icon: ImageVector, label: String, count: Int) {
     Column(
         modifier = Modifier.wrapContentWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Icon(
             imageVector = icon,
@@ -229,18 +360,16 @@ fun StatusItem(icon: ImageVector, label: String, count: Int) {
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .size(28.dp)
-                .padding(bottom = 4.dp)
         )
         Text(
             text = "$label: $count",
             style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Medium
             )
         )
     }
 }
-
 
 @Preview
 @Composable
@@ -248,3 +377,4 @@ fun DashboardScreenPreview() {
     val fakeNavController = rememberNavController()
     DashboardScreen(navController = fakeNavController)
 }
+

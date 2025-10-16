@@ -11,7 +11,9 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.penjualan_produk_umkm.owner.dashboard.AddProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.DashboardScreen
+import com.example.penjualan_produk_umkm.owner.dashboard.ProdukManage
 
 class OwnerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +27,8 @@ class OwnerActivity : AppCompatActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     NavHost(navController = navController, startDestination = "dashboard") {
                         composable("dashboard") { DashboardScreen(navController) }
+                        composable("produkManage") { ProdukManage(navController) }
+                        composable("addProduk") { AddProdukScreen(navController) }
                     }
                 }
         }

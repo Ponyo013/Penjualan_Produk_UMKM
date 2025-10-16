@@ -1,4 +1,4 @@
-package com.example.penjualan_produk_umkm.client.ui.beranda
+package com.example.penjualan_produk_umkm.uiComponent
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
