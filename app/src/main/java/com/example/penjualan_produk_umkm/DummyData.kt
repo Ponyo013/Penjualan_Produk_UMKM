@@ -2,7 +2,6 @@ package com.example.penjualan_produk_umkm
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.penjualan_produk_umkm.model.*
-import java.util.*
 
 val produkDummyList = mutableStateListOf(
     Produk(1, "Sepeda Gunung", "Sepeda untuk medan berat", 1500000.0, 10, "Sepeda", ""),
