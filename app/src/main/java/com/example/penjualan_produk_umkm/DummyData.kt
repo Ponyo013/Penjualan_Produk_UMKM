@@ -2,6 +2,7 @@ package com.example.penjualan_produk_umkm
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.penjualan_produk_umkm.model.*
+import org.threeten.bp.LocalDate
 
 val produkDummyList = mutableStateListOf(
     Produk(1, "Sepeda Gunung", "Sepeda untuk medan berat", 1500000.0, 10, "Sepeda", ""),
@@ -29,33 +30,37 @@ val dummyItems = listOf(
     ItemPesanan(produkDummyList[2], 3)
 )
 
-val dummyPesanan = mutableStateListOf(
+val dummyPesanan = listOf(
     Pesanan(
         id = 1,
         user = dummyUsers["user1@example.com"]!!,
         items = listOf(dummyItems[0], dummyItems[1]),
         status = StatusPesanan.DIPROSES,
-        ekspedisi = ekspedisiDummy[0] // JNE
+        ekspedisi = ekspedisiDummy[0], // JNE
+        tanggal = LocalDate.of(2025, 10, 14)
     ),
     Pesanan(
         id = 2,
         user = dummyUsers["user2@example.com"]!!,
         items = listOf(dummyItems[2]),
         status = StatusPesanan.DIKIRIM,
-        ekspedisi = ekspedisiDummy[1] // J&T
+        ekspedisi = ekspedisiDummy[1], // J&T
+        tanggal = LocalDate.of(2025, 10, 15)
     ),
     Pesanan(
         id = 3,
         user = dummyUsers["user3@example.com"]!!,
         items = listOf(dummyItems[1], dummyItems[2]),
         status = StatusPesanan.SELESAI,
-        ekspedisi = ekspedisiDummy[2] // SiCepat
+        ekspedisi = ekspedisiDummy[2], // SiCepat
+        tanggal = LocalDate.of(2025, 10, 12)
     ),
     Pesanan(
         id = 4,
         user = dummyUsers["user1@example.com"]!!,
         items = listOf(dummyItems[0], dummyItems[2]),
         status = StatusPesanan.DIBATALKAN,
-        ekspedisi = ekspedisiDummy[0] // JNE
+        ekspedisi = ekspedisiDummy[0], // JNE
+        tanggal = LocalDate.of(2025, 10, 13)
     )
 )

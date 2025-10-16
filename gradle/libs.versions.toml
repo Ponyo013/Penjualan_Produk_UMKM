@@ -23,6 +23,7 @@ foundationLayout = "1.9.3"
 compose = "1.7.8"
 coil = "2.7.0"
 material3Version = "1.4.0"
+threetenabp = "1.4.9"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,8 +53,10 @@ androidx-foundation-layout = { group = "androidx.compose.foundation", name = "fo
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
+threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
