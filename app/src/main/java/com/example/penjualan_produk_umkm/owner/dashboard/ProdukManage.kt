@@ -18,10 +18,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.RemoveRedEye
 import androidx.compose.material.icons.outlined.StarRate
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -104,12 +106,14 @@ fun ProdukManage(navController: NavHostController) {
                     // Produk List
                     ProdukList(
                         produkItems = produkDummyList,
-                        onEditClick = { produk -> },
-                        onHapusClick = { produk -> }
+                        onEditClick = { produk ->
+
+                        },
+                        onHapusClick = { produk -> produkDummyList.remove(produk) },
+                        navController
                     )
                 }
             }
-
         }
     }
 }
@@ -162,7 +166,7 @@ fun SearchBar() {
 
 @Composable
 fun ProdukList(
-    produkItems: List<Produk>, onEditClick: (Produk) -> Unit, onHapusClick: (Produk) -> Unit
+    produkItems: List<Produk>, onEditClick: (Produk) -> Unit, onHapusClick: (Produk) -> Unit, navController: NavHostController
 ) {
     if (produkItems.isEmpty()) {
         Box(
@@ -314,17 +318,32 @@ fun ProdukList(
                                 modifier = Modifier.wrapContentWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // Edit
                                 Button(
-                                    onClick = { onEditClick(produk) }, modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        navController.navigate("edit_produk/${produk.id}")
+                                    }, modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(text = "Edit")
                                 }
 
+
+                                var showDeleteDialog by remember { mutableStateOf(false) }
+
+                                // Modal Dialog sebelum diHpaus
+                                if (showDeleteDialog) {
+                                    DeleteWarningDialog(
+                                        showDialog = true,
+                                        onDismiss = { showDeleteDialog = false },
+                                        onConfirm = {
+                                            produkDummyList.remove(produk)
+                                        }
+                                    )
+                                }
+
                                 // Hapus
                                 OutlinedButton(
-                                    onClick = { onHapusClick(produk) },
+                                    onClick = { showDeleteDialog = true },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.outlinedButtonColors(
                                         containerColor = Color.Transparent, contentColor = Color.Red
@@ -342,6 +361,67 @@ fun ProdukList(
         }
     }
 }
+
+@Composable
+fun DeleteWarningDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Warning",
+                    tint = Color(0xFFFF6F00), // oranye
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Hapus Produk?",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color(0xFFD32F2F) // merah tua
+                )
+            },
+            text = {
+                Text(
+                    text = "Tindakan ini tidak dapat dibatalkan. Yakin ingin menghapus produk ini?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onConfirm()
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F) // merah
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Hapus", color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color.Gray)
+                ) {
+                    Text("Batal", color = Color.Gray)
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    }
+}
+
 
 @Preview
 @Composable
