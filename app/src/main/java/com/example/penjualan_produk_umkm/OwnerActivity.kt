@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.owner.dashboard.AddProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.DashboardScreen
+import com.example.penjualan_produk_umkm.owner.dashboard.EditProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.ProdukManage
 
 class OwnerActivity : AppCompatActivity() {
@@ -29,6 +30,25 @@ class OwnerActivity : AppCompatActivity() {
                         composable("dashboard") { DashboardScreen(navController) }
                         composable("produkManage") { ProdukManage(navController) }
                         composable("addProduk") { AddProdukScreen(navController) }
+
+                        composable("edit_produk/{produkId}") { backStackEntry ->
+                            val produkId = backStackEntry.arguments?.getString("produkId")?.toIntOrNull()
+                            val produk = produkDummyList.find { it.id == produkId }
+                            if (produk != null) {
+                                EditProdukScreen(
+                                    produk = produk,
+                                    onSave = { updated ->
+                                        val index = produkDummyList.indexOfFirst { it.id == produk.id }
+                                        if (index != -1) {
+                                            produkDummyList[index] = updated
+                                        }
+                                    },
+                                    onCancel = { navController.popBackStack() },
+                                    navController = navController
+                                )
+                            }
+                        }
+
                     }
                 }
         }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,7 +55,7 @@ fun AddProdukScreen(navController: NavHostController) {
                     .padding(padding)
                     .padding(16.dp),
             ) {
-                Form()
+                Form(navController)
             }
         }
     }
@@ -62,7 +63,7 @@ fun AddProdukScreen(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Form(){
+fun Form(navController: NavHostController){
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
     var harga by remember { mutableStateOf("") }
@@ -85,13 +86,14 @@ fun Form(){
     Column(
         modifier = Modifier
             .fillMaxSize().verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
 
     ) {
         // Card Pilih Gambar
         Box(
             modifier = Modifier
                 .size(150.dp)
+                .align(Alignment.CenterHorizontally)
                 .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
                 .clickable { launcher.launch("image/*") },
             contentAlignment = Alignment.Center
@@ -193,7 +195,8 @@ fun Form(){
             }
         }
 
-        // Tombol Simpan
+        Spacer(modifier = Modifier.height(12.dp))
+        // Tombol Tambahkan produk baru
         Button(
             onClick = {
                 if (nama.isNotBlank() && deskripsi.isNotBlank() && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()) {
@@ -229,16 +232,48 @@ fun Form(){
 fun ProdukBerhasilDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Berhasil") },
-        text = { Text("Barang telah ditambahkan") },
+        icon = {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "Success",
+                tint = Color(0xFF4CAF50), // hijau
+                modifier = Modifier.size(64.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Berhasil!",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(0xFF388E3C), // hijau tua
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Text(
+                text = "Barang telah berhasil ditambahkan ke daftar produk.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = "OK")
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50) // hijau utama
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text("OK", color = Color.White)
             }
         },
-        shape = RoundedCornerShape(16.dp),
-        containerColor = MaterialTheme.colorScheme.primaryContainer
+        shape = RoundedCornerShape(20.dp),
+        containerColor = Color(0xFFF1F8E9)
     )
 }
 
