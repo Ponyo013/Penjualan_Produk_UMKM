@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.LocalShipping
@@ -95,14 +97,25 @@ fun CardPesananMasuk(selectedTab: String) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(filteredPesanan) { pesanan ->
-            CardPesanan(pesanan)
+            CardPesanan(
+                pesanan = pesanan,
+                onStatusChange = { newStatus ->
+                    val index = dummyPesanan.indexOf(pesanan)
+                    if (index != -1) {
+                        dummyPesanan[index] = pesanan.copy(status = newStatus)
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun CardPesanan(pesanan: Pesanan) {
-    
+fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
+
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedStatus by remember { mutableStateOf(pesanan.status) }
+
     Card(
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -178,6 +191,92 @@ fun CardPesanan(pesanan: Pesanan) {
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
+
+            // Button untuk mengubah status
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { showDialog = true },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Ubah Status Pesanan")
+            }
+
+            // Dialog Mengubah status pesanan
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = {
+                        Text(
+                            "Edit Status Pesanan",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    text = {
+                        var expanded by remember { mutableStateOf(false) }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Box {
+                                OutlinedButton(
+                                    onClick = { expanded = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    )
+                                ) {
+                                    Text(selectedStatus.name, modifier = Modifier.weight(1f))
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Dropdown Icon"
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false },
+                                    modifier = Modifier
+                                        .background(MaterialTheme.colorScheme.surface)
+                                ) {
+                                    StatusPesanan.entries.forEach { status ->
+                                        DropdownMenuItem(
+                                            text = { Text(status.name) },
+                                            onClick = {
+                                                selectedStatus = status
+                                                expanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                onStatusChange(selectedStatus)
+                                showDialog = false
+                            }
+                        ) {
+                            Text("Simpan")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("Batal")
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            }
+
+
         }
     }
 }
@@ -220,6 +319,7 @@ fun TabPesanan(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewListPesanan() {
