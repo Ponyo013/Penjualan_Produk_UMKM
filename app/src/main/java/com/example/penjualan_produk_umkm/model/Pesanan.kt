@@ -1,7 +1,6 @@
 package com.example.penjualan_produk_umkm.model
 
-import java.util.*
-
+import org.threeten.bp.LocalDate
 enum class StatusPesanan {
     DIPROSES,
     DIKIRIM,
@@ -9,12 +8,12 @@ enum class StatusPesanan {
     DIBATALKAN
 }
 
-data class Pesanan(
+data class Pesanan (
     val id: Int,
     val user: User,
     val items: List<ItemPesanan>,
     val totalHarga: Double = items.sumOf { it.subtotal },
     val status: StatusPesanan = StatusPesanan.DIPROSES,
-    val tanggal: Date = Date(),
+    val tanggal: LocalDate = LocalDate.now(),
     val ekspedisi: Ekspedisi? = null
 )

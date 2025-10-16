@@ -106,9 +106,7 @@ fun ProdukManage(navController: NavHostController) {
                     // Produk List
                     ProdukList(
                         produkItems = produkDummyList,
-                        onEditClick = { produk ->
-
-                        },
+                        onEditClick = { produk -> navController.navigate("edit_produk/${produk.id}") },
                         onHapusClick = { produk -> produkDummyList.remove(produk) },
                         navController
                     )

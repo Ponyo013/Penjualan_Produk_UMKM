@@ -329,8 +329,8 @@ fun RingkasanOmsetPesanan(){
 @Composable
 fun StatusKategoriList() {
     val kategoriList = listOf(
-        Triple("Baru", Icons.Filled.AccessTime, 5),
-        Triple("Proses", Icons.Outlined.LocalShipping, 3),
+        Triple("proses", Icons.Filled.AccessTime, 5),
+        Triple("kirim", Icons.Outlined.LocalShipping, 3),
         Triple("Selesai", Icons.Filled.CheckCircle, 10),
         Triple("Batal", Icons.Filled.Cancel, 1)
     )
