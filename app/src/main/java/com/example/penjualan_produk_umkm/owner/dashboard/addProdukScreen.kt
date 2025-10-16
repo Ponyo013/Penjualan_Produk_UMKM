@@ -213,7 +213,7 @@ fun Form(){
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
         ) {
-            Text("Simpan Produk")
+            Text("Tambahkan Produk")
         }
     }
 
