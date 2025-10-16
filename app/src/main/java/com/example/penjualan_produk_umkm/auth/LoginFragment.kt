@@ -69,21 +69,21 @@ class LoginFragment : Fragment() {
 
         // TODO ini adalah debug
         // Debugging biar langsung login
-        if (!DEBUG_LOGIN_USER) {
-            view.post {
-                binding.editTextUsername.setText("user@example.com")
-                binding.editTextPassword.setText("123456")
-                performLogin()
-            }
-        }
-
-        if (DEBUG_LOGIN_OWNER) {
-            view.post {
-                binding.editTextUsername.setText("owner@example.com")
-                binding.editTextPassword.setText("owner123")
-                performLogin()
-            }
-        }
+//        if (!DEBUG_LOGIN_USER) {
+//            view.post {
+//                binding.editTextUsername.setText("user@example.com")
+//                binding.editTextPassword.setText("123456")
+//                performLogin()
+//            }
+//        }
+//
+//        if (DEBUG_LOGIN_OWNER) {
+//            view.post {
+//                binding.editTextUsername.setText("owner@example.com")
+//                binding.editTextPassword.setText("owner123")
+//                performLogin()
+//            }
+//        }
 
     }
 
@@ -121,17 +121,19 @@ class LoginFragment : Fragment() {
     }
 
     private fun performLogin() {
-        val email = binding.editTextUsername.text.toString().trim()
+        val input = binding.editTextUsername.text.toString().trim()
         val password = binding.editTextPassword.text.toString().trim()
 
         val users = dummyUsers
 
-        if (users.isEmpty()) {
+        if (users.isNullOrEmpty()) {
             showToast("No users registered yet")
             return
         }
 
-        val user = users[email]
+        // Cari user berdasarkan email (key) atau noTelepon
+        val user = users[input] ?: users.values.find { it.noTelepon == input }
+
         if (user != null && user.password == password) {
             showToast("Login successful!")
 

@@ -22,8 +22,25 @@ class AuthActivity : AppCompatActivity() {
         }
 
         // For Debug
-        dummyUsers["user@example.com"] = User("123456", "user")
-        dummyUsers["owner@example.com"] = User("owner123", "owner")
+        dummyUsers["user@example.com"] = User(
+            id = 1,
+            nama = "John Doe",
+            email = "user@example.com",
+            password = "123456",
+            role = "user",
+            noTelepon = "081234567890",
+            alamat = "Jl. Contoh No.1",
+        )
+
+        dummyUsers["owner@example.com"] = User(
+            id = 2,
+            nama = "Owner Toko",
+            email = "owner@example.com",
+            password = "owner123",
+            role = "owner",
+            noTelepon = "081298765432",
+            alamat = "Jl. Toko No.2",
+        )
 
         if (savedInstanceState == null) {
             replaceFragment(LoginFragment())
