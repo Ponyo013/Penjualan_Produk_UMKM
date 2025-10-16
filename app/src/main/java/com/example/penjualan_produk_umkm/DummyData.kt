@@ -13,9 +13,9 @@ val produkDummyList = mutableStateListOf(
 )
 
 val dummyUsers = mutableMapOf(
-    "user1@example.com" to User(1, "Andi", "user1@example.com", "password123", "customer", "081234567890"),
-    "user2@example.com" to User(2, "Budi", "user2@example.com", "password123", "customer", "081234567891"),
-    "user3@example.com" to User(3, "Citra", "user3@example.com", "password123", "customer", "081234567892")
+    "user1@example.com" to User(1, "Andi", "user1@example.com", "password123", "customer", "081234567890", "Jl. Melati No. 10, Jakarta"),
+    "user2@example.com" to User(2, "Budi", "user2@example.com", "password123", "customer", "081234567891", "Jl. Mawar No. 20, Bandung"),
+    "user3@example.com" to User(3, "Citra", "user3@example.com", "password123", "customer", "081234567892", "Jl. Kenanga No. 30, Surabaya")
 )
 
 val ekspedisiDummy = mutableStateListOf(
@@ -36,31 +36,35 @@ val dummyPesanan = mutableStateListOf(
         user = dummyUsers["user1@example.com"]!!,
         items = mutableStateListOf(dummyItems[0], dummyItems[1]),
         status = StatusPesanan.DIPROSES,
-        ekspedisi = ekspedisiDummy[0], // JNE
-        tanggal = LocalDate.of(2025, 10, 16)
+        ekspedisi = ekspedisiDummy[0],
+        tanggal = LocalDate.of(2025, 10, 16),
+        metodePembayaran = MetodePembayaran.TRANSFER_BANK
     ),
     Pesanan(
         id = 2,
         user = dummyUsers["user2@example.com"]!!,
         items = mutableStateListOf(dummyItems[2]),
         status = StatusPesanan.DIKIRIM,
-        ekspedisi = ekspedisiDummy[1], // J&T
-        tanggal = LocalDate.of(2025, 10, 15)
+        ekspedisi = ekspedisiDummy[1],
+        tanggal = LocalDate.of(2025, 10, 17),
+        metodePembayaran = MetodePembayaran.GOPAY
     ),
     Pesanan(
         id = 3,
         user = dummyUsers["user3@example.com"]!!,
         items = mutableStateListOf(dummyItems[1], dummyItems[2]),
         status = StatusPesanan.SELESAI,
-        ekspedisi = ekspedisiDummy[2], // SiCepat
-        tanggal = LocalDate.of(2025, 10, 12)
+        ekspedisi = ekspedisiDummy[2],
+        tanggal = LocalDate.of(2025, 10, 17),
+        metodePembayaran = MetodePembayaran.OVO
     ),
     Pesanan(
         id = 4,
         user = dummyUsers["user1@example.com"]!!,
         items = mutableStateListOf(dummyItems[0], dummyItems[2]),
         status = StatusPesanan.DIBATALKAN,
-        ekspedisi = ekspedisiDummy[0], // JNE
-        tanggal = LocalDate.of(2025, 10, 13)
+        ekspedisi = ekspedisiDummy[0],
+        tanggal = LocalDate.of(2025, 10, 13),
+        metodePembayaran = MetodePembayaran.CASH
     )
 )

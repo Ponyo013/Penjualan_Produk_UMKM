@@ -49,7 +49,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -62,6 +61,14 @@ import com.example.penjualan_produk_umkm.style.UMKMTheme
 @Composable
 fun ProdukManage(navController: NavHostController) {
     UMKMTheme {
+
+        var searchText by remember { mutableStateOf("") }
+        val filteredProduk = if (searchText.isEmpty()) {
+            produkDummyList
+        } else {
+            produkDummyList.filter { it.nama.contains(searchText, ignoreCase = true) }
+        }
+
         Scaffold(
             topBar = {
                 TopAppBar(title = { Text("Kelola Produk") }, navigationIcon = {
@@ -100,15 +107,16 @@ fun ProdukManage(navController: NavHostController) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Search
-                    SearchBar()
+                    // Search bar
+                    SearchBar(searchText) { newText ->
+                        searchText = newText
+                    }
 
                     // Produk List
                     ProdukList(
-                        produkItems = produkDummyList,
+                        produkItems = filteredProduk,
                         onEditClick = { produk -> navController.navigate("edit_produk/${produk.id}") },
                         onHapusClick = { produk -> produkDummyList.remove(produk) },
-                        navController
                     )
                 }
             }
@@ -117,12 +125,13 @@ fun ProdukManage(navController: NavHostController) {
 }
 
 @Composable
-fun SearchBar() {
-    var searchText by remember { mutableStateOf(TextFieldValue("")) }
-
+fun SearchBar(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
     OutlinedTextField(
-        value = searchText,
-        onValueChange = { searchText = it },
+        value = value,
+        onValueChange = onValueChange,
         placeholder = {
             Text(
                 text = "Cari Produk...",
@@ -164,7 +173,7 @@ fun SearchBar() {
 
 @Composable
 fun ProdukList(
-    produkItems: List<Produk>, onEditClick: (Produk) -> Unit, onHapusClick: (Produk) -> Unit, navController: NavHostController
+    produkItems: List<Produk>, onEditClick: (Produk) -> Unit, onHapusClick: (Produk) -> Unit
 ) {
     if (produkItems.isEmpty()) {
         Box(
@@ -180,14 +189,14 @@ fun ProdukList(
         }
     } else {
         Column(
-            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-            ,
+            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             produkItems.forEach { produk ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(4.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
@@ -317,9 +326,8 @@ fun ProdukList(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Button(
-                                    onClick = {
-                                        navController.navigate("edit_produk/${produk.id}")
-                                    }, modifier = Modifier.weight(1f),
+                                    onClick = { onEditClick(produk) },
+                                    modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(text = "Edit")
@@ -333,7 +341,7 @@ fun ProdukList(
                                         showDialog = true,
                                         onDismiss = { showDeleteDialog = false },
                                         onConfirm = {
-                                            produkDummyList.remove(produk)
+                                            onHapusClick(produk)
                                         }
                                     )
                                 }

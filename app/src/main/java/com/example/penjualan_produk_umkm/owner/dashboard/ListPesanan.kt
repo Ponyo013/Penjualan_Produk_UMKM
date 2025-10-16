@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -94,7 +95,7 @@ fun CardPesananMasuk(selectedTab: String) {
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(filteredPesanan) { pesanan ->
             CardPesanan(
@@ -117,7 +118,7 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
     var selectedStatus by remember { mutableStateOf(pesanan.status) }
 
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -183,6 +184,16 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                     Text(text = "x${item.jumlah}")
                 }
             }
+
+            // Alamat
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Alamat: " + pesanan.user.alamat,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold
+            )
+
 
             // Footer: Ekspedisi
             Spacer(modifier = Modifier.height(8.dp))

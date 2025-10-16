@@ -8,6 +8,14 @@ enum class StatusPesanan {
     DIBATALKAN
 }
 
+enum class MetodePembayaran {
+    CASH,
+    TRANSFER_BANK,
+    GOPAY,
+    OVO,
+    DANA,
+}
+
 data class Pesanan (
     val id: Int,
     val user: User,
@@ -15,5 +23,6 @@ data class Pesanan (
     val totalHarga: Double = items.sumOf { it.subtotal },
     val status: StatusPesanan = StatusPesanan.DIPROSES,
     val tanggal: LocalDate = LocalDate.now(),
-    val ekspedisi: Ekspedisi? = null
+    val ekspedisi: Ekspedisi? = null,
+    val metodePembayaran: MetodePembayaran = MetodePembayaran.CASH
 )

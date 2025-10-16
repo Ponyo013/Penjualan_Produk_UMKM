@@ -216,6 +216,8 @@ fun Buttons(navController: NavHostController){
                 OptButton(label, ikon) {
                     if (label == "Produk") {
                         navController.navigate("produkManage")
+                    } else if (label == "Keuangan") {
+                        navController.navigate("Keuangan")
                     }
                 }
             }
