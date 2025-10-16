@@ -15,5 +15,6 @@ data class Pesanan(
     val items: List<ItemPesanan>,
     val totalHarga: Double = items.sumOf { it.subtotal },
     val status: StatusPesanan = StatusPesanan.DIPROSES,
-    val tanggal: Date = Date()
+    val tanggal: Date = Date(),
+    val ekspedisi: Ekspedisi? = null
 )
