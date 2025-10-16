@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.owner.dashboard.AddProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.DashboardScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.EditProdukScreen
+import com.example.penjualan_produk_umkm.owner.dashboard.ListPesanan
 import com.example.penjualan_produk_umkm.owner.dashboard.ProdukManage
 
 class OwnerActivity : AppCompatActivity() {
@@ -28,9 +29,10 @@ class OwnerActivity : AppCompatActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     NavHost(navController = navController, startDestination = "dashboard") {
                         composable("dashboard") { DashboardScreen(navController) }
+
+                        // CRUD
                         composable("produkManage") { ProdukManage(navController) }
                         composable("addProduk") { AddProdukScreen(navController) }
-
                         composable("edit_produk/{produkId}") { backStackEntry ->
                             val produkId = backStackEntry.arguments?.getString("produkId")?.toIntOrNull()
                             val produk = produkDummyList.find { it.id == produkId }
@@ -49,6 +51,8 @@ class OwnerActivity : AppCompatActivity() {
                             }
                         }
 
+                        // List Status Pesanan
+                        composable("listPesanan") { ListPesanan(navController) }
                     }
                 }
         }

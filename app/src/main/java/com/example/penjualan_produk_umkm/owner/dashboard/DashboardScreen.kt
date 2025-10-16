@@ -141,7 +141,10 @@ fun DashboardScreen(navController: NavController) {
                             Icon(
                                 imageVector = Icons.Filled.ChevronRight,
                                 contentDescription = "Chevron Icon",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.clickable {
+                                    navController.navigate("listPesanan")
+                                }
                             )
                         }
 
