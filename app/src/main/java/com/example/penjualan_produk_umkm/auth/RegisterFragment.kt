@@ -78,7 +78,23 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                     showToast("User already registered")
                 }
                 else -> {
-                    dummyUsers?.set(username, User(password, "user"))
+                    dummyUsers?.set(
+                        username,
+                        User(
+                            id = dummyUsers?.size?.plus(1) ?: 1,
+                            nama = if (username.contains("@")) {
+                                username.split("@")[0].replaceFirstChar { it.uppercase() }
+                            } else {
+                                username
+                            },
+                            email = if (username.contains("@")) username else "", // kosong jika nomor telepon
+                            password = password,
+                            role = "user",
+                            noTelepon = if (username.all { it.isDigit() }) username else "" // isi noTelepon jika input angka
+                        )
+                    )
+
+
                     showToast("Registered successfully!")
                     (activity as? AuthActivity)?.replaceFragment(LoginFragment())
                 }
