@@ -18,31 +18,31 @@ val dummyUsers = mutableMapOf(
     "user3@example.com" to User(3, "Citra", "user3@example.com", "password123", "customer", "081234567892")
 )
 
-val ekspedisiDummy = listOf(
+val ekspedisiDummy = mutableStateListOf(
     Ekspedisi(1, "JNE", "jne", 2, 15000.0, "Reguler"),
     Ekspedisi(2, "J&T", "jnt", 1, 20000.0, "Express"),
     Ekspedisi(3, "SiCepat", "sicepat", 3, 12000.0, "Reguler")
 )
 
-val dummyItems = listOf(
+val dummyItems = mutableStateListOf(
     ItemPesanan(produkDummyList[0], 2),
     ItemPesanan(produkDummyList[1], 1),
     ItemPesanan(produkDummyList[2], 3)
 )
 
-val dummyPesanan = listOf(
+val dummyPesanan = mutableStateListOf(
     Pesanan(
         id = 1,
         user = dummyUsers["user1@example.com"]!!,
-        items = listOf(dummyItems[0], dummyItems[1]),
+        items = mutableStateListOf(dummyItems[0], dummyItems[1]),
         status = StatusPesanan.DIPROSES,
         ekspedisi = ekspedisiDummy[0], // JNE
-        tanggal = LocalDate.of(2025, 10, 14)
+        tanggal = LocalDate.of(2025, 10, 16)
     ),
     Pesanan(
         id = 2,
         user = dummyUsers["user2@example.com"]!!,
-        items = listOf(dummyItems[2]),
+        items = mutableStateListOf(dummyItems[2]),
         status = StatusPesanan.DIKIRIM,
         ekspedisi = ekspedisiDummy[1], // J&T
         tanggal = LocalDate.of(2025, 10, 15)
@@ -50,7 +50,7 @@ val dummyPesanan = listOf(
     Pesanan(
         id = 3,
         user = dummyUsers["user3@example.com"]!!,
-        items = listOf(dummyItems[1], dummyItems[2]),
+        items = mutableStateListOf(dummyItems[1], dummyItems[2]),
         status = StatusPesanan.SELESAI,
         ekspedisi = ekspedisiDummy[2], // SiCepat
         tanggal = LocalDate.of(2025, 10, 12)
@@ -58,7 +58,7 @@ val dummyPesanan = listOf(
     Pesanan(
         id = 4,
         user = dummyUsers["user1@example.com"]!!,
-        items = listOf(dummyItems[0], dummyItems[2]),
+        items = mutableStateListOf(dummyItems[0], dummyItems[2]),
         status = StatusPesanan.DIBATALKAN,
         ekspedisi = ekspedisiDummy[0], // JNE
         tanggal = LocalDate.of(2025, 10, 13)
