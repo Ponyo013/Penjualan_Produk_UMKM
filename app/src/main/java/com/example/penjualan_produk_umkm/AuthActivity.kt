@@ -10,7 +10,6 @@ import com.example.penjualan_produk_umkm.auth.LoginFragment
 import com.example.penjualan_produk_umkm.model.User
 
 class AuthActivity : AppCompatActivity() {
-    val dummyUsers = mutableMapOf<String, User>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

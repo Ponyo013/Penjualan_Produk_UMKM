@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.databinding.FragmentRegisterBinding
+import com.example.penjualan_produk_umkm.dummyUsers
 import com.example.penjualan_produk_umkm.model.User
 
 // TODO: Rename parameter arguments, choose names that match
@@ -53,7 +54,7 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         makeLoginLink()
 
         // Logika Data dummy untuk register (passing dari auth)
-        val dummyUsers = (activity as? AuthActivity)?.dummyUsers
+        val dummyUsers = dummyUsers
 
         binding.btnRegister.setOnClickListener {
             val username = binding.editTextUsername.text.toString().trim()

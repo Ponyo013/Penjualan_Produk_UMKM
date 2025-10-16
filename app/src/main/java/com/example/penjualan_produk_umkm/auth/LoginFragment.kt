@@ -18,6 +18,7 @@ import com.example.penjualan_produk_umkm.MainActivity
 import com.example.penjualan_produk_umkm.OwnerActivity
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.databinding.FragmentLoginBinding
+import com.example.penjualan_produk_umkm.dummyUsers
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -68,21 +69,21 @@ class LoginFragment : Fragment() {
 
         // TODO ini adalah debug
         // Debugging biar langsung login
-        if (!DEBUG_LOGIN_USER) {
+        if (DEBUG_LOGIN_USER) {
             view.post {
-                binding.editTextUsername.setText("test@example.com")
+                binding.editTextUsername.setText("user@example.com")
                 binding.editTextPassword.setText("123456")
                 performLogin()
             }
         }
 
-        if (DEBUG_LOGIN_OWNER) {
-            view.post {
-                binding.editTextUsername.setText("owner@example.com")
-                binding.editTextPassword.setText("owner123")
-                performLogin()
-            }
-        }
+//        if (DEBUG_LOGIN_OWNER) {
+//            view.post {
+//                binding.editTextUsername.setText("owner@example.com")
+//                binding.editTextPassword.setText("owner123")
+//                performLogin()
+//            }
+//        }
 
     }
 
@@ -123,9 +124,9 @@ class LoginFragment : Fragment() {
         val email = binding.editTextUsername.text.toString().trim()
         val password = binding.editTextPassword.text.toString().trim()
 
-        val users = (activity as? AuthActivity)?.dummyUsers
+        val users = dummyUsers
 
-        if (users.isNullOrEmpty()) {
+        if (users.isEmpty()) {
             showToast("No users registered yet")
             return
         }
