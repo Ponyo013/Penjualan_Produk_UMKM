@@ -16,6 +16,7 @@ import com.example.penjualan_produk_umkm.owner.dashboard.DashboardScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.EditProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.ExpedisiScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.Keuangan
+import com.example.penjualan_produk_umkm.owner.dashboard.KirimNotifikasiScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.ListPesanan
 import com.example.penjualan_produk_umkm.owner.dashboard.ProdukManage
 import com.example.penjualan_produk_umkm.owner.dashboard.UlasanScreen
@@ -57,6 +58,9 @@ class OwnerActivity : AppCompatActivity() {
 
                         // Menentukan Expedisi
                         composable("expedisi") { ExpedisiScreen(navController) }
+
+                        // Kirim Notifikasi
+                        composable("kirimNotifikasi") { KirimNotifikasiScreen(navController) }
 
                         // Melihat Ulasan
                         composable("ulasan/{produkId}") { backStackEntry ->

@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -113,7 +114,7 @@ fun CardPesananMasuk(selectedTab: String) {
 
 @Composable
 fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
-
+    val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     var selectedStatus by remember { mutableStateOf(pesanan.status) }
 
@@ -272,6 +273,14 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                             onClick = {
                                 onStatusChange(selectedStatus)
                                 showDialog = false
+
+                                // Kirim notifikasi
+                                val namaBarang = pesanan.items.joinToString { it.produk.nama }
+                                sendNotificationSafe(
+                                    context = context,
+                                    judul = "Status Pesanan Kamu",
+                                    pesan = "Pesanan $namaBarang sekarang berstatus: ${selectedStatus.name}"
+                                )
                             }
                         ) {
                             Text("Simpan")

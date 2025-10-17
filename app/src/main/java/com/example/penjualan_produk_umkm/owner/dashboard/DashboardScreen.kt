@@ -1,6 +1,8 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,24 +11,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AllInbox
-import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.LocalShipping
-import androidx.compose.material.icons.outlined.Markunread
 import androidx.compose.material.icons.outlined.MonetizationOn
-import androidx.compose.material.icons.outlined.StarRate
+import androidx.compose.material.icons.outlined.NotificationAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.dummyPesanan
 import com.example.penjualan_produk_umkm.model.Pesanan
@@ -47,6 +53,9 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(navController: NavController) {
+    val context = LocalContext.current
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     UMKMTheme {
         Scaffold(
             topBar = {
@@ -85,22 +94,85 @@ fun DashboardScreen(navController: NavController) {
                                 )
                             }
 
+                            // Tombol Logout
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .background(
                                         MaterialTheme.colorScheme.primaryContainer,
                                         CircleShape
-                                    ),
+                                    )
+                                    .clickable { showLogoutDialog = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Settings,
-                                    contentDescription = "Icon Pencarian",
+                                    imageVector = Icons.AutoMirrored.Outlined.Logout,
+                                    contentDescription = "Icon Logout",
                                     tint = MaterialTheme.colorScheme.primary
-
                                 )
                             }
+
+                            // Dialog konfirmasi logout
+                            if (showLogoutDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showLogoutDialog = false },
+                                    title = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector =  Icons.AutoMirrored.Outlined.Logout,
+                                                contentDescription = "Logout Icon",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                            Text(
+                                                text = "Konfirmasi Logout",
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            )
+                                        }
+                                    },
+                                    text = {
+                                        Text(
+                                            "Apakah kamu yakin ingin keluar dari akun ini?",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                showLogoutDialog = false
+                                                val intent = Intent(context, AuthActivity::class.java)
+                                                context.startActivity(intent)
+                                                (context as? Activity)?.finish()
+                                            }
+                                        ) {
+                                            Text(
+                                                text = "Logout",
+                                                color = MaterialTheme.colorScheme.error,
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                            )
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(
+                                            onClick = { showLogoutDialog = false }
+                                        ) {
+                                            Text(
+                                                text = "Batal",
+                                                color = MaterialTheme.colorScheme.primary,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    tonalElevation = 8.dp,
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                            }
+
                             Spacer(modifier = Modifier.width(12.dp))
                         }
                     },
@@ -205,7 +277,7 @@ fun Buttons(navController: NavHostController){
     val buttonKategori = listOf(
         "Produk" to Icons.Filled.AllInbox,
         "Keuangan" to Icons.Outlined.MonetizationOn,
-        "Pesan" to Icons.Outlined.Markunread,
+        "Kirim" to Icons.Outlined.NotificationAdd,
         "Expedisi" to Icons.Outlined.LocalShipping
     )
 
@@ -222,12 +294,20 @@ fun Buttons(navController: NavHostController){
         ) {
             buttonKategori.forEach { (label, ikon) ->
                 OptButton(label, ikon) {
-                    if (label == "Produk") {
-                        navController.navigate("produkManage")
-                    } else if (label == "Keuangan") {
-                        navController.navigate("Keuangan")
-                    } else if (label == "Expedisi") {
-                        navController.navigate("expedisi")
+                    when (label) {
+                        "Produk" -> {
+                            navController.navigate("produkManage")
+                        }
+                        "Keuangan" -> {
+                            navController.navigate("Keuangan")
+                        }
+                        "Expedisi" -> {
+                            navController.navigate("expedisi")
+                        }
+                        "Kirim" -> {
+                            navController.navigate("kirimNotifikasi")
+                        }
+                        else -> ""
                     }
                 }
             }
