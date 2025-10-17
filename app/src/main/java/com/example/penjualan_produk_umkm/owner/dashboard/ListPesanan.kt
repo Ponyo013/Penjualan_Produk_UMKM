@@ -121,7 +121,6 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

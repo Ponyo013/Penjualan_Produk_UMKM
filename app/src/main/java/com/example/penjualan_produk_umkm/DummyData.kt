@@ -4,13 +4,15 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.penjualan_produk_umkm.model.*
 import org.threeten.bp.LocalDate
 
+// Update data dummy
 val produkDummyList = mutableStateListOf(
-    Produk(1, "Sepeda Gunung", "Sepeda untuk medan berat", 1500000.0, 10, "Sepeda", "", rating = 4.5f, terjual = 12),
-    Produk(2, "Helm Sepeda", "Helm proteksi kepala", 250000.0, 20, "Aksesoris", "", rating = 4.2f, terjual = 30),
-    Produk(3, "Sarung Tangan", "Sarung tangan untuk bersepeda", 100000.0, 15, "Aksesoris", "", rating = 4.0f, terjual = 18),
-    Produk(4, "Botol Minum", "Botol minum untuk bersepeda", 50000.0, 30, "Aksesoris", "", rating = 4.7f, terjual = 45),
-    Produk(5, "Lampu Sepeda", "Lampu depan sepeda", 120000.0, 25, "Aksesoris", "", rating = 4.3f, terjual = 22)
+    Produk(1, "Sepeda Gunung", "Sepeda untuk medan berat", 1500000.0, 10, "Sepeda", "https://via.placeholder.com/150?text=Sepeda+Gunung", rating = 4.5f, terjual = 12),
+    Produk(2, "Helm Sepeda", "Helm proteksi kepala", 250000.0, 20, "Aksesoris", "https://via.placeholder.com/150?text=Helm+Sepeda", rating = 4.2f, terjual = 30),
+    Produk(3, "Sarung Tangan", "Sarung tangan untuk bersepeda", 100000.0, 15, "Aksesoris", "https://via.placeholder.com/150?text=Sarung+Tangan", rating = 4.0f, terjual = 18),
+    Produk(4, "Botol Minum", "Botol minum untuk bersepeda", 50000.0, 30, "Aksesoris", "https://via.placeholder.com/150?text=Botol+Minum", rating = 4.7f, terjual = 45),
+    Produk(5, "Lampu Sepeda", "Lampu depan sepeda", 120000.0, 25, "Aksesoris", "https://via.placeholder.com/150?text=Lampu+Sepeda", rating = 4.3f, terjual = 22)
 )
+
 
 
 val dummyUsers = mutableMapOf(
@@ -98,7 +100,7 @@ val ulasanList = listOf(
     Ulasan(
         id = 4,
         produkId = 2,
-        userId = 4,
+        userId = 2,
         rating = 3.5f,
         komentar = "Cukup nyaman dipakai.",
         tanggal = LocalDate.now().minusDays(2)

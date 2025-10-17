@@ -14,9 +14,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.owner.dashboard.AddProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.DashboardScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.EditProdukScreen
+import com.example.penjualan_produk_umkm.owner.dashboard.ExpedisiScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.Keuangan
 import com.example.penjualan_produk_umkm.owner.dashboard.ListPesanan
 import com.example.penjualan_produk_umkm.owner.dashboard.ProdukManage
+import com.example.penjualan_produk_umkm.owner.dashboard.UlasanScreen
 
 class OwnerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +53,15 @@ class OwnerActivity : AppCompatActivity() {
                                     navController = navController
                                 )
                             }
+                        }
+
+                        // Menentukan Expedisi
+                        composable("expedisi") { ExpedisiScreen(navController) }
+
+                        // Melihat Ulasan
+                        composable("ulasan/{produkId}") { backStackEntry ->
+                            val produkId = backStackEntry.arguments?.getString("produkId")?.toInt() ?: 0
+                            UlasanScreen(produkId = produkId, navController)
                         }
 
                         // List Status Pesanan

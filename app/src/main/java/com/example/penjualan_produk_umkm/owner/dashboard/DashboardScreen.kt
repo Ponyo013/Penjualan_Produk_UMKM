@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.outlined.StarRate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,7 +35,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.dummyPesanan
+import com.example.penjualan_produk_umkm.model.Pesanan
+import com.example.penjualan_produk_umkm.model.StatusPesanan
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import org.threeten.bp.LocalDate
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -112,7 +118,12 @@ fun DashboardScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // Ringkasan Omset Pesanan
-                RingkasanOmsetPesanan()
+                RingkasanOmsetPesanan(
+                    pesananList = dummyPesanan.filter {
+                        it.tanggal.month == LocalDate.now().month &&
+                                it.tanggal.year == LocalDate.now().year
+                    }
+                )
 
                 // Card Status Pesanan
                 Card(
@@ -152,7 +163,7 @@ fun DashboardScreen(navController: NavController) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            StatusKategoriList()
+                            StatusKategoriList( pesananList = dummyPesanan)
                         }
                     }
                 }
@@ -194,11 +205,9 @@ fun Buttons(navController: NavHostController){
     val buttonKategori = listOf(
         "Produk" to Icons.Filled.AllInbox,
         "Keuangan" to Icons.Outlined.MonetizationOn,
-        "Peforma" to Icons.Filled.AutoGraph,
         "Pesan" to Icons.Outlined.Markunread,
-        "Ulasan" to Icons.Outlined.StarRate,
+        "Expedisi" to Icons.Outlined.LocalShipping
     )
-
 
     Column(
         modifier = Modifier
@@ -206,35 +215,19 @@ fun Buttons(navController: NavHostController){
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Row 1 (3 buttons)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            buttonKategori.take(3).forEach { (label, ikon) ->
+            buttonKategori.forEach { (label, ikon) ->
                 OptButton(label, ikon) {
                     if (label == "Produk") {
                         navController.navigate("produkManage")
                     } else if (label == "Keuangan") {
                         navController.navigate("Keuangan")
-                    }
-                }
-            }
-        }
-
-        // Row 2 (2 buttons)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            buttonKategori.drop(3).forEach { (label, ikon) ->
-                OptButton(label, ikon) {
-                    if (label == "Pesan") {
-                        navController.navigate("pesan")
-                    } else if (label == "Ulasan") {
-                        navController.navigate("ulasan")
+                    } else if (label == "Expedisi") {
+                        navController.navigate("expedisi")
                     }
                 }
             }
@@ -280,8 +273,24 @@ fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun RingkasanOmsetPesanan(){
+fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
+    // Hitung total omset dan jumlah pesanan valid
+    val totalOmset = pesananList
+        .filter { it.status != StatusPesanan.DIBATALKAN } // exclude yang dibatalkan
+        .sumOf { pesanan ->
+            pesanan.items.sumOf { item ->
+                item.produk.harga * item.jumlah
+            }
+        }
+
+    val jumlahPesanan = pesananList.size
+
+    // Format angka ke bentuk rupiah
+    val formattedOmset = "Rp " + String.format(Locale("id", "ID"), "%,.0f", totalOmset)
+        .replace(',', '.')
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -300,8 +309,9 @@ fun RingkasanOmsetPesanan(){
                     fontWeight = FontWeight.Bold
                 )
             )
+
             Text(
-                text = "Rp 1.250.000",
+                text = formattedOmset,
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -312,29 +322,27 @@ fun RingkasanOmsetPesanan(){
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Ambil Tanggal
+                // Komponen tanggal
                 Tanggal()
 
                 Text(
-                    text = "10 pesanan",
+                    text = "$jumlahPesanan pesanan",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
                 )
             }
-
-
         }
     }
 }
 
 @Composable
-fun StatusKategoriList() {
+fun StatusKategoriList(pesananList: List<Pesanan>) {
     val kategoriList = listOf(
-        Triple("proses", Icons.Filled.AccessTime, 5),
-        Triple("kirim", Icons.Outlined.LocalShipping, 3),
-        Triple("Selesai", Icons.Filled.CheckCircle, 10),
-        Triple("Batal", Icons.Filled.Cancel, 1)
+        Triple("Proses", Icons.Filled.AccessTime, pesananList.count { it.status == StatusPesanan.DIPROSES}),
+        Triple("Kirim", Icons.Outlined.LocalShipping, pesananList.count { it.status == StatusPesanan.DIKIRIM }),
+        Triple("Selesai", Icons.Filled.CheckCircle, pesananList.count { it.status == StatusPesanan.SELESAI }),
+        Triple("Batal", Icons.Filled.Cancel, pesananList.count { it.status == StatusPesanan.DIBATALKAN })
     )
 
     Row(

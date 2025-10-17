@@ -6,5 +6,6 @@ data class Ekspedisi(
     val kode: String,
     val estimasiHari: Int,
     val biaya: Double,
-    val layanan: String? = null
+    val layanan: String? = null,
+    var isActive: Boolean = true
 )

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.RemoveRedEye
 import androidx.compose.material.icons.outlined.StarRate
 import androidx.compose.material3.AlertDialog
@@ -117,6 +118,7 @@ fun ProdukManage(navController: NavHostController) {
                         produkItems = filteredProduk,
                         onEditClick = { produk -> navController.navigate("edit_produk/${produk.id}") },
                         onHapusClick = { produk -> produkDummyList.remove(produk) },
+                        onDetailUlasan = { produk -> navController.navigate("ulasan/${produk.id}") }
                     )
                 }
             }
@@ -173,7 +175,7 @@ fun SearchBar(
 
 @Composable
 fun ProdukList(
-    produkItems: List<Produk>, onEditClick: (Produk) -> Unit, onHapusClick: (Produk) -> Unit
+    produkItems: List<Produk>, onEditClick: (Produk) -> Unit, onHapusClick: (Produk) -> Unit, onDetailUlasan: (Produk) -> Unit
 ) {
     if (produkItems.isEmpty()) {
         Box(
@@ -196,7 +198,6 @@ fun ProdukList(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(4.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
@@ -210,7 +211,7 @@ fun ProdukList(
                     ) {
                         // Gambar di kiri
                         AsyncImage(
-                            model = "https://via.placeholder.com/150",
+                            model = produk.gambarUrl,
                             contentDescription = "Contoh Gambar",
                             modifier = Modifier.size(100.dp),
                             contentScale = ContentScale.Crop
@@ -221,12 +222,34 @@ fun ProdukList(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(
-                                text = produk.nama, style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    fontWeight = FontWeight.Bold
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ){
+                                // Nama Produk
+                                Text(
+                                    text = produk.nama, style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 )
-                            )
+
+                                // Icon Button untuk Detail Ulasan
+                                IconButton(
+                                    onClick = { onDetailUlasan(produk) },
+                                    modifier = Modifier.size(20.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Info,
+                                        contentDescription = "Detail Ulasan",
+                                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                                        modifier = Modifier.wrapContentWidth()
+                                    )
+                                }
+
+
+                            }
+
                             Text(
                                 text = "Rp ${produk.harga}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -358,6 +381,8 @@ fun ProdukList(
                                 ) {
                                     Text(text = "Hapus", color = Color.Red)
                                 }
+
+
                             }
                         }
                     }

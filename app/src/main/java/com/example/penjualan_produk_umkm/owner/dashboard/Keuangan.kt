@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -41,7 +44,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import java.util.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,7 +59,9 @@ import com.example.penjualan_produk_umkm.model.Pesanan
 import com.example.penjualan_produk_umkm.model.StatusPesanan
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import org.threeten.bp.LocalDate
+import org.threeten.bp.Month
 import org.threeten.bp.format.DateTimeFormatter
+import org.threeten.bp.format.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,45 +101,131 @@ fun Keuangan(navController: NavController){
 fun LaporanDenganKalender() {
     var pickedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf<String?>(null) }
 
-    // TOombol Tanggal
-    OutlinedButton(
-        onClick = { showDatePicker = true },
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+    // Tombol Tab: Bulanan / Tahunan
+    Row(
+        modifier = Modifier
+            .wrapContentWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(
-            text = pickedDate.toString(),
-            color = MaterialTheme.colorScheme.secondary
-        )
+        // Tombol Pilih Tanggal
+        OutlinedButton(
+            onClick = { showDatePicker = true },
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+        ) {
+            Text(
+                text = pickedDate.toString(),
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+
+        val tabs = listOf("Bulanan", "Tahunan")
+        tabs.forEach { tab ->
+            if (selectedTab == tab) {
+                Button(
+                    onClick = { selectedTab = tab },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.wrapContentWidth()
+                ) {
+                    Text(tab)
+                }
+            } else {
+                OutlinedButton(
+                    onClick = {selectedTab = tab  },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.wrapContentWidth()
+                ) {
+                    Text(tab)
+                }
+            }
+        }
     }
 
-    // DatePicker
+    // DatePicker Dialog
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateChange = {
                 pickedDate = it
+                selectedTab = null
                 showDatePicker = false
             }
         )
     }
 
-    // Laporan penjualan berdasarkan tanggal dan status
-    val filteredPesanan = dummyPesanan.filter {
-        pickedDate != null && it.tanggal == pickedDate &&
-                (it.status == StatusPesanan.DIKIRIM || it.status == StatusPesanan.SELESAI)
+    // Filter pesanan
+    val filteredPesanan = when (selectedTab) {
+        null -> dummyPesanan.filter { it.tanggal == pickedDate }
+        "Bulanan" -> dummyPesanan.filter { it.tanggal.year == pickedDate.year } // ambil semua bulan di tahun yang sama
+        "Tahunan" -> dummyPesanan // tampilkan semua tahun
+        else -> emptyList()
+    }.filter {
+        it.status == StatusPesanan.DIKIRIM || it.status == StatusPesanan.SELESAI
     }
 
-    if (pickedDate != null && filteredPesanan.isEmpty()) {
-        Text("Tidak ada pesanan pada tanggal ${pickedDate.toString()}")
+
+    if (filteredPesanan.isEmpty()) {
+        Text(
+            text = when (selectedTab) {
+                null -> "Tidak ada pesanan pada tanggal $pickedDate"
+                "Bulanan" -> "Tidak ada pesanan pada bulan ${pickedDate.month}"
+                "Tahunan" -> "Tidak ada pesanan pada tahun ${pickedDate.year}"
+                else -> ""
+            },
+            modifier = Modifier.padding(16.dp)
+        )
     } else {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(filteredPesanan) { pesanan ->
-                LaporanPenjualanCard(pesanan)
+        // Group data jika Bulanan atau Tahunan
+        val groupedPesanan = when (selectedTab) {
+            "Bulanan" -> filteredPesanan.groupBy { it.tanggal.monthValue  } // group per bulan
+            "Tahunan" -> filteredPesanan.groupBy { it.tanggal.year } // group per tahun
+            else -> mapOf(null to filteredPesanan)
+        }
+
+        LazyColumn(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            groupedPesanan.forEach { (group, pesananList) ->
+                item {
+                    if (group != null) {
+                        Text(
+                            text = when (selectedTab) {
+
+                                "Bulanan" -> {
+                                    val month = Month.of(group)
+                                    month.name.lowercase()
+                                        .replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(Locale("id")) else it.toString()
+                                        }
+                                }
+                                "Tahunan" -> group.toString()
+                                else -> ""
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp, horizontal = 12.dp)
+                        )
+                    }
+                }
+
+
+                items(pesananList) { pesanan ->
+                    LaporanPenjualanCard(pesanan)
+                }
             }
         }
     }
 }
+
 
 @Composable
 fun LaporanPenjualanCard(pesanan: Pesanan) {
@@ -140,7 +233,6 @@ fun LaporanPenjualanCard(pesanan: Pesanan) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
