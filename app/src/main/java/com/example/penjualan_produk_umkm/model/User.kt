@@ -1,6 +1,8 @@
 
 package com.example.penjualan_produk_umkm.model
 
+import org.threeten.bp.LocalDate
+
 data class User(
     val id: Int,
     val nama: String,
@@ -9,5 +11,5 @@ data class User(
     val role: String,
     val noTelepon: String = "",
     val alamat: String = "",
-    val tanggalDaftar: Long = System.currentTimeMillis(),
+    val tanggal: LocalDate = LocalDate.now(),
 )

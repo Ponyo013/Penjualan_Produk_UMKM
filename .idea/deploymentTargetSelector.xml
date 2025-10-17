@@ -14,10 +14,10 @@
       <SelectionState runConfigName="DashboardScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="keuanganPreview">
+      <SelectionState runConfigName="PreviewKeuangan">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="PreviewKeuangan">
+      <SelectionState runConfigName="KeuanganPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
