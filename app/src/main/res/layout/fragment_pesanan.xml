@@ -25,9 +25,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
+        app:tabTextColor="@color/Secondary_1"
+        app:tabSelectedTextColor="@color/Secondary_1"
+        app:tabIndicatorColor="@color/Secondary_1"
+        app:tabIndicatorHeight="3dp"
         app:layout_constraintTop_toBottomOf="@id/tv_pesanan_head"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"

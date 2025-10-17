@@ -9,7 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.databinding.ItemRowPesananBinding
 import com.example.penjualan_produk_umkm.model.Pesanan
 import org.threeten.bp.format.DateTimeFormatter
+import subItemPesananAdapter
 import java.text.NumberFormat
+import java.util.Currency
 import java.util.Locale
 
 class PesananAdapter : ListAdapter<Pesanan, PesananAdapter.PesananViewHolder>(DIFF_CALLBACK) {
@@ -20,28 +22,35 @@ class PesananAdapter : ListAdapter<Pesanan, PesananAdapter.PesananViewHolder>(DI
     }
 
     override fun onBindViewHolder(holder: PesananViewHolder, position: Int) {
-        val pesanan = getItem(position)
-        holder.bind(pesanan)
+        holder.bind(getItem(position))
     }
 
     class PesananViewHolder(private val binding: ItemRowPesananBinding) : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(pesanan: Pesanan) {
             binding.tvOrderId.text = "Order ID: #${pesanan.id}"
-            binding.tvOrderStatus.text = "Status: ${pesanan.status}"
+            binding.tvOrderAddress.text = "Alamat: ${pesanan.user.alamat}"
+            binding.tvOrderExpedition.text = "Expedisi: ${pesanan.ekspedisi?.nama} - Est ${pesanan.ekspedisi?.estimasiHari} hari"
 
-            // Format total price to Rupiah currency format
-            val localeID = Locale("in", "ID")
-            val numberFormat = NumberFormat.getCurrencyInstance(localeID)
-            numberFormat.maximumFractionDigits = 0
-            val formattedPrice = numberFormat.format(pesanan.totalHarga)
+            val numberFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+            numberFormat.maximumFractionDigits = 0  // Hapus ,00
+            numberFormat.currency = Currency.getInstance("IDR")
 
-            binding.tvOrderTotal.text = "Total: ${formattedPrice.replace("Rp", "Rp ")}"
+            // Ongkir
+            val ongkirFormatted = numberFormat.format(pesanan.ekspedisi?.biaya)
+            binding.tvOrderOngkir.text = "Ongkir: ${ongkirFormatted.replace("Rp", "Rp ")}"
 
+            // Total harga termasuk ongkir
+            val total = pesanan.totalHarga + (pesanan.ekspedisi?.biaya ?: 0.0)
+            val totalFormatted = numberFormat.format(total)
+            binding.tvOrderTotal.text = "Total: ${totalFormatted.replace("Rp", "Rp ")}"
+
+            // Tanggal
             val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
             binding.tvOrderDate.text = pesanan.tanggal.format(formatter)
 
-            // Setup sub-item RecyclerView
-            val subItemAdapter = SubItemPesananAdapter(pesanan.items)
+            // Sub-item RecyclerView dengan subtotal
+            val subItemAdapter = subItemPesananAdapter(pesanan.items)
             binding.rvOrderedItems.apply {
                 layoutManager = LinearLayoutManager(itemView.context)
                 adapter = subItemAdapter
@@ -51,13 +60,9 @@ class PesananAdapter : ListAdapter<Pesanan, PesananAdapter.PesananViewHolder>(DI
 
     companion object {
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Pesanan>() {
-            override fun areItemsTheSame(oldItem: Pesanan, newItem: Pesanan): Boolean {
-                return oldItem.id == newItem.id
-            }
-
-            override fun areContentsTheSame(oldItem: Pesanan, newItem: Pesanan): Boolean {
-                return oldItem == newItem
-            }
+            override fun areItemsTheSame(oldItem: Pesanan, newItem: Pesanan) = oldItem.id == newItem.id
+            override fun areContentsTheSame(oldItem: Pesanan, newItem: Pesanan) = oldItem == newItem
         }
     }
 }
+

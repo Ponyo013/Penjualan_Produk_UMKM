@@ -6,17 +6,17 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/default_margin_x"
-        android:layout_marginVertical="8dp"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="16dp"
         app:cardBackgroundColor="@color/grey"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp">
+        app:cardCornerRadius="8dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <!-- Order ID -->
             <TextView
                 android:id="@+id/tv_order_id"
                 android:layout_width="wrap_content"
@@ -28,6 +28,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Order ID: #12345" />
 
+            <!-- Order Date -->
             <TextView
                 android:id="@+id/tv_order_date"
                 android:layout_width="wrap_content"
@@ -38,41 +39,67 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="20-10-2024" />
 
+            <!-- Address -->
             <TextView
-                android:id="@+id/tv_order_status"
+                android:id="@+id/tv_order_address"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/montserrat"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tv_order_id"
+                tools:text="Alamat: Jl. Contoh No. 123, Jakarta" />
+
+            <!-- Ekspedisi -->
+            <TextView
+                android:id="@+id/tv_order_expedition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="@font/montserrat_semibold"
-                android:textColor="@color/Secondary_2"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/montserrat"
+                android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_order_id"
-                tools:text="Status: DIPROSES" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_order_address"
+                tools:text="Ekspedisi: JNE - Est 2 hari" />
 
+            <!-- Ordered Items RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_ordered_items"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:layout_constraintTop_toBottomOf="@+id/tv_order_status"
+                app:layout_constraintTop_toBottomOf="@+id/tv_order_expedition"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 tools:listitem="@layout/sub_item_produk_pesanan" />
 
+            <!-- Ongkir -->
+            <TextView
+                android:id="@+id/tv_order_ongkir"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/montserrat"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rv_ordered_items"
+                tools:text="Ongkir: Rp 25.000" />
+
+            <!-- Total Price -->
             <TextView
                 android:id="@+id/tv_order_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/montserrat_bold"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/rv_ordered_items"
+                app:layout_constraintTop_toBottomOf="@+id/tv_order_ongkir"
                 tools:text="Total: Rp 1.750.000" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </androidx.cardview.widget.CardView>
-
 </layout>
