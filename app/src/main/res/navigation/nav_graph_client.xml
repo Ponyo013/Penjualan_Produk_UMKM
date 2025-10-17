@@ -10,6 +10,11 @@
         android:label="BerandaFragment"
         tools:layout="@layout/fragment_beranda">
 
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="true" />
+
         <action
             android:id="@+id/action_berandaFragment_to_notificationFragment"
             app:destination="@id/NotificationFragment" />
@@ -25,19 +30,36 @@
         android:id="@+id/NotificationFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.NotificationFragment"
         android:label="Notifications"
-        tools:layout="@layout/fragment_notification"/>
+        tools:layout="@layout/fragment_notification">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
 
     <fragment
         android:id="@+id/CartFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.CartFragment"
         android:label="Cart"
-        tools:layout="@layout/fragment_cart"/>
+        tools:layout="@layout/fragment_cart">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <action
+            android:id="@+id/action_CartFragment_to_checkoutFragment"
+            app:destination="@id/checkoutFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/detailProdukFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.detailProduk.DetailProdukFragment"
         android:label="detailProduk"
         tools:layout="@layout/fragment_detail_produk">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_detailProdukFragment_to_CartFragment"
             app:destination="@id/CartFragment" />
@@ -46,17 +68,46 @@
         android:id="@+id/pesananFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.pesanan.PesananFragment"
         android:label="fragment_pesanan"
-        tools:layout="@layout/fragment_pesanan" />
+        tools:layout="@layout/fragment_pesanan">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="true" />
+    </fragment>
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.profile.ProfileFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="true" />
+    </fragment>
     <fragment
         android:id="@+id/pusatBantuanFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.pusatBantuan.PusatBantuanFragment"
         android:label="fragment_pusat_bantuan"
-        tools:layout="@layout/fragment_pusat_bantuan" />
+        tools:layout="@layout/fragment_pusat_bantuan">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="true" />
+    </fragment>
 
-
+    <fragment
+        android:id="@+id/checkoutFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.checkout.CheckoutFragment"
+        android:label="CheckoutFragment"
+        tools:layout="@layout/fragment_checkout">
+        <argument
+            android:name="showBottomNav"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <argument
+            android:name="cartItems"
+            app:argType="com.example.penjualan_produk_umkm.model.ItemPesanan[]"
+            app:nullable="true"
+            android:defaultValue="@null"/>
+    </fragment>
 </navigation>

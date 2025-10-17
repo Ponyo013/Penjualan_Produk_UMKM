@@ -1,6 +1,7 @@
 package com.example.penjualan_produk_umkm
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -8,8 +9,7 @@ import android.widget.*
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.core.view.WindowInsetsCompat
-import com.example.penjualan_produk_umkm.R
-
+import com.google.android.material.card.MaterialCardView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
@@ -28,6 +28,13 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
+
+        val bottomBar = findViewById<MaterialCardView>(R.id.bottomBarCard)
+
+        navController.addOnDestinationChangedListener { _, _, arguments ->
+            val showBottomNav = arguments?.getBoolean("showBottomNav", false) ?: false
+            bottomBar.visibility = if (showBottomNav) View.VISIBLE else View.GONE
+        }
 
         val berandaIcon = findViewById<ImageButton>(R.id.beranda_icon)
         val pesananIcon = findViewById<ImageButton>(R.id.pesanan_icon)
