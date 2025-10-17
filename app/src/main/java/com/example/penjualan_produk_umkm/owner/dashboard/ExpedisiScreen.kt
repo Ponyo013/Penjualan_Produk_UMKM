@@ -49,7 +49,7 @@ fun ExpedisiScreen(navController: NavHostController) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(ekspedisiList) { ekspedisi ->
-                        var isChecked by remember { mutableStateOf(true) }
+                        var isChecked by remember { mutableStateOf(ekspedisi.isActive) }
 
                         Card(
                             shape = RoundedCornerShape(12.dp),
@@ -73,7 +73,10 @@ fun ExpedisiScreen(navController: NavHostController) {
                                 }
                                 Switch(
                                     checked = isChecked,
-                                    onCheckedChange = { isChecked = it }
+                                    onCheckedChange = { checked ->
+                                        isChecked = checked
+                                        ekspedisi.isActive = checked
+                                    }
                                 )
                             }
                         }
