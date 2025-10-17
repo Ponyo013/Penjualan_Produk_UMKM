@@ -69,21 +69,21 @@ class LoginFragment : Fragment() {
 
         // TODO ini adalah debug
         // Debugging biar langsung login
-//        if (!DEBUG_LOGIN_USER) {
-//            view.post {
-//                binding.editTextUsername.setText("user@example.com")
-//                binding.editTextPassword.setText("123456")
-//                performLogin()
-//            }
-//        }
-//
-        if (DEBUG_LOGIN_OWNER) {
+        if (DEBUG_LOGIN_USER) {
             view.post {
-                binding.editTextUsername.setText("owner@example.com")
-                binding.editTextPassword.setText("owner123")
+                binding.editTextUsername.setText("user@example.com")
+                binding.editTextPassword.setText("123456")
                 performLogin()
             }
         }
+
+//        if (DEBUG_LOGIN_OWNER) {
+//            view.post {
+//                binding.editTextUsername.setText("owner@example.com")
+//                binding.editTextPassword.setText("owner123")
+//                performLogin()
+//            }
+//        }
 
     }
 

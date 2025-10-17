@@ -5,12 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager // Import ini
+import androidx.recyclerview.widget.RecyclerView // Import ini
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
-
+import com.example.penjualan_produk_umkm.produkDummyList // Import list data dummy
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -41,13 +42,25 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_beranda, container, false)
 
-        // Product Card (Sementara ya nanti kita pakai compose)
-        val productsContainer = view.findViewById<LinearLayout>(R.id.products_container)
-        val productCard = layoutInflater.inflate(R.layout.item_product, productsContainer, false)
+        // 1. FILTER DATA: Ambil produk dengan terjual > 20
+        // Produk yang lolos: Helm Sepeda (30), Botol Minum (45), Lampu Sepeda (22)
+        val popularProducts = produkDummyList.filter { it.terjual > 20 }
 
-        productsContainer.addView(productCard)
+        // 2. Setup RecyclerView
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recycler_popular_products) // Gunakan ID baru
 
-        // Search Bar Using Compose
+        // Atur Layout Manager: Grid 2 Kolom
+        recyclerView.layoutManager = GridLayoutManager(context, 2)
+
+        // Setup Adapter
+        val adapter = ProductAdapter(popularProducts) { productId ->
+            // Aksi saat produk diklik: Navigasi ke Detail Produk
+            val bundle = Bundle().apply { putInt("productId", productId) }
+            findNavController().navigate(R.id.action_BerandaFragment_to_detailProdukFragment, bundle)
+        }
+        recyclerView.adapter = adapter
+
+        // --- Search Bar (Compose) ---
         val composeView = view.findViewById<ComposeView>(R.id.compose_search_bar)
         composeView.setContent {
             SearchBar(
@@ -71,7 +84,6 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
         setupNavigationClick(view.findViewById(R.id.notification_icon), R.id.action_berandaFragment_to_notificationFragment)
         setupNavigationClick(view.findViewById(R.id.cart_icon), R.id.action_BerandaFragment_to_CartFragment)
-        setupNavigationClick(view.findViewById(R.id.products_container), R.id.action_BerandaFragment_to_detailProdukFragment)
     }
 
     companion object {

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    tools:context=".client.ui.detailProduk.UlasanInputFragment">
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Berikan penilaian anda"
+        android:textSize="20sp"
+        android:fontFamily="@font/montserrat_bold"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"/>
+
+    <LinearLayout
+        android:id="@+id/rating_stars_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="1dp"
+        app:layout_constraintTop_toBottomOf="@id/title_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/star1"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_full_star"
+            android:contentDescription="Star 1"
+            android:padding="4dp"/>
+        <ImageView
+            android:id="@+id/star2"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_full_star"
+            android:contentDescription="Star 2"
+            android:padding="4dp"/>
+        <ImageView
+            android:id="@+id/star3"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_full_star"
+            android:contentDescription="Star 3"
+            android:padding="4dp"/>
+        <ImageView
+            android:id="@+id/star4"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_full_star"
+            android:contentDescription="Star 4"
+            android:padding="4dp"/>
+        <ImageView
+            android:id="@+id/star5"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_empty_star"
+            android:contentDescription="Star 5"
+            android:padding="4dp"/>
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/edit_text_comment"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="10dp"
+        android:hint="Cukup awet, model unik"
+        android:gravity="top|start"
+        android:padding="16dp"
+        android:background="@drawable/rounded_edittext_background"
+        android:textSize="16sp"
+        android:fontFamily="@font/lato_regular"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/rating_stars_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:inputType="textMultiLine"/>
+
+    <Button
+        android:id="@+id/button_kirim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kirim"
+        android:fontFamily="@font/montserrat_semibold"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/dark_blue"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="12dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@id/edit_text_comment"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

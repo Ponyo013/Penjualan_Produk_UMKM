@@ -32,6 +32,9 @@ import com.example.penjualan_produk_umkm.model.Produk
 import com.example.penjualan_produk_umkm.produkDummyList
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 
+// TAMBAHKAN BARIS INI
+import com.example.penjualan_produk_umkm.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProdukScreen(navController: NavHostController) {
@@ -66,6 +69,7 @@ fun AddProdukScreen(navController: NavHostController) {
 fun Form(navController: NavHostController){
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
+    var spesifikasi by remember { mutableStateOf("") }
     var harga by remember { mutableStateOf("") }
     var stok by remember { mutableStateOf("") }
     var kategori by remember { mutableStateOf("") }
@@ -136,6 +140,17 @@ fun Form(navController: NavHostController){
             minLines = 3,
         )
 
+        OutlinedTextField(
+            value = spesifikasi,
+            onValueChange = { spesifikasi = it },
+            label = { Text("Spesifikasi Produk") },
+            placeholder = { Text("Contoh: Rangka Carbon, Suspensi 100mm") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            maxLines = Int.MAX_VALUE,
+            minLines = 3,
+        )
+
         // Row inputan Harga & Stok
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -199,15 +214,19 @@ fun Form(navController: NavHostController){
         // Tombol Tambahkan produk baru
         Button(
             onClick = {
-                if (nama.isNotBlank() && deskripsi.isNotBlank() && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()) {
+                if (nama.isNotBlank() && deskripsi.isNotBlank() && spesifikasi.isNotBlank() && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()) { // <-- VALIDASI DIPERBARUI
                     val produk = Produk(
-                        id = 0,
+                        id = produkDummyList.maxOfOrNull { it.id }?.plus(1) ?: 1,
                         nama = nama,
                         deskripsi = deskripsi,
+                        spesifikasi = spesifikasi,
                         harga = harga.toDouble(),
                         stok = stok.toInt(),
                         kategori = kategori,
-                        gambarUrl = gambarUri.toString()
+                        // KOREKSI: Gunakan nama parameter yang benar DAN tipe List<Int>
+                        gambarResourceIds = listOf(R.drawable.ic_empty_star),
+                        rating = 0f,
+                        terjual = 0
                     )
                     produkDummyList.add(produk)
                     showDialogBerhasil = true
