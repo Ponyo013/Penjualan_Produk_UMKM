@@ -24,6 +24,7 @@ compose = "1.7.8"
 coil = "2.7.0"
 material3Version = "1.4.0"
 threetenabp = "1.4.9"
+uiText = "1.9.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ androidx-compose-material-icons-extended = { module = "androidx.compose.material
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
 threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
+androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

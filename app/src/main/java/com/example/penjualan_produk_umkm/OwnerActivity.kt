@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.owner.dashboard.AddProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.DashboardScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.EditProdukScreen
+import com.example.penjualan_produk_umkm.owner.dashboard.Keuangan
 import com.example.penjualan_produk_umkm.owner.dashboard.ListPesanan
 import com.example.penjualan_produk_umkm.owner.dashboard.ProdukManage
 
@@ -28,6 +29,7 @@ class OwnerActivity : AppCompatActivity() {
                 val navController = rememberNavController()
                 Surface(modifier = Modifier.fillMaxSize()) {
                     NavHost(navController = navController, startDestination = "dashboard") {
+                        // Dashboard
                         composable("dashboard") { DashboardScreen(navController) }
 
                         // CRUD
@@ -53,6 +55,9 @@ class OwnerActivity : AppCompatActivity() {
 
                         // List Status Pesanan
                         composable("listPesanan") { ListPesanan(navController) }
+
+                        // Laporan Keuangan
+                        composable("Keuangan") { Keuangan(navController) }
                     }
                 }
         }

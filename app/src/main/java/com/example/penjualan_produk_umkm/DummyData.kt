@@ -5,17 +5,18 @@ import com.example.penjualan_produk_umkm.model.*
 import org.threeten.bp.LocalDate
 
 val produkDummyList = mutableStateListOf(
-    Produk(1, "Sepeda Gunung", "Sepeda untuk medan berat", 1500000.0, 10, "Sepeda", ""),
-    Produk(2, "Helm Sepeda", "Helm proteksi kepala", 250000.0, 20, "Aksesoris", ""),
-    Produk(3, "Sarung Tangan", "Sarung tangan untuk bersepeda", 100000.0, 15, "Aksesoris", ""),
-    Produk(4, "Botol Minum", "Botol minum untuk bersepeda", 50000.0, 30, "Aksesoris", ""),
-    Produk(5, "Lampu Sepeda", "Lampu depan sepeda", 120000.0, 25, "Aksesoris", "")
+    Produk(1, "Sepeda Gunung", "Sepeda untuk medan berat", 1500000.0, 10, "Sepeda", "", rating = 4.5f, terjual = 12),
+    Produk(2, "Helm Sepeda", "Helm proteksi kepala", 250000.0, 20, "Aksesoris", "", rating = 4.2f, terjual = 30),
+    Produk(3, "Sarung Tangan", "Sarung tangan untuk bersepeda", 100000.0, 15, "Aksesoris", "", rating = 4.0f, terjual = 18),
+    Produk(4, "Botol Minum", "Botol minum untuk bersepeda", 50000.0, 30, "Aksesoris", "", rating = 4.7f, terjual = 45),
+    Produk(5, "Lampu Sepeda", "Lampu depan sepeda", 120000.0, 25, "Aksesoris", "", rating = 4.3f, terjual = 22)
 )
 
+
 val dummyUsers = mutableMapOf(
-    "user1@example.com" to User(1, "Andi", "user1@example.com", "password123", "customer", "081234567890"),
-    "user2@example.com" to User(2, "Budi", "user2@example.com", "password123", "customer", "081234567891"),
-    "user3@example.com" to User(3, "Citra", "user3@example.com", "password123", "customer", "081234567892")
+    "user1@example.com" to User(1, "Andi", "user1@example.com", "password123", "customer", "081234567890", "Jl. Melati No. 10, Jakarta"),
+    "user2@example.com" to User(2, "Budi", "user2@example.com", "password123", "customer", "081234567891", "Jl. Mawar No. 20, Bandung"),
+    "user3@example.com" to User(3, "Citra", "user3@example.com", "password123", "customer", "081234567892", "Jl. Kenanga No. 30, Surabaya")
 )
 
 val ekspedisiDummy = mutableStateListOf(
@@ -36,31 +37,86 @@ val dummyPesanan = mutableStateListOf(
         user = dummyUsers["user1@example.com"]!!,
         items = mutableStateListOf(dummyItems[0], dummyItems[1]),
         status = StatusPesanan.DIPROSES,
-        ekspedisi = ekspedisiDummy[0], // JNE
-        tanggal = LocalDate.of(2025, 10, 16)
+        ekspedisi = ekspedisiDummy[0],
+        tanggal = LocalDate.of(2025, 10, 16),
+        metodePembayaran = MetodePembayaran.TRANSFER_BANK
     ),
     Pesanan(
         id = 2,
         user = dummyUsers["user2@example.com"]!!,
         items = mutableStateListOf(dummyItems[2]),
         status = StatusPesanan.DIKIRIM,
-        ekspedisi = ekspedisiDummy[1], // J&T
-        tanggal = LocalDate.of(2025, 10, 15)
+        ekspedisi = ekspedisiDummy[1],
+        tanggal = LocalDate.of(2025, 10, 17),
+        metodePembayaran = MetodePembayaran.GOPAY
     ),
     Pesanan(
         id = 3,
         user = dummyUsers["user3@example.com"]!!,
         items = mutableStateListOf(dummyItems[1], dummyItems[2]),
         status = StatusPesanan.SELESAI,
-        ekspedisi = ekspedisiDummy[2], // SiCepat
-        tanggal = LocalDate.of(2025, 10, 12)
+        ekspedisi = ekspedisiDummy[2],
+        tanggal = LocalDate.of(2025, 10, 17),
+        metodePembayaran = MetodePembayaran.OVO
     ),
     Pesanan(
         id = 4,
         user = dummyUsers["user1@example.com"]!!,
         items = mutableStateListOf(dummyItems[0], dummyItems[2]),
         status = StatusPesanan.DIBATALKAN,
-        ekspedisi = ekspedisiDummy[0], // JNE
-        tanggal = LocalDate.of(2025, 10, 13)
+        ekspedisi = ekspedisiDummy[0],
+        tanggal = LocalDate.of(2025, 10, 13),
+        metodePembayaran = MetodePembayaran.CASH
+    )
+)
+
+val ulasanList = listOf(
+    Ulasan(
+        id = 1,
+        produkId = 1,
+        userId = 1,
+        rating = 5f,
+        komentar = "Kualitas mantap, pengiriman cepat!",
+        tanggal = LocalDate.now().minusDays(5)
+    ),
+    Ulasan(
+        id = 2,
+        produkId = 1,
+        userId = 2,
+        rating = 4.5f,
+        komentar = "Produk sesuai deskripsi, recommended.",
+        tanggal = LocalDate.now().minusDays(3)
+    ),
+    Ulasan(
+        id = 3,
+        produkId = 2,
+        userId = 3,
+        rating = 4f,
+        komentar = "Helmnya oke, tapi warna agak beda.",
+        tanggal = LocalDate.now().minusDays(7)
+    ),
+    Ulasan(
+        id = 4,
+        produkId = 2,
+        userId = 4,
+        rating = 3.5f,
+        komentar = "Cukup nyaman dipakai.",
+        tanggal = LocalDate.now().minusDays(2)
+    ),
+    Ulasan(
+        id = 5,
+        produkId = 3,
+        userId = 1,
+        rating = 5f,
+        komentar = "Botolnya bagus, tidak bocor.",
+        tanggal = LocalDate.now().minusDays(1)
+    ),
+    Ulasan(
+        id = 6,
+        produkId = 3,
+        userId = 2,
+        rating = 4.2f,
+        komentar = "Suka banget, kualitas top!",
+        tanggal = LocalDate.now()
     )
 )
