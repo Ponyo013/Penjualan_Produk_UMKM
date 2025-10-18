@@ -1,7 +1,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"
+    android:id="@+id/nav_graph_client"
     app:startDestination="@id/BerandaFragment">
 
     <fragment
@@ -40,8 +40,8 @@
     <fragment
         android:id="@+id/CartFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.CartFragment"
-        android:label="Cart"
-        tools:layout="@layout/fragment_cart">
+        android:label="Keranjang Belanja"
+        tools:layout="@layout/fragment_cart" >
         <argument
             android:name="showBottomNav"
             app:argType="boolean"
@@ -54,16 +54,28 @@
     <fragment
         android:id="@+id/detailProdukFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.detailProduk.DetailProdukFragment"
-        android:label="detailProduk"
+        android:label="Detail Produk"
         tools:layout="@layout/fragment_detail_produk">
         <argument
             android:name="showBottomNav"
             app:argType="boolean"
             android:defaultValue="false" />
+
+        <argument
+            android:name="productId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+
         <action
             android:id="@+id/action_detailProdukFragment_to_CartFragment"
             app:destination="@id/CartFragment" />
+
     </fragment>
+
+
+    <action
+        android:id="@+id/action_global_to_detailProdukFragment"
+        app:destination="@id/detailProdukFragment" />
     <fragment
         android:id="@+id/pesananFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.pesanan.PesananFragment"
@@ -74,6 +86,7 @@
             app:argType="boolean"
             android:defaultValue="true" />
     </fragment>
+
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.profile.ProfileFragment"
@@ -84,6 +97,7 @@
             app:argType="boolean"
             android:defaultValue="true" />
     </fragment>
+
     <fragment
         android:id="@+id/pusatBantuanFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.pusatBantuan.PusatBantuanFragment"
@@ -109,5 +123,37 @@
             app:argType="com.example.penjualan_produk_umkm.model.ItemPesanan[]"
             app:nullable="true"
             android:defaultValue="@null"/>
+    </fragment>
+    <action
+        android:id="@+id/action_global_to_searchFragment"
+        app:destination="@id/searchFragment" />
+
+    <fragment
+        android:id="@+id/categoryListFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.beranda.CategoryListFragment"
+        android:label="Kategori Produk"
+        tools:layout="@layout/fragment_category_list">
+        <argument
+            android:name="parentCategoryName"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_categoryListFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_BerandaFragment_to_categoryListFragment"
+        app:destination="@id/categoryListFragment" />
+
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.search.SearchFragment"
+        android:label="Pencarian Produk"
+        tools:layout="@layout/fragment_search">
+        <argument
+            android:name="categoryQuery"
+            app:argType="string"
+
+            app:nullable="true"  android:defaultValue="@null"/>
     </fragment>
 </navigation>

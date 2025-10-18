@@ -31,6 +31,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.penjualan_produk_umkm.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import kotlinx.coroutines.launch
+import com.example.penjualan_produk_umkm.R
 import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,18 +44,22 @@ fun EditProdukScreen(
 ) {
     var nama by remember { mutableStateOf(produk.nama) }
     var deskripsi by remember { mutableStateOf(produk.deskripsi) }
+    var spesifikasi by remember { mutableStateOf(produk.spesifikasi) }
     var harga by remember { mutableStateOf(produk.harga.toString()) }
     var stok by remember { mutableStateOf(produk.stok.toString()) }
     var kategori by remember { mutableStateOf(produk.kategori) }
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
 
-    var gambarUri by remember { mutableStateOf<Uri?>(produk.gambarUrl.toUri()) }
+    var gambarResourceId by remember { mutableStateOf<Int?>(produk.gambarResourceIds.firstOrNull()) } // <-- BARU: Ambil ID Int pertama
+    var newGambarUri by remember { mutableStateOf<Uri?>(null) }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            gambarUri = uri
+            newGambarUri = uri
+            gambarResourceId = null // Hapus resource lama saat URI baru dipilih
         }
     }
 
@@ -100,9 +105,16 @@ fun EditProdukScreen(
                             .clickable { launcher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
-                        if (gambarUri != null) {
+                        if (newGambarUri != null) {
                             Image(
-                                painter = rememberAsyncImagePainter(gambarUri),
+                                painter = rememberAsyncImagePainter(newGambarUri),
+                                contentDescription = "Gambar Produk",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else if (gambarResourceId != null && gambarResourceId != 0) {
+                            Image(
+                                painter = rememberAsyncImagePainter(gambarResourceId), // Tampilkan ID resource (Int)
                                 contentDescription = "Gambar Produk",
                                 contentScale = ContentScale.Fit,
                                 modifier = Modifier.fillMaxSize()
@@ -110,12 +122,11 @@ fun EditProdukScreen(
                         } else {
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = "Klik untuk ganti foto",
+                                text = "Klik untuk ganti foto", // <-- Pastikan ini string yang benar
                                 textAlign = TextAlign.Center,
                             )
                         }
                     }
-
                     // ====== Input Fields ======
                     OutlinedTextField(
                         value = nama,
@@ -131,6 +142,16 @@ fun EditProdukScreen(
                         onValueChange = { deskripsi = it },
                         label = { Text("Deskripsi Produk") },
                         placeholder = { Text("Deskripsikan produk Anda") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        minLines = 3
+                    )
+
+                    OutlinedTextField(
+                        value = spesifikasi,
+                        onValueChange = { spesifikasi = it },
+                        label = { Text("Spesifikasi Produk") },
+                        placeholder = { Text("Spesifikasikan produk Anda") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         minLines = 3
@@ -222,19 +243,33 @@ fun EditProdukScreen(
 
                         Button(
                             onClick = {
-                                if (nama.isBlank() || deskripsi.isBlank() || harga.isBlank() ||
+                                if (nama.isBlank() || deskripsi.isBlank() || spesifikasi.isBlank() || harga.isBlank() || // <-- VALIDASI DIPERBARUI
                                     stok.isBlank() || kategori.isBlank()
                                 ) {
                                     scope.launch {
                                         snackbarHostState.showSnackbar("Semua field wajib diisi!")
                                     }
                                 } else {
+                                    val currentImageIdList: List<Int> = if (newGambarUri != null) {
+                                        // Jika ada URI baru, simpan placeholder (simulasi upload berhasil)
+                                        // Asumsi R.drawable.ic_empty_star adalah placeholder Int
+                                        listOf(R.drawable.ic_empty_star)
+                                    } else if (gambarResourceId != null) {
+                                        // Jika tidak ada URI baru, gunakan kembali ID Int lama
+                                        listOf(gambarResourceId!!)
+                                    } else {
+                                        // Tidak ada gambar
+                                        emptyList()
+                                    }
                                     val updatedProduk = produk.copy(
                                         nama = nama,
                                         deskripsi = deskripsi,
+                                        spesifikasi = spesifikasi,
                                         harga = harga.toDoubleOrNull() ?: produk.harga,
                                         stok = stok.toIntOrNull() ?: produk.stok,
-                                        kategori = kategori
+                                        kategori = kategori,
+                                        // BARIS 257, 346, 348: PARAMETER HARUS COCOK DENGAN PRODUK.KT
+                                        gambarResourceIds = currentImageIdList // <-- PARAMETER BARU YANG BENAR
                                     )
                                     onSave(updatedProduk)
                                     showDialogBerhasil = true
@@ -318,10 +353,12 @@ fun PreviewEditProdukScreen() {
         id = 1,
         nama = "Sepeda Gunung",
         deskripsi = "Sepeda gunung dengan suspensi ganda dan frame ringan",
+        // >>> PARAMETER 'SPESIFIKASI' YANG HILANG DITAMBAHKAN DI SINI <<<
+        spesifikasi = "Rangka: Alloy, Rem: Hidrolik", // <-- TAMBAHKAN BARIS INI
         harga = 2500000.0,
         stok = 10,
         kategori = "Olahraga",
-        gambarUrl = "",
+        gambarResourceIds = listOf(R.drawable.ic_empty_star),
         rating = 4.5f,
         terjual = 100
     )

@@ -172,7 +172,7 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = rememberAsyncImagePainter(item.produk.gambarUrl),
+                        painter = rememberAsyncImagePainter(item.produk.gambarResourceIds),
                         contentDescription = item.produk.nama,
                         modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
                     )

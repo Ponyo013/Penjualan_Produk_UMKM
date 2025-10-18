@@ -211,7 +211,7 @@ fun ProdukList(
                     ) {
                         // Gambar di kiri
                         AsyncImage(
-                            model = produk.gambarUrl,
+                            model = produk.gambarResourceIds,
                             contentDescription = "Contoh Gambar",
                             modifier = Modifier.size(100.dp),
                             contentScale = ContentScale.Crop

@@ -15,4 +15,11 @@
 
     <!-- Logo -->
     <color name="star">#FDCC0D</color>
+
+
+    <color name="rating_star_color">#FFC107</color>
+    <color name="grey_light">#E0E0E0</color>
+    <color name="dark_blue">#1A2C42</color>
+
+    <color name="red">#D32F2F</color>
 </resources>
