@@ -1,6 +1,5 @@
 package com.example.penjualan_produk_umkm.client.ui.detailProduk
-import java.util.*// Tambahkan import ini untuk formatting tanggal
-import java.text.SimpleDateFormat
+
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
@@ -11,14 +10,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.model.Produk
-import com.example.penjualan_produk_umkm.model.Ulasan // Pastikan model Ulasan diimpor
-import com.example.penjualan_produk_umkm.ulasanList // Akses ke list ulasan global
+import com.example.penjualan_produk_umkm.model.Ulasan
+import com.example.penjualan_produk_umkm.ulasanList
 import com.example.penjualan_produk_umkm.dummyUsers
 import com.example.penjualan_produk_umkm.model.User
 import java.io.Serializable
-import org.threeten.bp.LocalDate // Pastikan Anda mengimpor LocalDate dari ThreeTenABP
-import org.threeten.bp.format.DateTimeFormatter
-import kotlin.collections.MutableList // Penting untuk casting add()
+import org.threeten.bp.LocalDate
+import kotlin.collections.MutableList
 
 private const val ARG_PRODUK = "produkObject"
 
@@ -81,18 +79,21 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
     private fun setupReviewList(view: View, produkId: Int) {
         // 1. Inisialisasi RecyclerView
         recyclerView = view.findViewById(R.id.recycler_reviews)
-        recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // 2. Persiapan Data User (Mengubah Kunci Map dari Email ke User ID (String))
-        // Kunci Map harus berupa ID user (1, 2, 3...) dalam format String agar bisa dicocokkan
+        // 🌟 KUNCI PERBAIKAN: Layout Manager harus disetel! 🌟
+        val linearLayoutManager = LinearLayoutManager(context)
+        recyclerView.layoutManager = linearLayoutManager
+
+        // 🌟 PENTING UNTUK NESTEDSCROLLVIEW: Matikan scroll internal RecyclerView
+        recyclerView.isNestedScrollingEnabled = false
+
+        // 2. Persiapan Data User ... (sama)
         val usersByIdInt: Map<Int, User> = dummyUsers.values.associateBy { it.id }
 
         val reviewsForThisProduct = ulasanList.filter { it.produkId == produkId }
 
-        // 4. MENGHILANGKAN KONFLIK DAN MENGGUNAKAN ADAPTER HANYA SEKALI
-        // MENGHILANGKAN ERROR: Return type mismatch: expected 'String', actual 'Int'
-        // Asumsi ReviewAdapter membutuhkan Map<String, User>
-        reviewAdapter = ReviewAdapter(reviewsForThisProduct, usersByIdInt) // <-- Panggil dengan Map<Int, User>
+        // 3. Inisialisasi Adapter (sama)
+        reviewAdapter = ReviewAdapter(reviewsForThisProduct, usersByIdInt)
         recyclerView.adapter = reviewAdapter
     }
 
@@ -113,7 +114,10 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
                 val newReview = Ulasan(
                     id = ulasanList.size + 1, // ID otomatis Int
                     produkId = produkId,
-                    userId = 99, // User ID dummy untuk pengujian
+
+                    // 🌟 KOREKSI: Ganti 99 dengan ID user yang valid (misalnya ID Andi = 1) 🌟
+                    userId = 1, // User ID dummy untuk pengujian (Misal: Andi)
+
                     rating = rating,
                     komentar = comment,
                     tanggal = LocalDate.now()
@@ -121,7 +125,7 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
 
                 // 3. SIMULASI PERSISTENCE: Tambahkan ke List Global
                 // Karena ulasanList adalah MutableList, ini akan berhasil.
-                (ulasanList as MutableList).add(newReview)
+                ulasanList.add(newReview)
 
                 // 4. REFRESH UI: Ambil daftar ulasan yang sudah diperbarui dan kirim ke adapter
                 val updatedReviews = ulasanList.filter { it.produkId == produkId }

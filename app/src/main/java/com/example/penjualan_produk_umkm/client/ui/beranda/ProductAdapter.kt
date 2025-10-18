@@ -16,8 +16,9 @@ import java.text.NumberFormat
 import java.util.*
 import coil.load
 
+
 class ProductAdapter(
-    private val products: List<Produk>,
+    private var products: List<Produk>,
     private val onItemClick: (Int) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
@@ -88,4 +89,9 @@ class ProductAdapter(
     }
 
     override fun getItemCount() = products.size
+
+    fun updateProducts(newProducts: List<Produk>) {
+        this.products = newProducts // <-- BARIS INI SEKARANG AMAN
+        notifyDataSetChanged()
+    }
 }

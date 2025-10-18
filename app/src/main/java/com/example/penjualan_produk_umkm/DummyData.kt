@@ -16,7 +16,7 @@ val produkDummyList = mutableStateListOf(
         spesifikasi = "Rangka: AL6 XC Sport\nGigi: Shimano Alivio/Acera Mix 2x9 Speed\nSuspensi: Suntour XCM HLO Fork (Travel 120mm, Lockout)\nRem: Tektro HD-M275 Hydraulic Disc Brake\nRoda: 27.5 inci",
         harga = 4800000.0,
         stok = 8,
-        kategori = "Sepeda Gunung",
+        kategori = "Sepeda",
         gambarResourceIds = listOf(
             R.drawable.mtb_polygon
         ),
@@ -34,7 +34,7 @@ val produkDummyList = mutableStateListOf(
         spesifikasi = "Brand: ROCKBROS\nTipe: ZK-013\nBerat Bersih: 252g\nKonstruksi: In-Mold Shell + EPS Foam\nVentilasi: 18 Lubang Udara\nLampu Belakang: 2000 mAh Rechargeable LED (USB Charging)\nSertifikasi: SNI, CE",
         harga = 250000.0,
         stok = 35,
-        kategori = "Helm",
+        kategori = "Aksesoris",
         gambarResourceIds = listOf(
             R.drawable.helm_rockbros
         ),

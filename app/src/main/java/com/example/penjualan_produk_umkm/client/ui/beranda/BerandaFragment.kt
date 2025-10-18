@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView // Import ini
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.produkDummyList // Import list data dummy
+import android.widget.LinearLayout
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -65,9 +66,31 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         composeView.setContent {
             SearchBar(
                 onSearch = { query ->
-                    println("Searching for: $query")
+                    // Saat user mengetik, kita navigasikan ke halaman pencarian
+                    findNavController().navigate(R.id.action_global_to_searchFragment)
                 }
+                // Catatan: Anda juga dapat membuat Box di sekitar SearchBar di XML menjadi clickable
+                // dan navigasi di setupNavigationClick.
             )
+        }
+
+// Navigasi Sparepart
+        view.findViewById<LinearLayout>(R.id.cat_sparepart).setOnClickListener {
+            // Pastikan string "parentCategoryName" digunakan sebagai kunci Bundle
+            val bundle = Bundle().apply { putString("parentCategoryName", "Spare Parts") }
+            findNavController().navigate(R.id.action_BerandaFragment_to_categoryListFragment, bundle)
+        }
+
+        // Navigasi Aksesori
+        view.findViewById<LinearLayout>(R.id.cat_aksesoris).setOnClickListener {
+            val bundle = Bundle().apply { putString("parentCategoryName", "Aksesoris") }
+            findNavController().navigate(R.id.action_BerandaFragment_to_categoryListFragment, bundle)
+        }
+
+        // Navigasi Sepeda
+        view.findViewById<LinearLayout>(R.id.cat_sepeda_induk).setOnClickListener {
+            val bundle = Bundle().apply { putString("parentCategoryName", "Sepeda") }
+            findNavController().navigate(R.id.action_BerandaFragment_to_categoryListFragment, bundle)
         }
 
         return view

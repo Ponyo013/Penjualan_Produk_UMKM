@@ -46,6 +46,7 @@
     <!-- Beranda -->
     <string name="category_produk">Kategori</string>
     <string name="kategori_sukucd">Sparepart</string>
+    <string name="aksesoris">Aksesoris</string>
     <string name="mtb">MTB</string>
     <string name="bmx">BMX</string>
     <string name="mini">Mini</string>

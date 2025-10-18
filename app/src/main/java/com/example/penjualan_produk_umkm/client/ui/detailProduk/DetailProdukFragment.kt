@@ -115,19 +115,28 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
 
     private fun adjustViewPagerHeight(viewPager: ViewPager2, adapter: DetailPagerAdapter) {
         val position = viewPager.currentItem
-        val fragment = adapter.createFragment(position)
+        val fragmentTag = "f" + position
+        val currentFragment = childFragmentManager.findFragmentByTag(fragmentTag)
 
-        viewPager.postDelayed({ // Tambahkan delay untuk memastikan rendering anak selesai
-            fragment.view?.let { fragmentView ->
+        if (currentFragment?.view == null) {
+            // Fragment belum di-attach abaikan.
+            return
+        }
+
+        viewPager.postDelayed({
+            currentFragment.view?.let { fragmentView ->
                 fragmentView.measure(
                     View.MeasureSpec.makeMeasureSpec(viewPager.width, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED) // Biarkan tinggi tak terbatas
                 )
+
+                // Mendapatkan tinggi yang diukur
                 val height = fragmentView.measuredHeight
 
                 if (height > 0 && height != viewPager.height) {
                     viewPager.layoutParams = viewPager.layoutParams.apply {
-                        this.height = height
+                        // Tetapkan tinggi ViewPager sesuai tinggi konten anak + sedikit padding
+                        this.height = height + 16 // Tambahkan 16dp margin aman
                     }
                 }
             }
@@ -192,9 +201,6 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private fun setupViewPager(view: View) {
         val viewPager: ViewPager2 = view.findViewById(R.id.view_pager)
         val tabLayout: TabLayout = view.findViewById(R.id.tab_layout)
-
-        // Penting: produk sudah dideklarasikan sebagai anggota kelas di atas
-        // DetailPagerAdapter butuh akses ke properti 'produk' (sudah diperbaiki di solusi sebelumnya)
         viewPager.adapter = DetailPagerAdapter(this)
 
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->

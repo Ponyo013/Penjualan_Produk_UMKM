@@ -138,142 +138,21 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <!-- Category 1 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:layout_marginEnd="16dp">
-
-                        <ImageView
-                            android:layout_width="70dp"
-                            android:layout_height="70dp"
-                            android:background="@drawable/circle_frame"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_part"
-                            android:scaleType="centerCrop" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textAlignment="center"
-                            android:text="@string/kategori_sukucd"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/lato_regular"
-                            android:textColor="@android:color/black"
-                            android:layout_marginTop="8dp"/>
+                    <LinearLayout android:id="@+id/cat_sparepart" style="@style/CategoryItemStyle">
+                        <ImageView android:src="@drawable/ic_part" style="@style/CategoryIconStyle" />
+                        <TextView android:text="Spare Parts" style="@style/CategoryTextStyle" />
                     </LinearLayout>
 
-                    <!-- Category 2 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:layout_marginEnd="16dp">
-
-                        <ImageView
-                            android:layout_width="70dp"
-                            android:layout_height="70dp"
-                            android:background="@drawable/circle_frame"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_mtb"
-                            android:scaleType="centerCrop" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/mtb"
-                            android:textAlignment="center"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/lato_regular"
-                            android:textColor="@android:color/black"
-                            android:layout_marginTop="8dp"/>
+                    <LinearLayout android:id="@+id/cat_aksesoris" style="@style/CategoryItemStyle">
+                        <ImageView android:src="@drawable/aksesoris" style="@style/CategoryIconStyle" />
+                        <TextView android:text="Aksesoris" style="@style/CategoryTextStyle" />
                     </LinearLayout>
 
-                    <!-- Category 3 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:layout_marginEnd="16dp">
-
-                        <ImageView
-                            android:layout_width="70dp"
-                            android:layout_height="70dp"
-                            android:background="@drawable/circle_frame"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_bmx"
-                            android:scaleType="centerCrop" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/bmx"
-                            android:textAlignment="center"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/lato_regular"
-                            android:textColor="@android:color/black"
-                            android:layout_marginTop="8dp"/>
+                    <LinearLayout android:id="@+id/cat_sepeda_induk" style="@style/CategoryItemStyle">
+                        <ImageView android:src="@drawable/ic_mtb" style="@style/CategoryIconStyle" />
+                        <TextView android:text="Sepeda" style="@style/CategoryTextStyle" />
                     </LinearLayout>
 
-                    <!-- Category 4 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:layout_marginEnd="16dp">
-
-                        <ImageView
-                            android:layout_width="70dp"
-                            android:layout_height="70dp"
-                            android:background="@drawable/circle_frame"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_mini"
-                            android:padding="3dp"
-                            android:scaleType="centerCrop" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/mini"
-                            android:textAlignment="center"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/lato_regular"
-                            android:textColor="@android:color/black"
-                            android:layout_marginTop="8dp"/>
-                    </LinearLayout>
-
-                    <!-- Category 4 -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:layout_marginEnd="16dp">
-
-                        <ImageView
-                            android:layout_width="70dp"
-                            android:layout_height="70dp"
-                            android:background="@drawable/circle_frame"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_anak"
-                            android:padding="7dp"
-                            android:scaleType="centerCrop" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/kids"
-                            android:textAlignment="center"
-                            android:textSize="14sp"
-                            android:fontFamily="@font/lato_regular"
-                            android:textColor="@android:color/black"
-                            android:layout_marginTop="8dp"/>
-                    </LinearLayout>
                 </LinearLayout>
             </HorizontalScrollView>
         </androidx.constraintlayout.widget.ConstraintLayout>
