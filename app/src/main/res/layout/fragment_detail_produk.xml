@@ -12,6 +12,8 @@
         android:layout_height="wrap_content">
 
         <!-- Toolbar -->
+
+        <!-- Image Product -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="0dp"
@@ -19,12 +21,12 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="26dp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="@drawable/back_icon"
             app:title="@null" />
 
-        <!-- Image Product -->
         <ImageView
             android:id="@+id/banner_image"
             android:layout_width="0dp"

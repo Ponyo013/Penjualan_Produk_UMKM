@@ -13,7 +13,8 @@ import android.widget.EditText
 import android.widget.Button
 import java.util.Locale
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
-
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.appbar.MaterialToolbar
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private lateinit var recyclerView: RecyclerView
@@ -31,6 +32,10 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar_search)
+        toolbar.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
 // 1. Setup Search Bar (Compose)
         val composeSearchBar = view.findViewById<ComposeView>(R.id.compose_search_bar_full)
         composeSearchBar.setContent {

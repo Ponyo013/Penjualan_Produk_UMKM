@@ -16,6 +16,7 @@ import com.example.penjualan_produk_umkm.model.Produk
 import com.example.penjualan_produk_umkm.uiComponent.ProductFilterControls
 import com.example.penjualan_produk_umkm.uiComponent.ProductSortOption
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.google.android.material.appbar.MaterialToolbar
 
 private const val ARG_PARENT_CATEGORY = "parentCategoryName"
 
@@ -41,16 +42,19 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         val categoryTitle = parentCategoryName ?: "Semua Produk"
-        view.findViewById<TextView>(R.id.category_title).text = categoryTitle
         recyclerView = view.findViewById(R.id.popular_products_in_category)
         val filterSortContainer = view.findViewById<ComposeView>(R.id.filter_sort_container)
-
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar_category)
+        toolbar.title = categoryTitle
+        toolbar.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
         // 1. Inisialisasi Produk Kategori Dasar (Hanya sekali)
         baseCategoryProducts = produkDummyList.filter {
             it.kategori.equals(categoryTitle, ignoreCase = true)
         }
+
 
         // 2. Setup RecyclerView
         recyclerView.layoutManager = GridLayoutManager(context, 2)

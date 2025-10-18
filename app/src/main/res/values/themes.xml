@@ -66,7 +66,8 @@
         <item name="android:background">@drawable/circle_frame</item>
         <item name="android:contentDescription">@null</item>
         <item name="android:scaleType">centerCrop</item>
-    </style>
+
+        <item name="android:padding">10dp</item> </style>
 
     <style name="CategoryTextStyle">
         <item name="android:layout_width">wrap_content</item>
