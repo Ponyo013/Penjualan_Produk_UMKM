@@ -9,7 +9,7 @@ data class Produk(
     val deskripsi: String,
     val spesifikasi: String,
     val harga: Double,
-    val stok: Int,
+    var stok: Int,
     val kategori: String,
     val gambarResourceIds: List<Int>,
     val rating: Float = 0f,

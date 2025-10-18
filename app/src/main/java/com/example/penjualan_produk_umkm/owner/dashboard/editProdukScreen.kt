@@ -3,6 +3,7 @@ package com.example.penjualan_produk_umkm.owner.dashboard
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,7 +52,7 @@ fun EditProdukScreen(
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
 
-    var gambarResourceId by remember { mutableStateOf<Int?>(produk.gambarResourceIds.firstOrNull()) } // <-- BARU: Ambil ID Int pertama
+    var gambarResourceId by remember { mutableStateOf<Int?>(produk.gambarResourceIds.firstOrNull()) }
     var newGambarUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -59,7 +60,7 @@ fun EditProdukScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             newGambarUri = uri
-            gambarResourceId = null // Hapus resource lama saat URI baru dipilih
+            gambarResourceId = null
         }
     }
 
@@ -81,186 +82,47 @@ fun EditProdukScreen(
                     }
                 )
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+
+            // ✅ Add Bottom Bar here
+            bottomBar = {
+                BottomAppBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 4.dp
                 ) {
-                    // ====== Upload / Ganti Gambar ======
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .size(150.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                            .clickable { launcher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (newGambarUri != null) {
-                            Image(
-                                painter = rememberAsyncImagePainter(newGambarUri),
-                                contentDescription = "Gambar Produk",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else if (gambarResourceId != null && gambarResourceId != 0) {
-                            Image(
-                                painter = rememberAsyncImagePainter(gambarResourceId), // Tampilkan ID resource (Int)
-                                contentDescription = "Gambar Produk",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = "Klik untuk ganti foto", // <-- Pastikan ini string yang benar
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                    // ====== Input Fields ======
-                    OutlinedTextField(
-                        value = nama,
-                        onValueChange = { nama = it },
-                        label = { Text("Nama Produk") },
-                        placeholder = { Text("Contoh: Sepeda Gunung") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-
-                    OutlinedTextField(
-                        value = deskripsi,
-                        onValueChange = { deskripsi = it },
-                        label = { Text("Deskripsi Produk") },
-                        placeholder = { Text("Deskripsikan produk Anda") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        minLines = 3
-                    )
-
-                    OutlinedTextField(
-                        value = spesifikasi,
-                        onValueChange = { spesifikasi = it },
-                        label = { Text("Spesifikasi Produk") },
-                        placeholder = { Text("Spesifikasikan produk Anda") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        minLines = 3
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = harga,
-                            onValueChange = { harga = it.filter { c -> c.isDigit() } },
-                            label = { Text("Harga") },
-                            placeholder = { Text("100000") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-
-                        OutlinedTextField(
-                            value = stok,
-                            onValueChange = { stok = it.filter { c -> c.isDigit() } },
-                            label = { Text("Stok") },
-                            placeholder = { Text("50") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                    }
-
-                    // Pilihan kategori
-                    val kategoriOptions = listOf("MTB", "BMX", "Sepeda Anak", "Road Bike", "Lainnya")
-                    var expandedKategori by remember { mutableStateOf(false) }
-
-                    ExposedDropdownMenuBox(
-                        expanded = expandedKategori,
-                        onExpandedChange = { expandedKategori = !expandedKategori },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        OutlinedTextField(
-                            value = kategori,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Kategori") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedKategori) },
-                            modifier = Modifier
-                                .menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true)
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expandedKategori,
-                            onDismissRequest = { expandedKategori = false },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                        ) {
-                            kategoriOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        kategori = option
-                                        expandedKategori = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-
-                    // ====== Action Buttons ======
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         OutlinedButton(
-                            onClick = {
-                                onCancel()
-                            },
+                            onClick = onCancel,
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
-                            )
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                         ) {
                             Text("Batal")
                         }
 
-
                         Button(
                             onClick = {
-                                if (nama.isBlank() || deskripsi.isBlank() || spesifikasi.isBlank() || harga.isBlank() || // <-- VALIDASI DIPERBARUI
-                                    stok.isBlank() || kategori.isBlank()
+                                if (nama.isBlank() || deskripsi.isBlank() || spesifikasi.isBlank() ||
+                                    harga.isBlank() || stok.isBlank() || kategori.isBlank()
                                 ) {
                                     scope.launch {
                                         snackbarHostState.showSnackbar("Semua field wajib diisi!")
                                     }
                                 } else {
-                                    val currentImageIdList: List<Int> = if (newGambarUri != null) {
-                                        // Jika ada URI baru, simpan placeholder (simulasi upload berhasil)
-                                        // Asumsi R.drawable.ic_empty_star adalah placeholder Int
-                                        listOf(R.drawable.ic_empty_star)
-                                    } else if (gambarResourceId != null) {
-                                        // Jika tidak ada URI baru, gunakan kembali ID Int lama
-                                        listOf(gambarResourceId!!)
-                                    } else {
-                                        // Tidak ada gambar
-                                        emptyList()
+                                    val currentImageIdList = when {
+                                        newGambarUri != null -> listOf(R.drawable.ic_empty_star)
+                                        gambarResourceId != null -> listOf(gambarResourceId!!)
+                                        else -> emptyList()
                                     }
+
                                     val updatedProduk = produk.copy(
                                         nama = nama,
                                         deskripsi = deskripsi,
@@ -268,8 +130,7 @@ fun EditProdukScreen(
                                         harga = harga.toDoubleOrNull() ?: produk.harga,
                                         stok = stok.toIntOrNull() ?: produk.stok,
                                         kategori = kategori,
-                                        // BARIS 257, 346, 348: PARAMETER HARUS COCOK DENGAN PRODUK.KT
-                                        gambarResourceIds = currentImageIdList // <-- PARAMETER BARU YANG BENAR
+                                        gambarResourceIds = currentImageIdList
                                     )
                                     onSave(updatedProduk)
                                     showDialogBerhasil = true
@@ -285,16 +146,151 @@ fun EditProdukScreen(
                         }
                     }
                 }
-                // Panggil dialog jika diperlukan
-                if (showDialogBerhasil) {
-                    ProdukBerhasilDiEditDialog(
-                        onDismiss = { showDialogBerhasil = false }
+            }
+        ) { innerPadding ->
+            // Scrollable content area
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // ====== Upload / Ganti Gambar ======
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                        .clickable { launcher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (newGambarUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(newGambarUri),
+                            contentDescription = "Gambar Produk",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (gambarResourceId != null && gambarResourceId != 0) {
+                        Image(
+                            painter = rememberAsyncImagePainter(gambarResourceId),
+                            contentDescription = "Gambar Produk",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Klik untuk ganti foto",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                // ====== Input Fields ======
+                OutlinedTextField(
+                    value = nama,
+                    onValueChange = { nama = it },
+                    label = { Text("Nama Produk") },
+                    placeholder = { Text("Contoh: Sepeda Gunung") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                OutlinedTextField(
+                    value = deskripsi,
+                    onValueChange = { deskripsi = it },
+                    label = { Text("Deskripsi Produk") },
+                    placeholder = { Text("Deskripsikan produk Anda") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    minLines = 3
+                )
+
+                OutlinedTextField(
+                    value = spesifikasi,
+                    onValueChange = { spesifikasi = it },
+                    label = { Text("Spesifikasi Produk") },
+                    placeholder = { Text("Spesifikasikan produk Anda") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    minLines = 3
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedTextField(
+                        value = harga,
+                        onValueChange = { harga = it.filter { c -> c.isDigit() } },
+                        label = { Text("Harga") },
+                        placeholder = { Text("100000") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = stok,
+                        onValueChange = { stok = it.filter { c -> c.isDigit() } },
+                        label = { Text("Stok") },
+                        placeholder = { Text("50") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
+
+                // ====== Dropdown Kategori ======
+                val kategoriOptions = listOf("MTB", "BMX", "Sepeda Anak", "Road Bike", "Lainnya")
+                var expandedKategori by remember { mutableStateOf(false) }
+
+                ExposedDropdownMenuBox(
+                    expanded = expandedKategori,
+                    onExpandedChange = { expandedKategori = !expandedKategori },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    OutlinedTextField(
+                        value = kategori,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Kategori") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedKategori) },
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true)
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedKategori,
+                        onDismissRequest = { expandedKategori = false },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        kategoriOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    kategori = option
+                                    expandedKategori = false
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ====== Success Dialog ======
+            if (showDialogBerhasil) {
+                ProdukBerhasilDiEditDialog(onDismiss = { showDialogBerhasil = false })
             }
         }
     }
 }
+
 
 @Composable
 fun ProdukBerhasilDiEditDialog(onDismiss: () -> Unit) {

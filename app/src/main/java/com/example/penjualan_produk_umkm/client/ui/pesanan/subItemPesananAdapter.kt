@@ -1,7 +1,7 @@
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.databinding.SubItemProdukPesananBinding
 import com.example.penjualan_produk_umkm.model.ItemPesanan
@@ -50,19 +50,13 @@ class subItemPesananAdapter(private val items: List<ItemPesanan>) :
 
 
             // Gambar dengan placeholder
-            if (item.produk.gambarUrl.isEmpty()) {
-                val placeholder = ContextCompat.getDrawable(
-                    itemView.context,
-                    R.drawable.shape_image_placeholder
-                )
-                binding.ivProductImage.setImageDrawable(placeholder)
+            if (item.produk.gambarResourceIds.isNotEmpty()) {
+                binding.ivProductImage.load(item.produk.gambarResourceIds.first()) {
+                    crossfade(true)
+                    placeholder(R.drawable.shape_image_placeholder)
+                }
             } else {
-                // Untuk sementara tetap pakai placeholder
-                val placeholder = ContextCompat.getDrawable(
-                    itemView.context,
-                    R.drawable.shape_image_placeholder
-                )
-                binding.ivProductImage.setImageDrawable(placeholder)
+                binding.ivProductImage.setImageResource(R.drawable.shape_image_placeholder)
             }
         }
     }

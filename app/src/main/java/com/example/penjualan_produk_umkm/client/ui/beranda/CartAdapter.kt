@@ -64,9 +64,13 @@ class CartAdapter(
             val localeID = Locale.Builder().setLanguage("id").setRegion("ID").build()
             val numberFormat = NumberFormat.getCurrencyInstance(localeID)
             productPrice.text = numberFormat.format(item.produk.harga)
-            productImage.load(item.produk.gambarUrl) {
-                crossfade(true)
-                placeholder(R.drawable.ic_launcher_background)
+            if (item.produk.gambarResourceIds.isNotEmpty()) {
+                productImage.load(item.produk.gambarResourceIds.first()) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_launcher_background)
+                }
+            } else {
+                productImage.setImageResource(R.drawable.ic_launcher_background)
             }
 
             if (isCheckout) {

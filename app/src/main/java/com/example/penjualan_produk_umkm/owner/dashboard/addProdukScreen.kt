@@ -38,35 +38,6 @@ import com.example.penjualan_produk_umkm.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProdukScreen(navController: NavHostController) {
-    UMKMTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(title = { Text("Tambah Produk Baru") }, navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                })
-            },
-
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-            ) {
-                Form(navController)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Form(navController: NavHostController){
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
     var spesifikasi by remember { mutableStateOf("") }
@@ -87,163 +58,195 @@ fun Form(navController: NavHostController){
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize().verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-
-    ) {
-        // Card Pilih Gambar
-        Box(
-            modifier = Modifier
-                .size(150.dp)
-                .align(Alignment.CenterHorizontally)
-                .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .clickable { launcher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            if (gambarUri != null) {
-                Image(
-                    painter = rememberAsyncImagePainter(gambarUri),
-                    contentDescription = "Gambar Produk",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                Text(text = "Klik untuk memilih gambar",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth() )
-            }
-        }
-
-        // Inputan Nama Produk
-        OutlinedTextField(
-            value = nama,
-            onValueChange = { nama = it },
-            label = { Text("Nama Produk") },
-            placeholder = { Text("Contoh: Sepeda Gunung") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-        )
-
-        // Inputan Deskripsi Produk
-        OutlinedTextField(
-            value = deskripsi,
-            onValueChange = { deskripsi = it },
-            label = { Text("Deskripsi Produk") },
-            placeholder = { Text("Deskripsikan produk Anda") },
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            maxLines = Int.MAX_VALUE,
-            minLines = 3,
-        )
-
-        OutlinedTextField(
-            value = spesifikasi,
-            onValueChange = { spesifikasi = it },
-            label = { Text("Spesifikasi Produk") },
-            placeholder = { Text("Contoh: Rangka Carbon, Suspensi 100mm") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            maxLines = Int.MAX_VALUE,
-            minLines = 3,
-        )
-
-        // Row inputan Harga & Stok
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedTextField(
-                value = harga,
-                onValueChange = { harga = it.filter { c -> c.isDigit() } },
-                label = { Text("Harga") },
-                placeholder = { Text("100000") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-            )
-            OutlinedTextField(
-                value = stok,
-                onValueChange = { stok = it.filter { c -> c.isDigit() } },
-                label = { Text("Stok") },
-                placeholder = { Text("50") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-            )
-        }
-
-        // DropDown Kategori
-        ExposedDropdownMenuBox(
-            expanded = expandedKategori,
-            onExpandedChange = { expandedKategori = !expandedKategori },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            OutlinedTextField(
-                value = kategori,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Kategori") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedKategori) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true),
-                shape = RoundedCornerShape(12.dp),
-            )
-            ExposedDropdownMenu(
-                expanded = expandedKategori,
-                onDismissRequest = { expandedKategori = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                kategoriOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            kategori = option
-                            expandedKategori = false
-                        },
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-        // Tombol Tambahkan produk baru
-        Button(
-            onClick = {
-                if (nama.isNotBlank() && deskripsi.isNotBlank() && spesifikasi.isNotBlank() && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()) { // <-- VALIDASI DIPERBARUI
-                    val produk = Produk(
-                        id = produkDummyList.maxOfOrNull { it.id }?.plus(1) ?: 1,
-                        nama = nama,
-                        deskripsi = deskripsi,
-                        spesifikasi = spesifikasi,
-                        harga = harga.toDouble(),
-                        stok = stok.toInt(),
-                        kategori = kategori,
-                        // KOREKSI: Gunakan nama parameter yang benar DAN tipe List<Int>
-                        gambarResourceIds = listOf(R.drawable.ic_empty_star),
-                        rating = 0f,
-                        terjual = 0
-                    )
-                    produkDummyList.add(produk)
-                    showDialogBerhasil = true
-                }
+    UMKMTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text("Tambah Produk Baru") }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                })
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Text("Tambahkan Produk")
-        }
-    }
 
-    // Panggil dialog jika diperlukan
-    if (showDialogBerhasil) {
-        ProdukBerhasilDialog(
-            onDismiss = { showDialogBerhasil = false }
-        )
+            // 🔽 Tambahkan bottom bar di sini
+            bottomBar = {
+                BottomAppBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 4.dp
+                ) {
+                    Button(
+                        onClick = {
+                            if (nama.isNotBlank() && deskripsi.isNotBlank() && spesifikasi.isNotBlank()
+                                && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()
+                            ) {
+                                val produk = Produk(
+                                    id = produkDummyList.maxOfOrNull { it.id }?.plus(1) ?: 1,
+                                    nama = nama,
+                                    deskripsi = deskripsi,
+                                    spesifikasi = spesifikasi,
+                                    harga = harga.toDouble(),
+                                    stok = stok.toInt(),
+                                    kategori = kategori,
+                                    gambarResourceIds = listOf(R.drawable.ic_empty_star),
+                                    rating = 0f,
+                                    terjual = 0
+                                )
+                                produkDummyList.add(produk)
+                                showDialogBerhasil = true
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Tambahkan Produk")
+                    }
+                }
+            }
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp),
+            ) {
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+
+                    ) {
+                    // Card Pilih Gambar
+                    Box(
+                        modifier = Modifier
+                            .size(150.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                            .clickable { launcher.launch("image/*") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (gambarUri != null) {
+                            Image(
+                                painter = rememberAsyncImagePainter(gambarUri),
+                                contentDescription = "Gambar Produk",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            Text(text = "Klik untuk memilih gambar",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth() )
+                        }
+                    }
+
+                    // Inputan Nama Produk
+                    OutlinedTextField(
+                        value = nama,
+                        onValueChange = { nama = it },
+                        label = { Text("Nama Produk") },
+                        placeholder = { Text("Contoh: Sepeda Gunung") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+
+                    // Inputan Deskripsi Produk
+                    OutlinedTextField(
+                        value = deskripsi,
+                        onValueChange = { deskripsi = it },
+                        label = { Text("Deskripsi Produk") },
+                        placeholder = { Text("Deskripsikan produk Anda") },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        maxLines = Int.MAX_VALUE,
+                        minLines = 3,
+                    )
+
+                    OutlinedTextField(
+                        value = spesifikasi,
+                        onValueChange = { spesifikasi = it },
+                        label = { Text("Spesifikasi Produk") },
+                        placeholder = { Text("Contoh: Rangka Carbon, Suspensi 100mm") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        maxLines = Int.MAX_VALUE,
+                        minLines = 3,
+                    )
+
+                    // Row inputan Harga & Stok
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = harga,
+                            onValueChange = { harga = it.filter { c -> c.isDigit() } },
+                            label = { Text("Harga") },
+                            placeholder = { Text("100000") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        OutlinedTextField(
+                            value = stok,
+                            onValueChange = { stok = it.filter { c -> c.isDigit() } },
+                            label = { Text("Stok") },
+                            placeholder = { Text("50") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                    }
+
+                    // DropDown Kategori
+                    ExposedDropdownMenuBox(
+                        expanded = expandedKategori,
+                        onExpandedChange = { expandedKategori = !expandedKategori },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        OutlinedTextField(
+                            value = kategori,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Kategori") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedKategori) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedKategori,
+                            onDismissRequest = { expandedKategori = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            kategoriOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        kategori = option
+                                        expandedKategori = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Panggil dialog jika diperlukan
+                if (showDialogBerhasil) {
+                    ProdukBerhasilDialog(
+                        onDismiss = { showDialogBerhasil = false }
+                    )
+                }
+            }
+        }
     }
 }
 

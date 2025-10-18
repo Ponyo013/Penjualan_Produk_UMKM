@@ -26,6 +26,7 @@ import com.example.penjualan_produk_umkm.model.ItemPesanan
 import com.example.penjualan_produk_umkm.model.MetodePembayaran
 import com.example.penjualan_produk_umkm.model.Pesanan
 import com.example.penjualan_produk_umkm.model.StatusPesanan
+import com.example.penjualan_produk_umkm.produkDummyList
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import org.threeten.bp.LocalDate
@@ -104,6 +105,14 @@ class CheckoutFragment : Fragment() {
         updatePaymentDetails(view, cartItems, selectedShippingCost)
 
         view.findViewById<MaterialButton>(R.id.btn_bayar).setOnClickListener {
+            // Reduce stock
+            for (item in cartItems) {
+                val product = produkDummyList.find { it.id == item.produk.id }
+                product?.let {
+                    it.stok -= item.jumlah
+                }
+            }
+            
             val newPesanan = Pesanan(
                 id = (dummyPesanan.size + 1),
                 user = user.copy( // Create a copy with the updated address

@@ -51,7 +51,7 @@ class PesananFragment : Fragment() {
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
                 (tab.customView as? TextView)?.setTextColor(
-                    ContextCompat.getColor(requireContext(), R.color.grey)
+                    ContextCompat.getColor(requireContext(), R.color.text_secondary)
                 )
             }
 

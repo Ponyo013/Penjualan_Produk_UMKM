@@ -39,7 +39,7 @@ class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private val DEBUG_LOGIN_USER = true
+    private var DEBUG_LOGIN_USER = true
     private val DEBUG_LOGIN_OWNER = true
 
 
@@ -67,21 +67,22 @@ class LoginFragment : Fragment() {
             performLogin()
         }
 
-        // TODO ini adalah debug
-        // Debugging biar langsung login
-//        if (!DEBUG_LOGIN_USER) {
-//            view.post {
-//                binding.editTextUsername.setText("user@example.com")
-//                binding.editTextPassword.setText("123456")
-//                performLogin()
-//            }
-//        }
-//
+
+//         Debugging biar langsung login
+        if (!DEBUG_LOGIN_USER) {
+            view.post {
+                binding.editTextUsername.setText("user@example.com")
+                binding.editTextPassword.setText("123456")
+                performLogin()
+            }
+        }
+
         if (DEBUG_LOGIN_OWNER) {
             view.post {
                 binding.editTextUsername.setText("owner@example.com")
                 binding.editTextPassword.setText("owner123")
                 performLogin()
+                DEBUG_LOGIN_USER = false
             }
         }
 

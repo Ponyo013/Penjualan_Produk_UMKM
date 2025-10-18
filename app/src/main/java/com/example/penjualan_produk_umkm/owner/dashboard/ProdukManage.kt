@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.RemoveRedEye
 import androidx.compose.material.icons.outlined.StarRate
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -84,17 +85,21 @@ fun ProdukManage(navController: NavHostController) {
 
             // Tombol tetap di bawah
             bottomBar = {
-                Button(
-                    onClick = {
-                        navController.navigate("addProduk")
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 24.dp),
-                    shape = RoundedCornerShape(10.dp)
+                BottomAppBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 4.dp
                 ) {
-                    Text("Tambah Produk Baru")
+                    Button(
+                        onClick = {
+                            navController.navigate("addProduk")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Tambah Produk Baru")
+                    }
                 }
             }
         ) { padding ->
@@ -200,8 +205,24 @@ fun ProdukList(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
+                    )
                 ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        IconButton(
+                            onClick = { onDetailUlasan(produk) },
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(8.dp)
+                                .size(18.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = "Detail Ulasan",
+                                tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                            )
+                        }
+
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -211,7 +232,7 @@ fun ProdukList(
                     ) {
                         // Gambar di kiri
                         AsyncImage(
-                            model = produk.gambarResourceIds,
+                            model = produk.gambarResourceIds.firstOrNull(),
                             contentDescription = "Contoh Gambar",
                             modifier = Modifier.size(100.dp),
                             contentScale = ContentScale.Crop
@@ -233,21 +254,6 @@ fun ProdukList(
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
-
-                                // Icon Button untuk Detail Ulasan
-                                IconButton(
-                                    onClick = { onDetailUlasan(produk) },
-                                    modifier = Modifier.size(20.dp),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Info,
-                                        contentDescription = "Detail Ulasan",
-                                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
-                                        modifier = Modifier.wrapContentWidth()
-                                    )
-                                }
-
-
                             }
 
                             Text(
@@ -384,6 +390,7 @@ fun ProdukList(
 
 
                             }
+                        }
                         }
                     }
                 }
