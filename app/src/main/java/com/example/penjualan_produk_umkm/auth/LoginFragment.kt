@@ -70,22 +70,22 @@ class LoginFragment : Fragment() {
 
 
 //         Debugging biar langsung login
-        if (DEBUG_LOGIN_USER) {
-            view.post {
-                binding.editTextUsername.setText("user1@example.com")
-                binding.editTextPassword.setText("password123")
-                performLogin()
-            }
-        }
-
-        if (!DEBUG_LOGIN_OWNER) {
-            view.post {
-                binding.editTextUsername.setText("owner@example.com")
-                binding.editTextPassword.setText("owner123")
-                performLogin()
-                DEBUG_LOGIN_USER = false
-            }
-        }
+//        if (DEBUG_LOGIN_USER) {
+//            view.post {
+//                binding.editTextUsername.setText("user1@example.com")
+//                binding.editTextPassword.setText("password123")
+//                performLogin()
+//            }
+//        }
+//
+//        if (!DEBUG_LOGIN_OWNER) {
+//            view.post {
+//                binding.editTextUsername.setText("owner@example.com")
+//                binding.editTextPassword.setText("owner123")
+//                performLogin()
+//                DEBUG_LOGIN_USER = false
+//            }
+//        }
 
     }
 
