@@ -45,7 +45,7 @@ fun AddProdukScreen(navController: NavHostController) {
     var stok by remember { mutableStateOf("") }
     var kategori by remember { mutableStateOf("") }
     var expandedKategori by remember { mutableStateOf(false) }
-    val kategoriOptions = listOf("Sparepart", "MTB", "BMX", "Mini", "Sepeda Anak")
+    val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
 

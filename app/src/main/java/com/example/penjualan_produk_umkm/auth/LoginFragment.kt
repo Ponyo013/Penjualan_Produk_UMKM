@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import android.view.*
 import androidx.core.content.ContextCompat
 import com.example.penjualan_produk_umkm.AuthActivity
+import com.example.penjualan_produk_umkm.CurrentUser
 import com.example.penjualan_produk_umkm.MainActivity
 import com.example.penjualan_produk_umkm.OwnerActivity
 import com.example.penjualan_produk_umkm.R
@@ -69,15 +70,15 @@ class LoginFragment : Fragment() {
 
 
 //         Debugging biar langsung login
-        if (!DEBUG_LOGIN_USER) {
+        if (DEBUG_LOGIN_USER) {
             view.post {
-                binding.editTextUsername.setText("user@example.com")
-                binding.editTextPassword.setText("123456")
+                binding.editTextUsername.setText("user1@example.com")
+                binding.editTextPassword.setText("password123")
                 performLogin()
             }
         }
 
-        if (DEBUG_LOGIN_OWNER) {
+        if (!DEBUG_LOGIN_OWNER) {
             view.post {
                 binding.editTextUsername.setText("owner@example.com")
                 binding.editTextPassword.setText("owner123")
@@ -137,6 +138,7 @@ class LoginFragment : Fragment() {
 
         if (user != null && user.password == password) {
             showToast("Login successful!")
+            CurrentUser.user = user
 
             binding.progressBar.visibility = View.VISIBLE
             binding.loginButton.isEnabled = false

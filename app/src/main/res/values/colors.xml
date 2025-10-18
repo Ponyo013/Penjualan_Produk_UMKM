@@ -22,4 +22,6 @@
     <color name="dark_blue">#1A2C42</color>
 
     <color name="red">#D32F2F</color>
+    
+    <color name="bottom_nav_background">#FF202124</color>
 </resources>

@@ -16,7 +16,6 @@ import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.dummyItems
 import com.example.penjualan_produk_umkm.model.ItemPesanan
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -51,9 +50,9 @@ class CartFragment : Fragment() {
         updateCheckoutButtonState()
 
         checkoutButton.setOnClickListener {
-            val selectedItems = dummyItems.filter { it.isSelected }.toTypedArray()
+            val selectedItems = ArrayList(dummyItems.filter { it.isSelected })
             val bundle = Bundle()
-            bundle.putParcelableArray("cartItems", selectedItems)
+            bundle.putParcelableArray("cartItems", selectedItems.toTypedArray())
             findNavController().navigate(R.id.action_CartFragment_to_checkoutFragment, bundle)
         }
     }
@@ -88,6 +87,11 @@ class CartFragment : Fragment() {
                 updateTotalPrice()
                 updateCheckoutButtonState()
             }
+        }, {
+            // On Item Click
+            val bundle = Bundle()
+            bundle.putInt("productId", it.produk.id)
+            findNavController().navigate(R.id.action_CartFragment_to_detailProdukFragment, bundle)
         })
         rvCart.apply {
             adapter = cartAdapter

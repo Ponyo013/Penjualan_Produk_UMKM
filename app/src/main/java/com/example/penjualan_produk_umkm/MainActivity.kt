@@ -2,17 +2,19 @@ package com.example.penjualan_produk_umkm
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import android.widget.*
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.card.MaterialCardView
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var navController: NavController
+    private lateinit var bottomNavContainer: MaterialCardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,49 +27,48 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
+        bottomNavContainer = findViewById(R.id.bottom_nav_container)
 
-        val bottomBar = findViewById<MaterialCardView>(R.id.bottomBarCard)
+        val berandaIcon = findViewById<ImageView>(R.id.beranda_icon)
+        val pesananIcon = findViewById<ImageView>(R.id.pesanan_icon)
+        val profilIcon = findViewById<ImageView>(R.id.profil_icon)
 
-        navController.addOnDestinationChangedListener { _, _, arguments ->
-            val showBottomNav = arguments?.getBoolean("showBottomNav", false) ?: false
-            bottomBar.visibility = if (showBottomNav) View.VISIBLE else View.GONE
-        }
-
-        val berandaIcon = findViewById<ImageButton>(R.id.beranda_icon)
-        val pesananIcon = findViewById<ImageButton>(R.id.pesanan_icon)
-        val profilIcon = findViewById<ImageButton>(R.id.profil_icon)
-        val pusatBantuanIcon = findViewById<ImageButton>(R.id.pusatbantuan_icon)
-
-        setSelectedIcon(berandaIcon)
-
-        berandaIcon.setOnClickListener {
+        berandaIcon.setOnClickListener { 
             navController.navigate(R.id.BerandaFragment)
-            setSelectedIcon(berandaIcon)
         }
-        pesananIcon.setOnClickListener {
+        pesananIcon.setOnClickListener { 
             navController.navigate(R.id.pesananFragment)
-            setSelectedIcon(pesananIcon)
         }
-        profilIcon.setOnClickListener {
+        profilIcon.setOnClickListener { 
             navController.navigate(R.id.profileFragment)
-            setSelectedIcon(profilIcon)
         }
-        pusatBantuanIcon.setOnClickListener {
-            navController.navigate(R.id.pusatBantuanFragment)
-            setSelectedIcon(pusatBantuanIcon)
+
+        navController.addOnDestinationChangedListener { _, destination, arguments ->
+            val showBottomNav = arguments?.getBoolean("showBottomNav", false) ?: false
+            bottomNavContainer.visibility = if (showBottomNav) View.VISIBLE else View.GONE
+            
+            when (destination.id) {
+                R.id.BerandaFragment -> updateBottomNav(berandaIcon)
+                R.id.pesananFragment -> updateBottomNav(pesananIcon)
+                R.id.profileFragment -> updateBottomNav(profilIcon)
+            }
         }
+
+        // Set initial state
+        updateBottomNav(berandaIcon)
     }
 
-    private fun setSelectedIcon(selected: ImageButton) {
-        val buttons = listOf(
-            findViewById<ImageButton>(R.id.beranda_icon),
-            findViewById(R.id.pesanan_icon),
-            findViewById(R.id.profil_icon),
-            findViewById(R.id.pusatbantuan_icon)
+    private fun updateBottomNav(selectedIcon: ImageView) {
+        val allIcons = listOf(
+            findViewById<ImageView>(R.id.beranda_icon),
+            findViewById<ImageView>(R.id.pesanan_icon),
+            findViewById<ImageView>(R.id.profil_icon)
         )
-        buttons.forEach { it.isSelected = it == selected }
+
+        allIcons.forEach { icon ->
+            icon.alpha = if (icon == selectedIcon) 1.0f else 0.5f
+        }
     }
 }

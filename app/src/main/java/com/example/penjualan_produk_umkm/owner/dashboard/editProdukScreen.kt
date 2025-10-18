@@ -246,7 +246,7 @@ fun EditProdukScreen(
                 }
 
                 // ====== Dropdown Kategori ======
-                val kategoriOptions = listOf("MTB", "BMX", "Sepeda Anak", "Road Bike", "Lainnya")
+                val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
                 var expandedKategori by remember { mutableStateOf(false) }
 
                 ExposedDropdownMenuBox(

@@ -57,6 +57,8 @@ dependencies {
     // Coil for image loading
     implementation("io.coil-kt:coil:2.6.0")
 
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
     // Compose
     implementation(libs.threetenabp)
     implementation(libs.coil.compose)

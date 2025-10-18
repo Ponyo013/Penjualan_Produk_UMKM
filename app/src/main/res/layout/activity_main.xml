@@ -11,81 +11,58 @@
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintBottom_toTopOf="@id/bottomBarCard"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:navGraph="@navigation/nav_graph_client" />
 
-    <!-- BotNav -->
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/bottomBarCard"
-        android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:layout_gravity="bottom"
-        app:cardBackgroundColor="#FFFFFFFF"
-        app:cardCornerRadius="0dp"
-        app:cardElevation="8dp"
+        android:id="@+id/bottom_nav_container"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="11dp"
+        app:cardBackgroundColor="@color/Secondary_1"
+        app:cardCornerRadius="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#F3F4F8"
-            android:gravity="center"
+            android:layout_height="65dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="20dp">
+            android:paddingHorizontal="16dp">
 
-            <ImageButton
-                android:id="@+id/beranda_icon"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/beranda"
-                android:padding="0dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/home"
-                app:tint="@color/bottom_nav_selector" />
-
-            <ImageButton
+            <!-- Pesanan Item -->
+            <ImageView
                 android:id="@+id/pesanan_icon"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="24dp"
                 android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/pesanan"
-                android:padding="0dp"
-                android:scaleType="centerInside"
                 android:src="@drawable/pesanan"
-                app:tint="@color/bottom_nav_selector" />
+                app:tint="@android:color/white" />
 
-            <ImageButton
+            <!-- Beranda Item -->
+            <ImageView
+                android:id="@+id/beranda_icon"
+                android:layout_width="0dp"
+                android:layout_height="24dp"
+                android:layout_weight="1"
+                android:src="@drawable/home"
+                app:tint="@android:color/white" />
+
+            <!-- Profil Item -->
+            <ImageView
                 android:id="@+id/profil_icon"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="24dp"
                 android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/profil"
-                android:padding="0dp"
-                android:scaleType="centerInside"
                 android:src="@drawable/profil"
-                app:tint="@color/bottom_nav_selector" />
-
-            <ImageButton
-                android:id="@+id/pusatbantuan_icon"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/pusatbantuan"
-                android:padding="0dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/pusatbantuan"
-                app:tint="@color/bottom_nav_selector" />
+                app:tint="@android:color/white" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

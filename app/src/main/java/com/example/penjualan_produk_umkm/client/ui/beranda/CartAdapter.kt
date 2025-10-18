@@ -16,26 +16,14 @@ import java.util.Locale
 
 class CartAdapter(
     private val cartItems: MutableList<ItemPesanan>,
-    private val isCheckout: Boolean = false,
-    private val onIncrease: ((ItemPesanan) -> Unit)? = null,
-    private val onDecrease: ((ItemPesanan) -> Unit)? = null,
-    private val onItemSelectChanged: ((ItemPesanan) -> Unit)? = null
+    private val onIncrease: (ItemPesanan) -> Unit,
+    private val onDecrease: (ItemPesanan) -> Unit,
+    private val onItemSelectChanged: (ItemPesanan) -> Unit,
+    private val onItemClick: (ItemPesanan) -> Unit
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
-    // Constructor for CartFragment
-    constructor(
-        cartItems: MutableList<ItemPesanan>,
-        onIncrease: (ItemPesanan) -> Unit,
-        onDecrease: (ItemPesanan) -> Unit,
-        onItemSelectChanged: (ItemPesanan) -> Unit
-    ) : this(cartItems, false, onIncrease, onDecrease, onItemSelectChanged)
-
-    // Constructor for CheckoutFragment
-    constructor(
-        cartItems: List<ItemPesanan>,
-        isCheckout: Boolean
-    ) : this(cartItems.toMutableList(), isCheckout)
-
+    // Secondary constructor for checkout where click actions are not needed
+    constructor(cartItems: List<ItemPesanan>, isCheckout: Boolean) : this(cartItems.toMutableList(), {}, {}, {}, {})
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -59,47 +47,29 @@ class CartAdapter(
         private val increaseButton: ImageButton = itemView.findViewById(R.id.btn_increase_quantity)
 
         fun bind(item: ItemPesanan) {
-            // Common properties
+            selectCheckBox.isChecked = item.isSelected
             productName.text = item.produk.nama
             val localeID = Locale.Builder().setLanguage("id").setRegion("ID").build()
             val numberFormat = NumberFormat.getCurrencyInstance(localeID)
             productPrice.text = numberFormat.format(item.produk.harga)
-            if (item.produk.gambarResourceIds.isNotEmpty()) {
-                productImage.load(item.produk.gambarResourceIds.first()) {
+            quantity.text = item.jumlah.toString()
+
+            // Correctly load image from the first resource ID
+            val firstImageId = item.produk.gambarResourceIds.firstOrNull()
+            if (firstImageId != null) {
+                productImage.load(firstImageId) {
                     crossfade(true)
-                    placeholder(R.drawable.ic_launcher_background)
+                    placeholder(R.color.grey)
                 }
             } else {
-                productImage.setImageResource(R.drawable.ic_launcher_background)
+                // Fallback if no image is available
+                productImage.setImageResource(R.drawable.ic_error_image) 
             }
 
-            if (isCheckout) {
-                // Checkout mode
-                selectCheckBox.visibility = View.GONE
-                decreaseButton.visibility = View.GONE
-                increaseButton.visibility = View.GONE
-                quantity.visibility = View.VISIBLE
-                quantity.text = "x${item.jumlah}"
-            } else {
-                // Cart mode
-                selectCheckBox.visibility = View.VISIBLE
-                selectCheckBox.isChecked = item.isSelected
-                decreaseButton.visibility = View.VISIBLE
-                increaseButton.visibility = View.VISIBLE
-                quantity.visibility = View.VISIBLE
-                quantity.text = item.jumlah.toString()
-
-                // Set listeners for cart actions
-                selectCheckBox.setOnClickListener {
-                    onItemSelectChanged?.invoke(item)
-                }
-                increaseButton.setOnClickListener {
-                    onIncrease?.invoke(item)
-                }
-                decreaseButton.setOnClickListener {
-                    onDecrease?.invoke(item)
-                }
-            }
+            increaseButton.setOnClickListener { onIncrease(item) }
+            decreaseButton.setOnClickListener { onDecrease(item) }
+            selectCheckBox.setOnClickListener { onItemSelectChanged(item) }
+            itemView.setOnClickListener { onItemClick(item) }
         }
     }
 }
