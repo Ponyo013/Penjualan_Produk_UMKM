@@ -79,10 +79,10 @@ class ProfileFragment : Fragment() {
                     it.alamat = newAddress
                     dummyUsers[it.email]?.alamat = newAddress
                 }
-                Toast.makeText(requireContext(), "Address updated successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Alamat berhasil diperbarui", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             } else {
-                Toast.makeText(requireContext(), "Address cannot be empty", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Alamat tidak boleh kosong", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -110,17 +110,17 @@ class ProfileFragment : Fragment() {
             val confirmNewPassword = etConfirmNewPassword.text.toString()
 
             if (oldPassword.isEmpty() || newPassword.isEmpty() || confirmNewPassword.isEmpty()) {
-                Toast.makeText(requireContext(), "All fields are required", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Semua kolom harus diisi", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (oldPassword != CurrentUser.user?.password) {
-                Toast.makeText(requireContext(), "Invalid old password", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Kata sandi lama salah", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (newPassword != confirmNewPassword) {
-                Toast.makeText(requireContext(), "New passwords do not match", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Kata sandi baru tidak cocok", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -129,7 +129,7 @@ class ProfileFragment : Fragment() {
                 dummyUsers[it.email]?.password = newPassword
             }
 
-            Toast.makeText(requireContext(), "Password updated successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Kata sandi berhasil diperbarui", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
         }
 

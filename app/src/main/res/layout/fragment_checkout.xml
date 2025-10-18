@@ -13,10 +13,11 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/back_icon"
-        app:title="Checkout"
+        app:title="Pembayaran"
         app:titleCentered="true" />
 
     <ScrollView

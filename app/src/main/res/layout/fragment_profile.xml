@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/montserrat_bold"
-        android:text="John Doe"
+        android:text="Nama Pengguna"
         android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -50,7 +50,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="john.doe@example.com"
+        android:text="email@pengguna.com"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -85,7 +85,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginStart="24dp"
                 android:layout_toEndOf="@id/iv_edit_profile"
-                android:text="Edit Profile"
+                android:text="Edit Profil"
                 android:textSize="18sp" />
 
             <ImageView
@@ -121,7 +121,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginStart="24dp"
                 android:layout_toEndOf="@id/iv_change_password"
-                android:text="Change Password"
+                android:text="Ubah Kata Sandi"
                 android:textSize="18sp" />
 
             <ImageView
@@ -158,7 +158,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginStart="24dp"
                 android:layout_toEndOf="@id/iv_logout"
-                android:text="Logout"
+                android:text="Keluar"
                 android:textSize="18sp" />
 
             <ImageView

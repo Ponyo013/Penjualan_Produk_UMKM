@@ -73,7 +73,6 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     }
 
     private fun setupProductInfo(view: View, produk: Produk) {
-        val bannerImage = view.findViewById<ImageView>(R.id.banner_image)
         val namaProduk = view.findViewById<TextView>(R.id.nama_produk)
         val hargaProduk = view.findViewById<TextView>(R.id.harga_produk)
         val stockStatus = view.findViewById<TextView>(R.id.stock_status)
@@ -85,14 +84,6 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
 
         val galleryViewPager = view.findViewById<ViewPager2>(R.id.gallery_view_pager)
         galleryViewPager.adapter = GalleryAdapter(produk.gambarResourceIds)
-
-        val firstImageId = produk.gambarResourceIds.firstOrNull()
-        if (firstImageId != null) {
-            bannerImage.load(firstImageId) {
-                placeholder(R.color.grey)
-                error(R.drawable.ic_error_image)
-            }
-        }
 
         namaProduk.text = produk.nama
         val formatRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))

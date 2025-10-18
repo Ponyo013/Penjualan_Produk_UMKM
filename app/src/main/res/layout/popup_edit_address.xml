@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Edit Profile"
+        android:text="Edit Profil"
         android:textSize="22sp"
         android:textStyle="bold"
         android:layout_gravity="center_horizontal"
@@ -19,7 +19,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Name"
+        android:text="Nama"
         android:textSize="14sp"
         android:layout_marginBottom="4dp"/>
 
@@ -49,7 +49,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Phone Number"
+        android:text="Nomor Telepon"
         android:textSize="14sp"
         android:layout_marginBottom="4dp"/>
 
@@ -64,7 +64,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Address"
+        android:text="Alamat"
         android:textSize="14sp"
         android:layout_marginBottom="4dp"/>
 
@@ -72,7 +72,7 @@
         android:id="@+id/et_address"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter your new address"
+        android:hint="Masukkan alamat baru Anda"
         android:inputType="textMultiLine"
         android:minLines="3"
         android:background="@drawable/disabled_field_background"
@@ -90,7 +90,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancel"
+            android:text="Batal"
             android:textColor="@color/Secondary_1"
             app:strokeColor="@color/Secondary_1"
             app:cornerRadius="8dp"
@@ -101,7 +101,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Save"
+            android:text="Simpan"
             app:backgroundTint="@color/Secondary_1"
             app:cornerRadius="8dp"
             android:textColor="@android:color/white"
