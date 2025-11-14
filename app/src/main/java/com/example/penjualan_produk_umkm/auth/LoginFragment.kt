@@ -1,61 +1,39 @@
 package com.example.penjualan_produk_umkm.auth
 
-// ini Branch Pesanan
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
-import androidx.fragment.app.Fragment
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.penjualan_produk_umkm.AuthActivity
-import com.example.penjualan_produk_umkm.CurrentUser
 import com.example.penjualan_produk_umkm.MainActivity
 import com.example.penjualan_produk_umkm.OwnerActivity
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.viewModel.LoginViewModel
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.databinding.FragmentLoginBinding
-import com.example.penjualan_produk_umkm.dummyUsers
 
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [LoginFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class LoginFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private var DEBUG_LOGIN_USER = true
-    private val DEBUG_LOGIN_OWNER = true
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -63,41 +41,87 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        makeRegisterClick()
+        // Initialize ViewModel
+        val userDao = AppDatabase.getDatabase(requireContext()).userDao()
+        val viewModelFactory = ViewModelFactory(userDao)
+        viewModel = ViewModelProvider(this, viewModelFactory)[LoginViewModel::class.java]
+
+        setupObservers()
+        setupClickListeners()
+    }
+
+    private fun setupClickListeners() {
         binding.loginButton.setOnClickListener {
-            performLogin()
+            val email = binding.editTextUsername.text.toString().trim()
+            val password = binding.editTextPassword.text.toString().trim()
+
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                viewModel.login(email, password)
+            } else {
+                showToast("Email dan password tidak boleh kosong.")
+            }
         }
 
-
-//         Debugging biar langsung login
-//        if (DEBUG_LOGIN_USER) {
-//            view.post {
-//                binding.editTextUsername.setText("user1@example.com")
-//                binding.editTextPassword.setText("password123")
-//                performLogin()
-//            }
-//        }
-//
-//        if (!DEBUG_LOGIN_OWNER) {
-//            view.post {
-//                binding.editTextUsername.setText("owner@example.com")
-//                binding.editTextPassword.setText("owner123")
-//                performLogin()
-//                DEBUG_LOGIN_USER = false
-//            }
-//        }
-
+        makeRegisterClick()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun setupObservers() {
+        viewModel.loginState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is LoginViewModel.LoginState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.loginButton.isEnabled = false
+                }
+
+                is LoginViewModel.LoginState.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.loginButton.isEnabled = true
+
+                    showToast("Login berhasil!")
+
+                    // Menyimpan user state yang telah login
+                    val userPreferences = UserPreferences(requireContext())
+
+                    userPreferences.saveUser(
+                        id = state.user.id,
+                        email = state.user.email,
+                        role = state.user.role.ifEmpty { "user" }
+                    )
+
+                    val role = state.user.role.ifEmpty { "user" }
+                    navigateToNextScreen(role)
+                }
+
+                is LoginViewModel.LoginState.Error -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.loginButton.isEnabled = true
+                    showToast(state.message)
+                }
+
+                else -> {
+                    // Optional safeguard
+                    binding.progressBar.visibility = View.GONE
+                    binding.loginButton.isEnabled = true
+                }
+            }
+        }
     }
 
-    fun makeRegisterClick(){
+    private fun navigateToNextScreen(role: String?) {
+        val context = requireContext()
+
+        val intent = when (role) {
+            "owner" -> Intent(context, OwnerActivity::class.java)
+            else -> Intent(context, MainActivity::class.java)
+        }
+        startActivity(intent)
+        requireActivity().finish()
+    }
+
+
+    private fun makeRegisterClick() {
         val fullText = getString(R.string.login_hyperlink)
         val spannable = SpannableString(fullText)
-
         val registerWord = "Register"
         val startIndex = fullText.indexOf(registerWord)
         val endIndex = startIndex + registerWord.length
@@ -105,7 +129,6 @@ class LoginFragment : Fragment() {
         if (startIndex != -1) {
             val clickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
-                    // Ke fragment register
                     (activity as? AuthActivity)?.replaceFragment(RegisterFragment())
                 }
 
@@ -115,73 +138,18 @@ class LoginFragment : Fragment() {
                     ds.isUnderlineText = true
                 }
             }
-
             spannable.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             binding.tvNoHaveAccount.text = spannable
             binding.tvNoHaveAccount.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
-    private fun performLogin() {
-        val input = binding.editTextUsername.text.toString().trim()
-        val password = binding.editTextPassword.text.toString().trim()
-
-        val users = dummyUsers
-
-        if (users.isNullOrEmpty()) {
-            showToast("No users registered yet")
-            return
-        }
-
-        // Cari user berdasarkan email (key) atau noTelepon
-        val user = users[input] ?: users.values.find { it.noTelepon == input }
-
-        if (user != null && user.password == password) {
-            showToast("Login successful!")
-            CurrentUser.user = user
-
-            binding.progressBar.visibility = View.VISIBLE
-            binding.loginButton.isEnabled = false
-
-            Handler(Looper.getMainLooper()).postDelayed({
-                binding.progressBar.visibility = View.GONE
-                binding.loginButton.isEnabled = true
-
-                // Navigate based on role
-                val intent = when (user.role) {
-                    "owner" -> Intent(requireContext(), OwnerActivity::class.java)
-                    else -> Intent(requireContext(), MainActivity::class.java)
-                }
-                startActivity(intent)
-                activity?.finish()
-            }, 2000)
-        } else {
-            showToast("Invalid credentials")
-        }
-    }
-
     private fun showToast(message: String) {
-        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment LoginFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            LoginFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

@@ -21,23 +21,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.penjualan_produk_umkm.model.Produk
-import com.example.penjualan_produk_umkm.produkDummyList
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.AppDatabase
+import com.example.penjualan_produk_umkm.database.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 
 // TAMBAHKAN BARIS INI
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProdukScreen(navController: NavHostController) {
+fun AddProdukScreen(
+    navController: NavHostController, produkViewModel: ProdukViewModel
+) {
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
     var spesifikasi by remember { mutableStateOf("") }
@@ -83,7 +89,6 @@ fun AddProdukScreen(navController: NavHostController) {
                                 && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()
                             ) {
                                 val produk = Produk(
-                                    id = produkDummyList.maxOfOrNull { it.id }?.plus(1) ?: 1,
                                     nama = nama,
                                     deskripsi = deskripsi,
                                     spesifikasi = spesifikasi,
@@ -94,7 +99,7 @@ fun AddProdukScreen(navController: NavHostController) {
                                     rating = 0f,
                                     terjual = 0
                                 )
-                                produkDummyList.add(produk)
+                                produkViewModel.insertProduk(produk)
                                 showDialogBerhasil = true
                             }
                         },
@@ -297,11 +302,4 @@ fun ProdukBerhasilDialog(onDismiss: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         containerColor = Color(0xFFF1F8E9)
     )
-}
-
-@Composable
-@Preview
-fun AddProdukScreenPreview() {
-    val fakeNavController = rememberNavController()
-    AddProdukScreen(fakeNavController)
 }

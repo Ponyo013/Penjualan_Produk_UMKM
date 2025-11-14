@@ -4,15 +4,17 @@ package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.os.Bundle
 import android.view.View
-import android.widget.TextView
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.produkDummyList
-import com.example.penjualan_produk_umkm.model.Produk
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.AppDatabase
+import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import com.example.penjualan_produk_umkm.database.model.Produk
 import com.example.penjualan_produk_umkm.uiComponent.ProductFilterControls
 import com.example.penjualan_produk_umkm.uiComponent.ProductSortOption
 import com.example.penjualan_produk_umkm.style.UMKMTheme
@@ -42,21 +44,15 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val categoryTitle = parentCategoryName ?: "Semua Produk"
         recyclerView = view.findViewById(R.id.popular_products_in_category)
         val filterSortContainer = view.findViewById<ComposeView>(R.id.filter_sort_container)
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar_category)
         toolbar.title = categoryTitle
-        toolbar.setNavigationOnClickListener {
-            findNavController().popBackStack()
-        }
-        // 1. Inisialisasi Produk Kategori Dasar (Hanya sekali)
-        baseCategoryProducts = produkDummyList.filter {
-            it.kategori.equals(categoryTitle, ignoreCase = true)
-        }
+        toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
-
-        // 2. Setup RecyclerView
+        // Setup RecyclerView
         recyclerView.layoutManager = GridLayoutManager(context, 2)
         productAdapter = ProductAdapter(emptyList()) { productId ->
             val bundle = Bundle().apply { putInt("productId", productId) }
@@ -64,7 +60,19 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
         }
         recyclerView.adapter = productAdapter
 
-        // 3. Setup Compose Filter/Sort Controls
+        // Setup ViewModel
+        val dao = AppDatabase.getDatabase(requireContext()).produkDao()
+        val viewModel: ProdukViewModel by viewModels {
+            ViewModelFactory(produkDao = dao)
+        }
+
+        // Amati data produk
+        viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
+            baseCategoryProducts = produkList
+            applyFiltersAndSort()
+        }
+
+        // Setup Compose Filter/Sort Controls
         filterSortContainer.setContent {
             UMKMTheme {
                 ProductFilterControls(
@@ -72,19 +80,17 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
                     currentSort = currentSort,
                     onSortChange = { newSort ->
                         currentSort = newSort
-                        applyFiltersAndSort() // Terapkan Sort baru
+                        applyFiltersAndSort()
                     },
                     onStockFilterChange = { isChecked ->
                         isReadyStockFilter = isChecked
-                        applyFiltersAndSort() // Terapkan Filter baru
+                        applyFiltersAndSort()
                     }
                 )
             }
         }
-
-        // 4. Tampilkan produk awal
-        applyFiltersAndSort()
     }
+
 
     /**
      * Fungsi utama untuk menerapkan filter dan sorting pada daftar produk.

@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,15 +37,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.dummyPesanan
-import com.example.penjualan_produk_umkm.model.Pesanan
-import com.example.penjualan_produk_umkm.model.StatusPesanan
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.auth.UserPreferences
+import com.example.penjualan_produk_umkm.database.AppDatabase
+import com.example.penjualan_produk_umkm.database.model.StatusPesanan
+import com.example.penjualan_produk_umkm.database.relation.PesananWithItems
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.DashboardViewModel
 import org.threeten.bp.LocalDate
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -52,9 +57,12 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(navController: NavController) {
+fun DashboardScreen(navController: NavController, dashboardViewModel: DashboardViewModel = viewModel(
+    factory = ViewModelFactory(db = AppDatabase.getDatabase(LocalContext.current))
+)) {
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val allPesanan by dashboardViewModel.allPesanan.observeAsState(initial = emptyList())
 
     UMKMTheme {
         Scaffold(
@@ -144,8 +152,20 @@ fun DashboardScreen(navController: NavController) {
                                         TextButton(
                                             onClick = {
                                                 showLogoutDialog = false
-                                                val intent = Intent(context, AuthActivity::class.java)
+
+                                                // Hapus session user dari SharedPreferences
+                                                val prefs = UserPreferences(context)
+                                                prefs.clear()
+
+                                                // Arahkan ke AuthActivity
+                                                val intent = Intent(context, AuthActivity::class.java).apply {
+                                                    // Supaya tidak bisa kembali ke activity sebelumnya
+                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                                }
+
                                                 context.startActivity(intent)
+
+                                                // Tutup Activity saat ini
                                                 (context as? Activity)?.finish()
                                             }
                                         ) {
@@ -191,9 +211,9 @@ fun DashboardScreen(navController: NavController) {
             ) {
                 // Ringkasan Omset Pesanan
                 RingkasanOmsetPesanan(
-                    pesananList = dummyPesanan.filter {
-                        it.tanggal.month == LocalDate.now().month &&
-                                it.tanggal.year == LocalDate.now().year
+                    pesananList = allPesanan.filter {
+                        it.pesanan.tanggal.month == LocalDate.now().month &&
+                                it.pesanan.tanggal.year == LocalDate.now().year
                     }
                 )
 
@@ -235,7 +255,7 @@ fun DashboardScreen(navController: NavController) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            StatusKategoriList( pesananList = dummyPesanan)
+                            StatusKategoriList( pesananList = allPesanan)
                         }
                     }
                 }
@@ -355,15 +375,12 @@ fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
+fun RingkasanOmsetPesanan(pesananList: List<PesananWithItems>) {
     // Hitung total omset dan jumlah pesanan valid
     val totalOmset = pesananList
-        .filter { it.status != StatusPesanan.DIBATALKAN } // exclude yang dibatalkan
-        .sumOf { pesanan ->
-            pesanan.items.sumOf { item ->
-                item.produk.harga * item.jumlah
-            }
-        }
+        .filter { it.pesanan.status != StatusPesanan.DIBATALKAN }
+        .sumOf { it.pesanan.totalHarga }
+
 
     val jumlahPesanan = pesananList.size
 
@@ -417,12 +434,12 @@ fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
 }
 
 @Composable
-fun StatusKategoriList(pesananList: List<Pesanan>) {
+fun StatusKategoriList(pesananList: List<PesananWithItems>) {
     val kategoriList = listOf(
-        Triple("Proses", Icons.Filled.AccessTime, pesananList.count { it.status == StatusPesanan.DIPROSES}),
-        Triple("Kirim", Icons.Outlined.LocalShipping, pesananList.count { it.status == StatusPesanan.DIKIRIM }),
-        Triple("Selesai", Icons.Filled.CheckCircle, pesananList.count { it.status == StatusPesanan.SELESAI }),
-        Triple("Batal", Icons.Filled.Cancel, pesananList.count { it.status == StatusPesanan.DIBATALKAN })
+        Triple("Proses", Icons.Filled.AccessTime, pesananList.count { it.pesanan.status == StatusPesanan.DIPROSES}),
+        Triple("Kirim", Icons.Outlined.LocalShipping, pesananList.count { it.pesanan.status == StatusPesanan.DIKIRIM }),
+        Triple("Selesai", Icons.Filled.CheckCircle, pesananList.count { it.pesanan.status == StatusPesanan.SELESAI }),
+        Triple("Batal", Icons.Filled.Cancel, pesananList.count { it.pesanan.status == StatusPesanan.DIBATALKAN })
     )
 
     Row(
@@ -470,4 +487,5 @@ fun DashboardScreenPreview() {
     val fakeNavController = rememberNavController()
     DashboardScreen(navController = fakeNavController)
 }
+
 

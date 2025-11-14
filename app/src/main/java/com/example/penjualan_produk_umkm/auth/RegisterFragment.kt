@@ -9,11 +9,13 @@ import android.text.style.ClickableSpan
 import androidx.fragment.app.Fragment
 import android.view.*
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.viewModel.RegisterViewModel
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.databinding.FragmentRegisterBinding
-import com.example.penjualan_produk_umkm.dummyUsers
-import com.example.penjualan_produk_umkm.model.User
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -32,6 +34,7 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
 
     private var _binding: FragmentRegisterBinding? = null
     private val binding get() = _binding!!
+    private lateinit var viewModel: RegisterViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +56,27 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         super.onViewCreated(view, savedInstanceState)
         makeLoginLink()
 
-        // Logika Data dummy untuk register (passing dari auth)
-        val dummyUsers = dummyUsers
+        val userDao = AppDatabase.getDatabase(requireContext()).userDao()
+        val viewModelFactory = ViewModelFactory(userDao)
+        val viewModel = ViewModelProvider(this, viewModelFactory)[RegisterViewModel::class.java]
 
+        // Observe hasil registrasi
+        viewModel.registerState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is RegisterViewModel.RegisterState.Loading -> {
+                    showToast("Registering...")
+                }
+                is RegisterViewModel.RegisterState.Success -> {
+                    showToast(state.message)
+                    (activity as? AuthActivity)?.replaceFragment(LoginFragment())
+                }
+                is RegisterViewModel.RegisterState.Error -> {
+                    showToast(state.message)
+                }
+            }
+        }
+
+        // Fungsi Tombol register
         binding.btnRegister.setOnClickListener {
             val username = binding.editTextUsername.text.toString().trim()
             val password = binding.editTextPassword.text.toString().trim()
@@ -74,29 +95,21 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                 password != confirmPassword -> {
                     showToast("Passwords do not match")
                 }
-                dummyUsers?.containsKey(username) == true -> {
-                    showToast("User already registered")
-                }
                 else -> {
-                    dummyUsers?.set(
-                        username,
-                        User(
-                            id = dummyUsers?.size?.plus(1) ?: 1,
-                            nama = if (username.contains("@")) {
-                                username.split("@")[0].replaceFirstChar { it.uppercase() }
-                            } else {
-                                username
-                            },
-                            email = if (username.contains("@")) username else "", // kosong jika nomor telepon
-                            password = password,
-                            role = "user",
-                            noTelepon = if (username.all { it.isDigit() }) username else "" // isi noTelepon jika input angka
-                        )
+                    val nama = if (username.contains("@")) {
+                        username.substringBefore("@").replaceFirstChar { it.uppercase() }
+                    } else username
+
+                    val email = if (username.matches(emailPattern)) username else ""
+                    val noTelepon = if (username.matches(noPattern)) username else ""
+
+                    //  Panggil ViewModel untuk register ke database
+                    viewModel.register(
+                        name = nama,
+                        email = email,
+                        password = password,
+                        noTelepon = noTelepon
                     )
-
-
-                    showToast("Registered successfully!")
-                    (activity as? AuthActivity)?.replaceFragment(LoginFragment())
                 }
             }
         }

@@ -1,15 +1,17 @@
+package com.example.penjualan_produk_umkm.client.ui.pesanan
+
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.databinding.SubItemProdukPesananBinding
-import com.example.penjualan_produk_umkm.model.ItemPesanan
+import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
 import java.text.NumberFormat
 import java.util.*
 
-class subItemPesananAdapter(private val items: List<ItemPesanan>) :
-    RecyclerView.Adapter<subItemPesananAdapter.SubItemViewHolder>() {
+class SubItemPesananAdapter(private val items: List<ItemPesananWithProduk>) :
+    RecyclerView.Adapter<SubItemPesananAdapter.SubItemViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SubItemViewHolder {
         val binding = SubItemProdukPesananBinding.inflate(
@@ -29,29 +31,32 @@ class subItemPesananAdapter(private val items: List<ItemPesanan>) :
     class SubItemViewHolder(private val binding: SubItemProdukPesananBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ItemPesanan) {
-            val numberFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-            numberFormat.maximumFractionDigits = 0  // Hilangkan ,00
+        fun bind(itemWithProduk: ItemPesananWithProduk) {
+            val item = itemWithProduk.itemPesanan
+            val produk = itemWithProduk.produk
 
-            // Nama
-            binding.tvProductName.text = item.produk.nama
+            val numberFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
+                maximumFractionDigits = 0
+            }
 
-            // Jumlah
+            // Nama produk
+            binding.tvProductName.text = produk.nama
+
+            // Jumlah item
             binding.tvProductQuantity.text = "x${item.jumlah}"
 
-            // Harga per item
-            val hargaFormatted = numberFormat.format(item.produk.harga)
+            // Harga per produk
+            val hargaFormatted = numberFormat.format(produk.harga)
             binding.tvProductPrice.text = hargaFormatted.replace("Rp", "Rp ")
 
             // Subtotal
-            val subtotal = item.produk.harga * item.jumlah
+            val subtotal = produk.harga * item.jumlah
             val subtotalFormatted = numberFormat.format(subtotal)
             binding.tvProductSubtotal.text = subtotalFormatted.replace("Rp", "Rp ")
 
-
-            // Gambar dengan placeholder
-            if (item.produk.gambarResourceIds.isNotEmpty()) {
-                binding.ivProductImage.load(item.produk.gambarResourceIds.first()) {
+            // Gambar produk
+            if (produk.gambarResourceIds.isNotEmpty()) {
+                binding.ivProductImage.load(produk.gambarResourceIds.first()) {
                     crossfade(true)
                     placeholder(R.drawable.shape_image_placeholder)
                 }

@@ -43,6 +43,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -51,24 +52,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.penjualan_produk_umkm.model.Produk
-import com.example.penjualan_produk_umkm.produkDummyList
+import com.example.penjualan_produk_umkm.database.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProdukManage(navController: NavHostController) {
+fun ProdukManage(
+    navController: NavHostController,
+    produkViewModel: ProdukViewModel
+) {
+    val produkList by produkViewModel.allProduk.observeAsState(initial = emptyList())
     UMKMTheme {
 
         var searchText by remember { mutableStateOf("") }
         val filteredProduk = if (searchText.isEmpty()) {
-            produkDummyList
+            produkList
         } else {
-            produkDummyList.filter { it.nama.contains(searchText, ignoreCase = true) }
+            produkList.filter { it.nama.contains(searchText, ignoreCase = true) }
         }
 
         Scaffold(
@@ -122,7 +125,7 @@ fun ProdukManage(navController: NavHostController) {
                     ProdukList(
                         produkItems = filteredProduk,
                         onEditClick = { produk -> navController.navigate("edit_produk/${produk.id}") },
-                        onHapusClick = { produk -> produkDummyList.remove(produk) },
+                        onHapusClick = { produk -> produkViewModel.delete(produk) },
                         onDetailUlasan = { produk -> navController.navigate("ulasan/${produk.id}") }
                     )
                 }
@@ -457,12 +460,4 @@ fun DeleteWarningDialog(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     }
-}
-
-
-@Preview
-@Composable
-fun Preview() {
-    val fakeNavController = rememberNavController()
-    ProdukManage(fakeNavController)
 }

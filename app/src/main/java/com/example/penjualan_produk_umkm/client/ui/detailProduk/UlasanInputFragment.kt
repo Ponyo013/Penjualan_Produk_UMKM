@@ -10,7 +10,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import androidx.navigation.fragment.findNavController
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.model.Produk // Anda mungkin butuh ini jika mengirim ID produk
 
 // Tambahkan ARG_PRODUK jika Anda akan mengirim ID produk ke sini
 private const val ARG_PRODUK_ID = "productId"

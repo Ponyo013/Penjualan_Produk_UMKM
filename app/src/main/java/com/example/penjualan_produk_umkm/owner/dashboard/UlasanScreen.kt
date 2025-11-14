@@ -1,6 +1,5 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,22 +9,29 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.penjualan_produk_umkm.model.Ulasan
-import com.example.penjualan_produk_umkm.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
-import com.example.penjualan_produk_umkm.ulasanList
+import com.example.penjualan_produk_umkm.viewModel.UlasanViewModel
 import org.threeten.bp.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UlasanScreen(produkId: Int, navController: NavController) {
+fun UlasanScreen(
+    produkId: Int,
+    navController: NavController,
+    ulasanViewModel: UlasanViewModel
+) {
     val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val filteredUlasan = ulasanList.filter { it.produkId == produkId }
+
+    val ulasanList by ulasanViewModel
+        .getUlasanByProdukId(produkId)
+        .observeAsState(emptyList())
 
     UMKMTheme {
         Scaffold(
@@ -40,7 +46,7 @@ fun UlasanScreen(produkId: Int, navController: NavController) {
                 })
             },
         ) { paddingValues ->
-            if (filteredUlasan.isEmpty()) {
+            if (ulasanList.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -57,7 +63,7 @@ fun UlasanScreen(produkId: Int, navController: NavController) {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    items(filteredUlasan) { ulasan ->
+                    items(ulasanList) { ulasan ->
                         Card(
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth(),

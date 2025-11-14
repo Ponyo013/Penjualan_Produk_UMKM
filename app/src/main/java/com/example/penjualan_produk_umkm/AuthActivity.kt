@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm
 
+import android.content.Intent
 import androidx.fragment.app.Fragment
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -7,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.penjualan_produk_umkm.auth.LoginFragment
-import com.example.penjualan_produk_umkm.model.User
+import com.example.penjualan_produk_umkm.auth.UserPreferences
 
 class AuthActivity : AppCompatActivity() {
 
@@ -21,26 +22,22 @@ class AuthActivity : AppCompatActivity() {
             insets
         }
 
-        // For Debug
-        dummyUsers["user@example.com"] = User(
-            id = 1,
-            nama = "John Doe",
-            email = "user@example.com",
-            password = "123456",
-            role = "user",
-            noTelepon = "081234567890",
-            alamat = "Jl. Contoh No.1",
-        )
+        // Debug Auto Login
+        val prefs = UserPreferences(this)
 
-        dummyUsers["owner@example.com"] = User(
-            id = 2,
-            nama = "Owner Toko",
-            email = "owner@example.com",
-            password = "owner123",
-            role = "owner",
-            noTelepon = "081298765432",
-            alamat = "Jl. Toko No.2",
-        )
+        if (prefs.isLoggedIn()) {
+            val role = prefs.getUserRole()
+
+            val intent = if (role == "owner") {
+                Intent(this, OwnerActivity::class.java)
+            } else {
+                Intent(this, MainActivity::class.java)
+            }
+
+            startActivity(intent)
+            finish()
+            return   // jangan lanjut ke fragment login
+        }
 
         if (savedInstanceState == null) {
             replaceFragment(LoginFragment())

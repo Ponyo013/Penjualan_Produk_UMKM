@@ -1,6 +1,5 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +23,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -38,34 +36,32 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import java.util.Locale
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.penjualan_produk_umkm.dummyPesanan
-import com.example.penjualan_produk_umkm.model.Pesanan
-import com.example.penjualan_produk_umkm.model.StatusPesanan
+import com.example.penjualan_produk_umkm.database.model.StatusPesanan
+import com.example.penjualan_produk_umkm.database.relation.PesananWithItems
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
 import org.threeten.bp.LocalDate
 import org.threeten.bp.Month
 import org.threeten.bp.format.DateTimeFormatter
-import org.threeten.bp.format.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Keuangan(navController: NavController){
+fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel){
+
     UMKMTheme {
         Scaffold(
             topBar = {
@@ -90,7 +86,7 @@ fun Keuangan(navController: NavController){
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Laporan berdasarkan tanggal
-                    LaporanDenganKalender()
+                    LaporanDenganKalender(viewModel)
                 }
             }
         }
@@ -98,10 +94,12 @@ fun Keuangan(navController: NavController){
 }
 
 @Composable
-fun LaporanDenganKalender() {
+fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
     var pickedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf<String?>(null) }
+    val pesananList by viewModel.pesananList.collectAsState()
+    val itemList by viewModel.getAllItems().observeAsState(emptyList())
 
     // Tombol Tab: Bulanan / Tahunan
     Row(
@@ -161,12 +159,12 @@ fun LaporanDenganKalender() {
 
     // Filter pesanan
     val filteredPesanan = when (selectedTab) {
-        null -> dummyPesanan.filter { it.tanggal == pickedDate }
-        "Bulanan" -> dummyPesanan.filter { it.tanggal.year == pickedDate.year } // ambil semua bulan di tahun yang sama
-        "Tahunan" -> dummyPesanan // tampilkan semua tahun
+        null -> pesananList.filter { it.pesanan.tanggal == pickedDate }
+        "Bulanan" -> pesananList.filter { it.pesanan.tanggal.year == pickedDate.year } // ambil semua bulan di tahun yang sama
+        "Tahunan" -> pesananList // tampilkan semua tahun
         else -> emptyList()
     }.filter {
-        it.status == StatusPesanan.DIKIRIM || it.status == StatusPesanan.SELESAI
+        it.pesanan.status == StatusPesanan.DIKIRIM || it.pesanan.status == StatusPesanan.SELESAI
     }
 
 
@@ -183,8 +181,8 @@ fun LaporanDenganKalender() {
     } else {
         // Group data jika Bulanan atau Tahunan
         val groupedPesanan = when (selectedTab) {
-            "Bulanan" -> filteredPesanan.groupBy { it.tanggal.monthValue  } // group per bulan
-            "Tahunan" -> filteredPesanan.groupBy { it.tanggal.year } // group per tahun
+            "Bulanan" -> filteredPesanan.groupBy { it.pesanan.tanggal.monthValue  } // group per bulan
+            "Tahunan" -> filteredPesanan.groupBy { it.pesanan.tanggal.year } // group per tahun
             else -> mapOf(null to filteredPesanan)
         }
 
@@ -219,16 +217,17 @@ fun LaporanDenganKalender() {
 
 
                 items(pesananList) { pesanan ->
-                    LaporanPenjualanCard(pesanan)
+                    LaporanPenjualanCard(pesanan, viewModel)
                 }
             }
         }
     }
 }
 
-
 @Composable
-fun LaporanPenjualanCard(pesanan: Pesanan) {
+fun LaporanPenjualanCard(pesanan: PesananWithItems, viewModel: OwnerPesananViewModel) {
+    val itemsForPesanan by viewModel.getItemsForPesanan(pesanan.pesanan.id).observeAsState(initial = emptyList())
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -242,22 +241,22 @@ fun LaporanPenjualanCard(pesanan: Pesanan) {
 
             // Header: ID
             Text(
-                text = "Pesanan #${pesanan.id}",
+                text = "Pesanan #${pesanan.pesanan.id}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             Spacer(modifier = Modifier.height(8.dp))
 
             // Info user, tanggal & metode pembayaran
             Column(modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(text = "Customer: ${pesanan.user.nama}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Tanggal: ${pesanan.tanggal}", style = MaterialTheme.typography.bodyMedium)
+                Text( text = "Customer: ${pesanan.user?.nama ?: "Tidak diketahui"}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Tanggal: ${pesanan.pesanan.tanggal}", style = MaterialTheme.typography.bodyMedium)
                 Text(text = "Ekspedisi: ${pesanan.ekspedisi?.nama ?: "-"}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Pembayaran: ${pesanan.metodePembayaran.name}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Pembayaran: ${pesanan.pesanan.metodePembayaran.name}", style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -266,7 +265,7 @@ fun LaporanPenjualanCard(pesanan: Pesanan) {
 
             // List item
             Column(modifier = Modifier.fillMaxWidth()) {
-                pesanan.items.forEach { item ->
+                itemsForPesanan.forEach { item ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -274,13 +273,12 @@ fun LaporanPenjualanCard(pesanan: Pesanan) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${item.produk.nama} (x${item.jumlah})",
+                            text = "${item.produk.nama} (x${item.itemPesanan.jumlah})",
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            text = "Rp ${item.produk.harga * item.jumlah}",
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.End
+                            text = "Rp ${item.produk.harga * item.itemPesanan.jumlah}",
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
@@ -291,8 +289,8 @@ fun LaporanPenjualanCard(pesanan: Pesanan) {
             Spacer(modifier = Modifier.height(8.dp))
 
             // Total harga & jumlah item
-            val totalHarga = pesanan.items.sumOf { it.produk.harga * it.jumlah }
-            val totalItem = pesanan.items.sumOf { it.jumlah }
+            val totalHarga = itemsForPesanan.sumOf { it.produk.harga * it.itemPesanan.jumlah }
+            val totalItem = itemsForPesanan.sumOf { it.itemPesanan.jumlah }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -311,7 +309,6 @@ fun LaporanPenjualanCard(pesanan: Pesanan) {
         }
     }
 }
-
 
 @Composable
 fun DatePickerDialog(
@@ -392,11 +389,4 @@ fun DatePickerDialog(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewKeuangan() {
-    val fakeNavController = rememberNavController()
-    Keuangan(fakeNavController)
 }

@@ -10,20 +10,26 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.model.ItemPesanan
+import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
 import java.text.NumberFormat
 import java.util.Locale
 
 class CartAdapter(
-    private val cartItems: MutableList<ItemPesanan>,
-    private val onIncrease: (ItemPesanan) -> Unit,
-    private val onDecrease: (ItemPesanan) -> Unit,
-    private val onItemSelectChanged: (ItemPesanan) -> Unit,
-    private val onItemClick: (ItemPesanan) -> Unit
+    private val cartItems: MutableList<ItemPesananWithProduk>,
+    private val onIncrease: (ItemPesananWithProduk) -> Unit,
+    private val onDecrease: (ItemPesananWithProduk) -> Unit,
+    private val onItemSelectChanged: (ItemPesananWithProduk) -> Unit,
+    private val onItemClick: (ItemPesananWithProduk) -> Unit
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
-    // Secondary constructor for checkout where click actions are not needed
-    constructor(cartItems: List<ItemPesanan>, isCheckout: Boolean) : this(cartItems.toMutableList(), {}, {}, {}, {})
+    // Secondary constructor untuk checkout mode (read-only)
+    constructor(cartItems: List<ItemPesananWithProduk>, isCheckout: Boolean) : this(
+        cartItems.toMutableList(),
+        onIncrease = {},
+        onDecrease = {},
+        onItemSelectChanged = {},
+        onItemClick = {}
+    )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -37,6 +43,12 @@ class CartAdapter(
 
     override fun getItemCount(): Int = cartItems.size
 
+    fun updateCartItems(newItems: List<ItemPesananWithProduk>) {
+        cartItems.clear()
+        cartItems.addAll(newItems)
+        notifyDataSetChanged()
+    }
+
     inner class CartViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val selectCheckBox: CheckBox = itemView.findViewById(R.id.cb_select_item)
         private val productImage: ImageView = itemView.findViewById(R.id.iv_product_image)
@@ -46,29 +58,43 @@ class CartAdapter(
         private val decreaseButton: ImageButton = itemView.findViewById(R.id.btn_decrease_quantity)
         private val increaseButton: ImageButton = itemView.findViewById(R.id.btn_increase_quantity)
 
-        fun bind(item: ItemPesanan) {
-            selectCheckBox.isChecked = item.isSelected
-            productName.text = item.produk.nama
-            val localeID = Locale.Builder().setLanguage("id").setRegion("ID").build()
-            val numberFormat = NumberFormat.getCurrencyInstance(localeID)
-            productPrice.text = numberFormat.format(item.produk.harga)
-            quantity.text = item.jumlah.toString()
+        fun bind(item: ItemPesananWithProduk) {
+            val produk = item.produk
+            val itemPesanan = item.itemPesanan
 
-            // Correctly load image from the first resource ID
-            val firstImageId = item.produk.gambarResourceIds.firstOrNull()
+            // Checkbox
+            selectCheckBox.isChecked = itemPesanan.isSelected
+
+            // Nama dan harga
+            productName.text = produk.nama
+            productPrice.text = NumberFormat
+                .getCurrencyInstance(Locale("id", "ID"))
+                .format(produk.harga)
+
+            // Jumlah
+            quantity.text = itemPesanan.jumlah.toString()
+
+            // Gambar (pakai coil)
+            val firstImageId = produk.gambarResourceIds.firstOrNull()
             if (firstImageId != null) {
                 productImage.load(firstImageId) {
-                    crossfade(true)
                     placeholder(R.color.grey)
+                    error(R.drawable.ic_error_image)
+                    crossfade(true)
                 }
             } else {
-                // Fallback if no image is available
-                productImage.setImageResource(R.drawable.ic_error_image) 
+                productImage.setImageResource(R.drawable.ic_error_image)
             }
 
+            // Aksi tombol dan checkbox
             increaseButton.setOnClickListener { onIncrease(item) }
             decreaseButton.setOnClickListener { onDecrease(item) }
-            selectCheckBox.setOnClickListener { onItemSelectChanged(item) }
+            selectCheckBox.setOnClickListener {
+                val updatedItem = item.copy(
+                    itemPesanan = itemPesanan.copy(isSelected = selectCheckBox.isChecked)
+                )
+                onItemSelectChanged(updatedItem)
+            }
             itemView.setOnClickListener { onItemClick(item) }
         }
     }

@@ -26,22 +26,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.penjualan_produk_umkm.model.Produk
-import com.example.penjualan_produk_umkm.style.UMKMTheme
-import kotlinx.coroutines.launch
 import com.example.penjualan_produk_umkm.R
-import androidx.core.net.toUri
+import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProdukScreen(
     produk: Produk,
-    onSave: (Produk) -> Unit,
     onCancel: () -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    produkViewModel: ProdukViewModel
 ) {
     var nama by remember { mutableStateOf(produk.nama) }
     var deskripsi by remember { mutableStateOf(produk.deskripsi) }
@@ -84,7 +85,6 @@ fun EditProdukScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
 
-            // ✅ Add Bottom Bar here
             bottomBar = {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -118,7 +118,7 @@ fun EditProdukScreen(
                                     }
                                 } else {
                                     val currentImageIdList = when {
-                                        newGambarUri != null -> listOf(R.drawable.ic_empty_star)
+                                        newGambarUri != null -> listOf(R.drawable.ic_empty_star) // Placeholder, logic
                                         gambarResourceId != null -> listOf(gambarResourceId!!)
                                         else -> emptyList()
                                     }
@@ -132,7 +132,8 @@ fun EditProdukScreen(
                                         kategori = kategori,
                                         gambarResourceIds = currentImageIdList
                                     )
-                                    onSave(updatedProduk)
+                                    // DIUBAH: Memanggil fungsi update dari ViewModel
+                                    produkViewModel.updateProduk(updatedProduk)
                                     showDialogBerhasil = true
                                 }
                             },
@@ -148,7 +149,6 @@ fun EditProdukScreen(
                 }
             }
         ) { innerPadding ->
-            // Scrollable content area
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -158,7 +158,6 @@ fun EditProdukScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // ====== Upload / Ganti Gambar ======
                 Box(
                     modifier = Modifier
                         .size(150.dp)
@@ -190,7 +189,6 @@ fun EditProdukScreen(
                     }
                 }
 
-                // ====== Input Fields ======
                 OutlinedTextField(
                     value = nama,
                     onValueChange = { nama = it },
@@ -245,7 +243,6 @@ fun EditProdukScreen(
                     )
                 }
 
-                // ====== Dropdown Kategori ======
                 val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
                 var expandedKategori by remember { mutableStateOf(false) }
 
@@ -283,9 +280,12 @@ fun EditProdukScreen(
                 }
             }
 
-            // ====== Success Dialog ======
             if (showDialogBerhasil) {
-                ProdukBerhasilDiEditDialog(onDismiss = { showDialogBerhasil = false })
+                // DIUBAH: Menambahkan navController.popBackStack() pada onDismiss
+                ProdukBerhasilDiEditDialog(onDismiss = {
+                    showDialogBerhasil = false
+                    navController.popBackStack()
+                })
             }
         }
     }
@@ -315,7 +315,7 @@ fun ProdukBerhasilDiEditDialog(onDismiss: () -> Unit) {
         },
         text = {
             Text(
-                text = "Barang telah berhasil edit.",
+                text = "Barang telah berhasil diedit.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
                 modifier = Modifier.fillMaxWidth(),
@@ -338,32 +338,5 @@ fun ProdukBerhasilDiEditDialog(onDismiss: () -> Unit) {
         },
         shape = RoundedCornerShape(20.dp),
         containerColor = Color(0xFFF1F8E9)
-    )
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewEditProdukScreen() {
-    val dummyProduk = Produk(
-        id = 1,
-        nama = "Sepeda Gunung",
-        deskripsi = "Sepeda gunung dengan suspensi ganda dan frame ringan",
-        // >>> PARAMETER 'SPESIFIKASI' YANG HILANG DITAMBAHKAN DI SINI <<<
-        spesifikasi = "Rangka: Alloy, Rem: Hidrolik", // <-- TAMBAHKAN BARIS INI
-        harga = 2500000.0,
-        stok = 10,
-        kategori = "Olahraga",
-        gambarResourceIds = listOf(R.drawable.ic_empty_star),
-        rating = 4.5f,
-        terjual = 100
-    )
-
-    val fakeNavController = rememberNavController()
-    EditProdukScreen(
-        produk = dummyProduk,
-        onSave = {},
-        onCancel = {},
-        navController = fakeNavController
     )
 }

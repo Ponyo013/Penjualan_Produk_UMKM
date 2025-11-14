@@ -1,38 +1,35 @@
 package com.example.penjualan_produk_umkm.client.ui.detailProduk
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import androidx.fragment.app.Fragment
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
+import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.AppDatabase
+import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
+import com.example.penjualan_produk_umkm.database.model.ItemPesanan
+import com.example.penjualan_produk_umkm.database.model.Produk
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.dummyItems
-import com.example.penjualan_produk_umkm.model.ItemPesanan
-import com.example.penjualan_produk_umkm.produkDummyList
-import com.example.penjualan_produk_umkm.model.Produk
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
-import coil.load
-import android.widget.FrameLayout
-
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
 class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
-    private var param1: String? = null
-    private var param2: String? = null
-    internal var produk: Produk? = null
+
+    var produk: Produk? = null
 
     private lateinit var btnAddToCart: Button
     private lateinit var quantityControls: MaterialCardView
@@ -40,36 +37,55 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private lateinit var btnDecrease: ImageButton
     private lateinit var tvQuantity: TextView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var cartViewModel: com.example.penjualan_produk_umkm.viewModel.CartViewModel
+    private lateinit var produkViewModel: com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_detail_produk, container, false)
-    }
+    private val pesananId = 1 // Bisa diganti sesuai pesanan aktif user
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val productId = arguments?.getInt("productId")
-        produk = produkDummyList.find { it.id == productId }
+        val db = AppDatabase.getDatabase(requireContext())
+        cartViewModel = ViewModelProvider(
+            this,
+            ViewModelFactory(db = db, pesananId = pesananId)
+        ).get(com.example.penjualan_produk_umkm.viewModel.CartViewModel::class.java)
 
-        produk?.let { p ->
-            setupToolbar(view)
-            setupProductInfo(view, p)
-            setupRatingInfo(view, p)
-            setupViewPager(view)
-            updateCartControls(p)
-        } ?: run {
+        produkViewModel = ViewModelProvider(
+            this,
+            ViewModelFactory(produkDao = db.produkDao())
+        ).get(com.example.penjualan_produk_umkm.viewModel.ProdukViewModel::class.java)
+
+        val productId = arguments?.getInt("productId") ?: run {
             findNavController().popBackStack()
+            return
         }
+
+        // Ambil produk dari database
+        produkViewModel.getProdukById(productId).observe(viewLifecycleOwner) { p ->
+            if (p == null) {
+                findNavController().popBackStack()
+            } else {
+                produk = p
+                setupToolbar(view)
+                setupProductInfo(view, p)
+                setupRatingInfo(view, p)
+                setupViewPager(view)
+                setupGallery(view, p)
+                updateCartControls(p)
+            }
+        }
+
+        // Observe cart items untuk update UI secara otomatis
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                cartViewModel.cartItems.collectLatest { items ->
+                    produk?.let { updateCartControls(it) }
+                }
+            }
+        }
+        // Load data cart awal
+        cartViewModel.loadCartItems()
     }
 
     private fun setupProductInfo(view: View, produk: Produk) {
@@ -82,48 +98,46 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         btnDecrease = view.findViewById(R.id.btn_decrease_quantity)
         tvQuantity = view.findViewById(R.id.tv_quantity)
 
-        val galleryViewPager = view.findViewById<ViewPager2>(R.id.gallery_view_pager)
-        galleryViewPager.adapter = GalleryAdapter(produk.gambarResourceIds)
-
+        // Display info produk
         namaProduk.text = produk.nama
         val formatRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
         hargaProduk.text = formatRupiah.format(produk.harga).replace("Rp", "Rp ").trim()
         stockStatus.text = "Tersedia: ${produk.stok} Buah"
         stockStatus.setTextColor(resources.getColor(if (produk.stok > 0) R.color.Secondary_1 else R.color.red, null))
-
         btnAddToCart.isEnabled = produk.stok > 0
 
+        // Tombol tambah ke keranjang
         btnAddToCart.setOnClickListener {
-            dummyItems.add(ItemPesanan(produk = produk, jumlah = 1))
-            Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
-            updateCartControls(produk)
-        }
-
-        btnIncrease.setOnClickListener {
-            val existingItem = dummyItems.find { it.produk.id == produk.id }
-            existingItem?.let { it.jumlah++ }
-            updateCartControls(produk)
-        }
-
-        btnDecrease.setOnClickListener {
-            val existingItem = dummyItems.find { it.produk.id == produk.id }
-            existingItem?.let {
-                if (it.jumlah > 1) {
-                    it.jumlah--
-                } else {
-                    dummyItems.remove(it)
-                }
+            val existingItem = cartViewModel.cartItems.value.find { it.produk.id == produk.id }
+            if (existingItem != null) {
+                cartViewModel.increaseQuantity(existingItem)
+            } else {
+                val newItem = ItemPesananWithProduk(ItemPesanan(0, pesananId, produk.id, 1), produk)
+                cartViewModel.updateItem(newItem.itemPesanan) // insert baru jika belum ada
+                cartViewModel.loadCartItems()
             }
-            updateCartControls(produk)
+            Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
+        }
+
+        // Tombol increase
+        btnIncrease.setOnClickListener {
+            val existingItem = cartViewModel.cartItems.value.find { it.produk.id == produk.id }
+            existingItem?.let { cartViewModel.increaseQuantity(it) }
+        }
+
+        // Tombol decrease
+        btnDecrease.setOnClickListener {
+            val existingItem = cartViewModel.cartItems.value.find { it.produk.id == produk.id }
+            existingItem?.let { cartViewModel.decreaseQuantity(it) }
         }
     }
 
     private fun updateCartControls(produk: Produk) {
-        val existingItem = dummyItems.find { it.produk.id == produk.id }
+        val existingItem = cartViewModel.cartItems.value.find { it.produk.id == produk.id }
         if (existingItem != null) {
             btnAddToCart.visibility = View.GONE
             quantityControls.visibility = View.VISIBLE
-            tvQuantity.text = existingItem.jumlah.toString()
+            tvQuantity.text = existingItem.itemPesanan.jumlah.toString()
         } else {
             btnAddToCart.visibility = View.VISIBLE
             quantityControls.visibility = View.GONE
@@ -164,56 +178,15 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
                 else -> ""
             }
         }.attach()
-
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                adjustViewPagerHeight(viewPager, adapter)
-            }
-        })
-
-        view.post {
-            adjustViewPagerHeight(viewPager, adapter)
-        }
-
-        val ratingContainer = view.findViewById<FrameLayout>(R.id.rating)
-        ratingContainer.setOnClickListener {
-            viewPager.setCurrentItem(2, true)
-        }
     }
 
-    private fun adjustViewPagerHeight(viewPager: ViewPager2, adapter: DetailPagerAdapter) {
-        val position = viewPager.currentItem
-        val fragmentTag = "f" + position
-        val currentFragment = childFragmentManager.findFragmentByTag(fragmentTag)
+    private fun setupGallery(view: View, produk: Produk) {
+        val galleryViewPager = view.findViewById<ViewPager2>(R.id.gallery_view_pager)
+        val imageUrls = produk.gambarResourceIds.map { it.toString() }
 
-        if (currentFragment?.view == null) {
-            return
+        val galleryAdapter = GalleryAdapter(imageUrls) { position ->
+            // klik untuk full screen, jika mau bisa ditambahkan dialog
         }
-
-        viewPager.postDelayed({
-            currentFragment.view?.let { fragmentView ->
-                fragmentView.measure(
-                    View.MeasureSpec.makeMeasureSpec(viewPager.width, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-                )
-                val height = fragmentView.measuredHeight
-                if (height > 0 && height != viewPager.height) {
-                    viewPager.layoutParams = viewPager.layoutParams.apply {
-                        this.height = height + 16
-                    }
-                }
-            }
-        }, 50)
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            DetailProdukFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+        galleryViewPager.adapter = galleryAdapter
     }
 }

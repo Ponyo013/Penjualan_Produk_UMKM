@@ -11,17 +11,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,30 +27,46 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.penjualan_produk_umkm.dummyPesanan
-import com.example.penjualan_produk_umkm.model.Pesanan
-import com.example.penjualan_produk_umkm.model.StatusPesanan
+import com.example.penjualan_produk_umkm.database.model.StatusPesanan
+import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
+import com.example.penjualan_produk_umkm.database.relation.PesananWithItems
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListPesanan(navController: NavController) {
+fun ListPesanan(navController: NavController, viewModel: OwnerPesananViewModel) {
     var selectedTab by remember { mutableStateOf("Baru") }
+    val pesananList by viewModel.pesananList.collectAsState()
+
+    // Muat data saat pertama kali dan saat tab berganti
+    LaunchedEffect(selectedTab) {
+        when (selectedTab) {
+            "Baru" -> viewModel.loadByStatus(StatusPesanan.DIPROSES)
+            "Diproses" -> viewModel.loadByStatus(StatusPesanan.DIPROSES)
+            "Dikirim" -> viewModel.loadByStatus(StatusPesanan.DIKIRIM)
+            "Selesai" -> viewModel.loadByStatus(StatusPesanan.SELESAI)
+            "Batal" -> viewModel.loadByStatus(StatusPesanan.DIBATALKAN)
+            else -> viewModel.loadAll()
+        }
+    }
 
     UMKMTheme {
         Scaffold(
             topBar = {
-                TopAppBar(title = { Text("Pesanan yang masuk") }, navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                TopAppBar(
+                    title = { Text("Pesanan yang masuk") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
                     }
-                })
+                )
             },
         ) { paddingValues ->
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -67,14 +77,27 @@ fun ListPesanan(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Tabs
                     TabPesanan(
                         selectedTab = selectedTab,
                         onTabSelected = { tab -> selectedTab = tab }
                     )
 
-                    // List Pesanan
-                    CardPesananMasuk(selectedTab)
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(pesananList) { pesananWithItems ->
+                            CardPesanan(
+                                pesanan = pesananWithItems,
+                                onStatusChange = { newStatus ->
+                                    viewModel.updateStatus(pesananWithItems.pesanan.id, newStatus)
+                                },
+                                item = viewModel.getItemsForPesanan(pesananWithItems.pesanan.id).observeAsState(emptyList()).value
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -82,90 +105,61 @@ fun ListPesanan(navController: NavController) {
 }
 
 @Composable
-fun CardPesananMasuk(selectedTab: String) {
-    val filteredPesanan = when(selectedTab) {
-        "Baru" -> dummyPesanan.filter { it.status == StatusPesanan.DIPROSES }
-        "Diproses" -> dummyPesanan.filter { it.status == StatusPesanan.DIPROSES }
-        "Selesai" -> dummyPesanan.filter { it.status == StatusPesanan.SELESAI }
-        "Batal" -> dummyPesanan.filter { it.status == StatusPesanan.DIBATALKAN }
-        "Dikirim" -> dummyPesanan.filter { it.status == StatusPesanan.DIKIRIM }
-        else -> dummyPesanan
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(filteredPesanan) { pesanan ->
-            CardPesanan(
-                pesanan = pesanan,
-                onStatusChange = { newStatus ->
-                    val index = dummyPesanan.indexOf(pesanan)
-                    if (index != -1) {
-                        dummyPesanan[index] = pesanan.copy(status = newStatus)
-                    }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
+fun CardPesanan(pesanan: PesananWithItems, onStatusChange: (StatusPesanan) -> Unit, item: List<ItemPesananWithProduk>) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
-    var selectedStatus by remember { mutableStateOf(pesanan.status) }
+    var selectedStatus by remember { mutableStateOf(pesanan.pesanan.status) }
 
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-        ) {
-            // Header: Nama user + Status
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(text = pesanan.user.nama + " (" + pesanan.user.noTelepon + ")", style = MaterialTheme.typography.titleMedium)
-                    Text(text = pesanan.user.email, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(
+                        text = pesanan.user?.nama ?: "User tidak diketahui",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = pesanan.user?.email ?: "-",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+
+                val (icon, bgColor) = when (pesanan.pesanan.status) {
+                    StatusPesanan.DIPROSES -> Icons.Filled.AccessTime to Color.Blue
+                    StatusPesanan.DIKIRIM -> Icons.Outlined.LocalShipping to Color(0xFFFFA500)
+                    StatusPesanan.SELESAI -> Icons.Filled.CheckCircle to Color(0xFF9DC183)
+                    StatusPesanan.DIBATALKAN -> Icons.Filled.Cancel to Color.Red
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(color = bgColor.copy(alpha = 0.2f), shape = CircleShape),
+                    contentAlignment = Alignment.Center
                 ) {
-                    val (icon, bgColor) = when(pesanan.status) {
-                        StatusPesanan.DIPROSES -> Icons.Filled.AccessTime to Color.Blue
-                        StatusPesanan.DIKIRIM -> Icons.Outlined.LocalShipping to Color(0xFFFFA500) 
-                        StatusPesanan.SELESAI -> Icons.Filled.CheckCircle to Color(0xFF9DC183)
-                        StatusPesanan.DIBATALKAN -> Icons.Filled.Cancel to Color.Red
-                    }
-                    
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(color = bgColor.copy(alpha = 0.2f), shape = CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            tint = bgColor,
-                            modifier = Modifier.size(20.dp),
-                            contentDescription = pesanan.status.name
-                        )
-                    }
+                    Icon(
+                        imageVector = icon,
+                        tint = bgColor,
+                        modifier = Modifier.size(20.dp),
+                        contentDescription = pesanan.pesanan.status.name
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Body: List Item Produk
-            pesanan.items.forEach { item ->
+            // List Item Produk
+            item.forEach { item ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,33 +171,25 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                         modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp))
                     )
 
-                    Text(
-                        text = item.produk.nama,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(text = "x${item.jumlah}")
+                    Text(text = item.produk.nama, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "x${item.itemPesanan.jumlah}")
                 }
             }
 
-            // Alamat
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Alamat: " + pesanan.user.alamat,
+                text = "Alamat: ${pesanan.user?.alamat ?: "-"}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
 
-
-            // Footer: Ekspedisi
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Ekspedisi: ${pesanan.ekspedisi?.nama} (${pesanan.ekspedisi?.layanan}) - Est. ${pesanan.ekspedisi?.estimasiHari} hari",
+                text = "Ekspedisi: ${pesanan.ekspedisi?.nama ?: "-"} (${pesanan.ekspedisi?.layanan ?: "-"})",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
 
-            // Button untuk mengubah status
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedButton(
                 onClick = { showDialog = true },
@@ -216,23 +202,16 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                 Text("Ubah Status Pesanan")
             }
 
-            // Dialog Mengubah status pesanan
             if (showDialog) {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
-                    title = {
-                        Text(
-                            "Edit Status Pesanan",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
+                    title = { Text("Edit Status Pesanan", style = MaterialTheme.typography.titleLarge) },
                     text = {
                         var expanded by remember { mutableStateOf(false) }
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            horizontalAlignment = Alignment.Start
+                                .background(MaterialTheme.colorScheme.primaryContainer)
                         ) {
                             Box {
                                 OutlinedButton(
@@ -252,8 +231,7 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                                 DropdownMenu(
                                     expanded = expanded,
                                     onDismissRequest = { expanded = false },
-                                    modifier = Modifier
-                                        .background(MaterialTheme.colorScheme.surface)
+                                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                                 ) {
                                     StatusPesanan.entries.forEach { status ->
                                         DropdownMenuItem(
@@ -273,14 +251,6 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                             onClick = {
                                 onStatusChange(selectedStatus)
                                 showDialog = false
-
-                                // Kirim notifikasi
-                                val namaBarang = pesanan.items.joinToString { it.produk.nama }
-                                sendNotificationSafe(
-                                    context = context,
-                                    judul = "Status Pesanan Kamu",
-                                    pesan = "Pesanan $namaBarang sekarang berstatus: ${selectedStatus.name}"
-                                )
                             }
                         ) {
                             Text("Simpan")
@@ -294,19 +264,16 @@ fun CardPesanan(pesanan: Pesanan,   onStatusChange: (StatusPesanan) -> Unit) {
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             }
-
-
         }
     }
 }
-
 
 @Composable
 fun TabPesanan(
     selectedTab: String,
     onTabSelected: (String) -> Unit
 ) {
-    val tabs = listOf("Baru", "Diproses", "Dikirim" ,"Selesai", "Batal")
+    val tabs = listOf("Baru", "Diproses", "Dikirim", "Selesai", "Batal")
 
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -321,28 +288,16 @@ fun TabPesanan(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     modifier = Modifier.wrapContentWidth()
-                ) {
-                    Text(tab)
-                }
+                ) { Text(tab) }
             } else {
                 OutlinedButton(
-                    onClick = { onTabSelected(tab)  },
+                    onClick = { onTabSelected(tab) },
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary
                     ),
                     modifier = Modifier.wrapContentWidth()
-                ) {
-                    Text(tab)
-                }
+                ) { Text(tab) }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewListPesanan() {
-    // Dummy NavController untuk preview
-    val navController = rememberNavController()
-    ListPesanan(navController = navController)
 }
