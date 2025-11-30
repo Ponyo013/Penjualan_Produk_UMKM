@@ -37,7 +37,7 @@ class CartFragment : Fragment() {
     private val cartViewModel: CartViewModel by viewModels {
         ViewModelFactory(
             db = AppDatabase.getDatabase(requireContext()),
-            pesananId = 1
+            pesananId = 1 // STILL USING PLACEHOLDER, REMEMBER TO REPLACE THIS WITH ACTUAL USER'S PESANAN ID
         )
     }
 
@@ -65,13 +65,22 @@ class CartFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             cartViewModel.cartItems.collectLatest { items ->
                 cartAdapter.updateCartItems(items)
-                updateTotalPrice(items)
+                // updateTotalPrice(items) -- Removed, now handled by observing pesanan flow
                 updateCheckoutButtonState(items)
             }
         }
 
-        // Load data dari database
-        cartViewModel.loadCartItems()
+        // Observasi pesanan dari ViewModel untuk update total harga
+        viewLifecycleOwner.lifecycleScope.launch {
+            cartViewModel.pesanan.collectLatest { pesanan ->
+                val localeID = Locale("id", "ID")
+                val numberFormat = NumberFormat.getCurrencyInstance(localeID)
+                totalPrice.text = numberFormat.format(pesanan?.totalHarga ?: 0.0)
+            }
+        }
+
+        // Load data dari database (this call is deprecated and not needed with Flow)
+        // cartViewModel.loadCartItems()
 
         checkoutButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
@@ -155,13 +164,14 @@ class CartFragment : Fragment() {
         dialog.show()
     }
 
-    private fun updateTotalPrice(items: List<ItemPesananWithProduk>) {
-        val total = items.filter { it.itemPesanan.isSelected }
-            .sumOf { it.itemPesanan.jumlah * it.produk.harga }
-        val localeID = Locale("id", "ID")
-        val numberFormat = NumberFormat.getCurrencyInstance(localeID)
-        totalPrice.text = numberFormat.format(total)
-    }
+    // Removed as total price is now observed from Pesanan flow directly
+    // private fun updateTotalPrice(items: List<ItemPesananWithProduk>) {
+    //     val total = items.filter { it.itemPesanan.isSelected }
+    //         .sumOf { it.itemPesanan.jumlah * it.produk.harga }
+    //     val localeID = Locale("id", "ID")
+    //     val numberFormat = NumberFormat.getCurrencyInstance(localeID)
+    //     totalPrice.text = numberFormat.format(total)
+    // }
 
     private fun updateCheckoutButtonState(items: List<ItemPesananWithProduk>) {
         val anySelected = items.any { it.itemPesanan.isSelected }
