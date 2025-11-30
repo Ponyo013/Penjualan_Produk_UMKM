@@ -4,25 +4,27 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
 import com.example.penjualan_produk_umkm.database.model.ItemPesanan
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemPesananDao {
-    @Insert
-    fun insertAll(items: List<ItemPesanan>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<ItemPesanan>)
 
-    @Insert
-    fun insert(item: ItemPesanan)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item: ItemPesanan)
 
     @Update
-    fun update(item: ItemPesanan)
+    suspend fun update(item: ItemPesanan)
 
     @Delete
-    fun delete(item: ItemPesanan)
+    suspend fun delete(item: ItemPesanan)
 
     @Transaction
     @Query("SELECT * FROM item_pesanan")
@@ -37,4 +39,9 @@ interface ItemPesananDao {
     @Transaction
     @Query("SELECT * FROM item_pesanan WHERE pesanan_id = :pesananId")
     fun observeItemsWithProdukByPesananId(pesananId: Int): LiveData<List<ItemPesananWithProduk>>
+
+    // Flow version for reactive updates
+    @Transaction
+    @Query("SELECT * FROM item_pesanan WHERE pesanan_id = :pesananId")
+    fun getItemsWithProdukByPesananIdFlow(pesananId: Int): Flow<List<ItemPesananWithProduk>>
 }

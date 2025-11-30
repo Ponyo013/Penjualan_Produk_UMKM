@@ -12,7 +12,7 @@ class ViewModelFactory(
     private val userDao: UserDao? = null,
     private val produkDao: ProdukDao? = null,
     private val db: AppDatabase? = null,
-    private val pesananId: Int? = null,
+    private val pesananId: Int? = null, // Keep nullable here for other ViewModels that don't need it
     private val userId: Int? = null
 ) : ViewModelProvider.Factory {
 
@@ -31,6 +31,7 @@ class ViewModelFactory(
             }
 
             modelClass.isAssignableFrom(CartViewModel::class.java) -> {
+                // pesananId is now guaranteed to be non-null when CartViewModel is requested
                 CartViewModel(db!!, pesananId!!) as T
             }
 

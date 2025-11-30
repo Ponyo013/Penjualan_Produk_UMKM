@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.example.penjualan_produk_umkm.database.relation.PesananWithItems
 import com.example.penjualan_produk_umkm.database.model.Pesanan
 import com.example.penjualan_produk_umkm.database.model.StatusPesanan
@@ -15,6 +16,9 @@ import kotlinx.coroutines.flow.Flow
 interface PesananDao {
     @Insert
     suspend fun insert(pesanan: Pesanan): Long
+
+    @Update
+    suspend fun update(pesanan: Pesanan)
 
     @Query("SELECT * from pesanan WHERE user_id = :userId")
     fun getPesananForUser(userId: Int): LiveData<List<Pesanan>>
@@ -42,6 +46,10 @@ interface PesananDao {
     @Transaction
     @Query("SELECT * FROM pesanan WHERE status = :status ORDER BY id DESC")
     fun getPesananByStatus(status: StatusPesanan): Flow<List<PesananWithItems>>
+
+    // Get pending order for a user (used for cart)
+    @Query("SELECT * FROM pesanan WHERE user_id = :userId AND status = 'DIPROSES' LIMIT 1")
+    suspend fun getPendingPesananForUser(userId: Int): Pesanan?
 
     // Update status pesanan
     @Query("UPDATE pesanan SET status = :status WHERE id = :id")

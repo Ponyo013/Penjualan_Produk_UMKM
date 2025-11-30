@@ -17,7 +17,9 @@ import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
 import com.example.penjualan_produk_umkm.database.model.ItemPesanan
+import com.example.penjualan_produk_umkm.database.model.Pesanan
 import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.database.model.StatusPesanan
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.tabs.TabLayout
@@ -40,55 +42,70 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private lateinit var cartViewModel: com.example.penjualan_produk_umkm.viewModel.CartViewModel
     private lateinit var produkViewModel: com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
-    private val pesananId = 1 // Bisa diganti sesuai pesanan aktif user
+    // Placeholder for the current logged-in user ID. Replace with actual user ID retrieval.
+    private val currentUserId = 1 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val db = AppDatabase.getDatabase(requireContext())
-        cartViewModel = ViewModelProvider(
-            this,
-            ViewModelFactory(db = db, pesananId = pesananId)
-        ).get(com.example.penjualan_produk_umkm.viewModel.CartViewModel::class.java)
+        val pesananDao = db.pesananDao()
 
-        produkViewModel = ViewModelProvider(
-            this,
-            ViewModelFactory(produkDao = db.produkDao())
-        ).get(com.example.penjualan_produk_umkm.viewModel.ProdukViewModel::class.java)
+        lifecycleScope.launch {
+            // Try to find an existing pending order for the user
+            var activePesanan = pesananDao.getPendingPesananForUser(currentUserId)
+            var actualPesananId: Int
 
-        val productId = arguments?.getInt("productId") ?: run {
-            findNavController().popBackStack()
-            return
-        }
-
-        // Ambil produk dari database
-        produkViewModel.getProdukById(productId).observe(viewLifecycleOwner) { p ->
-            if (p == null) {
-                findNavController().popBackStack()
+            if (activePesanan == null) {
+                // If no pending order exists, create a new one
+                val newPesanan = Pesanan(userId = currentUserId, totalHarga = 0.0, status = StatusPesanan.DIPROSES)
+                actualPesananId = pesananDao.insert(newPesanan).toInt()
             } else {
-                produk = p
-                setupToolbar(view)
-                setupProductInfo(view, p)
-                setupRatingInfo(view, p)
-                setupViewPager(view)
-                setupGallery(view, p)
-                updateCartControls(p)
+                actualPesananId = activePesanan.id
             }
-        }
 
-        // Observe cart items untuk update UI secara otomatis
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                cartViewModel.cartItems.collectLatest { items ->
-                    produk?.let { updateCartControls(it) }
+            cartViewModel = ViewModelProvider(
+                this@DetailProdukFragment,
+                ViewModelFactory(db = db, pesananId = actualPesananId)
+            ).get(com.example.penjualan_produk_umkm.viewModel.CartViewModel::class.java)
+
+            produkViewModel = ViewModelProvider(
+                this@DetailProdukFragment,
+                ViewModelFactory(produkDao = db.produkDao())
+            ).get(com.example.penjualan_produk_umkm.viewModel.ProdukViewModel::class.java)
+
+            val productId = arguments?.getInt("productId") ?: run {
+                findNavController().popBackStack()
+                return@launch
+            }
+
+            // Ambil produk dari database
+            produkViewModel.getProdukById(productId).observe(viewLifecycleOwner) { p ->
+                if (p == null) {
+                    findNavController().popBackStack()
+                } else {
+                    produk = p
+                    setupToolbar(view)
+                    setupProductInfo(view, p, actualPesananId) // Pass actualPesananId here
+                    setupRatingInfo(view, p)
+                    setupViewPager(view)
+                    setupGallery(view, p)
+                    updateCartControls(p)
+                }
+            }
+
+            // Observe cart items untuk update UI secara otomatis
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                    cartViewModel.cartItems.collectLatest { items ->
+                        produk?.let { updateCartControls(it) }
+                    }
                 }
             }
         }
-        // Load data cart awal
-        cartViewModel.loadCartItems()
     }
 
-    private fun setupProductInfo(view: View, produk: Produk) {
+    private fun setupProductInfo(view: View, produk: Produk, pesananId: Int) { // Add pesananId parameter
         val namaProduk = view.findViewById<TextView>(R.id.nama_produk)
         val hargaProduk = view.findViewById<TextView>(R.id.harga_produk)
         val stockStatus = view.findViewById<TextView>(R.id.stock_status)
@@ -112,9 +129,8 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             if (existingItem != null) {
                 cartViewModel.increaseQuantity(existingItem)
             } else {
-                val newItem = ItemPesananWithProduk(ItemPesanan(0, pesananId, produk.id, 1), produk)
-                cartViewModel.updateItem(newItem.itemPesanan) // insert baru jika belum ada
-                cartViewModel.loadCartItems()
+                val newItem = ItemPesanan(0, pesananId, produk.id, 1) // Use the dynamic pesananId
+                cartViewModel.insertItem(newItem) // Menggunakan insertItem
             }
             Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
         }
