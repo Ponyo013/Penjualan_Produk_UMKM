@@ -11,7 +11,7 @@ import com.example.penjualan_produk_umkm.database.model.Produk
 @Dao
 interface ProdukDao {
     @Insert
-    suspend fun insert(produk: Produk)
+    suspend fun insert(produk: Produk): Long
 
     @Update
     suspend fun update(produk: Produk)

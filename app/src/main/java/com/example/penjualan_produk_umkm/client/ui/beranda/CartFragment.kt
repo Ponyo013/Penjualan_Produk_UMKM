@@ -19,6 +19,7 @@ import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.auth.UserPreferences
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
@@ -33,11 +34,12 @@ class CartFragment : Fragment() {
     private lateinit var totalPrice: TextView
     private lateinit var checkoutButton: MaterialButton
 
-    // ViewModel (gunakan Factory untuk kirim database & pesananId)
+    // FIX 1: Kita inisialisasi langsung di sini dengan ID 1.
+    // Tidak perlu logic ribet cari ID di onViewCreated.
     private val cartViewModel: CartViewModel by viewModels {
         ViewModelFactory(
             db = AppDatabase.getDatabase(requireContext()),
-            pesananId = 1 // STILL USING PLACEHOLDER, REMEMBER TO REPLACE THIS WITH ACTUAL USER'S PESANAN ID
+            pesananId = 1 // <--- KUNCI: Paksa buka Keranjang ID 1 agar data pasti muncul
         )
     }
 
@@ -50,6 +52,7 @@ class CartFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener {
             findNavController().popBackStack()
@@ -60,43 +63,39 @@ class CartFragment : Fragment() {
         checkoutButton = view.findViewById(R.id.btn_checkout)
 
         setupRecyclerView()
+        setupObservers()
+        setupClickListeners()
+    }
 
-        // Observasi data keranjang dari ViewModel
+    private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             cartViewModel.cartItems.collectLatest { items ->
                 cartAdapter.updateCartItems(items)
-                // updateTotalPrice(items) -- Removed, now handled by observing pesanan flow
                 updateCheckoutButtonState(items)
             }
         }
 
-        // Observasi pesanan dari ViewModel untuk update total harga
         viewLifecycleOwner.lifecycleScope.launch {
             cartViewModel.pesanan.collectLatest { pesanan ->
-                val localeID = Locale("id", "ID")
+                val localeID = Locale("in", "ID")
                 val numberFormat = NumberFormat.getCurrencyInstance(localeID)
+                numberFormat.maximumFractionDigits = 0
                 totalPrice.text = numberFormat.format(pesanan?.totalHarga ?: 0.0)
             }
         }
+    }
 
-        // Load data dari database (this call is deprecated and not needed with Flow)
-        // cartViewModel.loadCartItems()
-
+    private fun setupClickListeners() {
         checkoutButton.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                // Ambil item dari ViewModel
                 val items = cartViewModel.cartItems.value
-
-                // Filter hanya yang dipilih
                 val selectedItems = items.filter { it.itemPesanan.isSelected }
 
                 if (selectedItems.isNotEmpty()) {
                     val selectedIds = selectedItems.map { it.itemPesanan.id }.toIntArray()
-
                     val bundle = Bundle().apply {
                         putIntArray("selectedItemIds", selectedIds)
                     }
-
                     findNavController().navigate(
                         R.id.action_CartFragment_to_checkoutFragment,
                         bundle
@@ -104,7 +103,6 @@ class CartFragment : Fragment() {
                 }
             }
         }
-
     }
 
     private fun setupRecyclerView() {
@@ -118,10 +116,11 @@ class CartFragment : Fragment() {
                     showDeleteConfirmationDialog(item)
                 }
             },
+            // FIX 2: Perbaikan logika Checkbox agar tombol checkout bisa nyala
             onItemSelectChanged = { item ->
-                val updated = item.itemPesanan.copy(isSelected = !item.itemPesanan.isSelected)
+                // Langsung update item yang dikirim adapter (karena adapter sudah mengubah status true/false-nya)
                 lifecycleScope.launch {
-                    cartViewModel.updateItem(updated)
+                    cartViewModel.updateItem(item.itemPesanan)
                 }
             },
             onItemClick = { item ->
@@ -139,7 +138,6 @@ class CartFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
         }
     }
-
 
     private fun showDeleteConfirmationDialog(item: ItemPesananWithProduk) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom_warning, null)
@@ -160,27 +158,15 @@ class CartFragment : Fragment() {
         }
 
         btnNegative.setOnClickListener { dialog.dismiss() }
-
         dialog.show()
     }
 
-    // Removed as total price is now observed from Pesanan flow directly
-    // private fun updateTotalPrice(items: List<ItemPesananWithProduk>) {
-    //     val total = items.filter { it.itemPesanan.isSelected }
-    //         .sumOf { it.itemPesanan.jumlah * it.produk.harga }
-    //     val localeID = Locale("id", "ID")
-    //     val numberFormat = NumberFormat.getCurrencyInstance(localeID)
-    //     totalPrice.text = numberFormat.format(total)
-    // }
-
     private fun updateCheckoutButtonState(items: List<ItemPesananWithProduk>) {
+        // Tombol hanya aktif jika ada minimal 1 barang yang dicentang (isSelected == true)
         val anySelected = items.any { it.itemPesanan.isSelected }
         checkoutButton.isEnabled = anySelected
-        val color = if (anySelected)
-            R.color.Secondary_1
-        else
-            R.color.grey
 
+        val color = if (anySelected) R.color.Secondary_1 else R.color.grey
         checkoutButton.backgroundTintList =
             ColorStateList.valueOf(ContextCompat.getColor(requireContext(), color))
     }

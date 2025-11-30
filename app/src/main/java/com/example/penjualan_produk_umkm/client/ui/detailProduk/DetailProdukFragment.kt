@@ -129,7 +129,7 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             if (existingItem != null) {
                 cartViewModel.increaseQuantity(existingItem)
             } else {
-                val newItem = ItemPesanan(0, pesananId, produk.id, 1) // Use the dynamic pesananId
+                val newItem = ItemPesanan(0, 1, produk.id, 1) // Use the dynamic pesananId
                 cartViewModel.insertItem(newItem) // Menggunakan insertItem
             }
             Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()

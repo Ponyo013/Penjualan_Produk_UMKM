@@ -26,13 +26,16 @@ class AuthActivity : AppCompatActivity() {
         val prefs = UserPreferences(this)
 
         if (prefs.isLoggedIn()) {
-            val role = prefs.getUserRole()
-
-            val intent = if (role == "owner") {
-                Intent(this, OwnerActivity::class.java)
-            } else {
-                Intent(this, MainActivity::class.java)
-            }
+            // KODE RILNYA
+//            val role = prefs.getUserRole()
+//
+//            val intent = if (role == "owner") {
+//                Intent(this, OwnerActivity::class.java)
+//            } else {
+//                Intent(this, MainActivity::class.java)
+//            }
+            // Kode Bypass ke Owner
+            val intent = Intent(this, OwnerActivity::class.java)
 
             startActivity(intent)
             finish()

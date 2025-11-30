@@ -67,7 +67,7 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
                 val labelView = rowView.findViewById<TextView>(R.id.spec_label)
                 val valueView = rowView.findViewById<TextView>(R.id.spec_value)
 
-                labelView.text = label
+                labelView.text = label + " :"
                 valueView.text = value
 
                 container.addView(rowView)

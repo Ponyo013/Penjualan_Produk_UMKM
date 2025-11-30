@@ -68,29 +68,37 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
         // Amati data produk
         viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
-            baseCategoryProducts = produkList
-            applyFiltersAndSort()
-        }
 
-        // Setup Compose Filter/Sort Controls
-        filterSortContainer.setContent {
-            UMKMTheme {
-                ProductFilterControls(
-                    totalItemsCount = baseCategoryProducts.size,
-                    currentSort = currentSort,
-                    onSortChange = { newSort ->
-                        currentSort = newSort
-                        applyFiltersAndSort()
-                    },
-                    onStockFilterChange = { isChecked ->
-                        isReadyStockFilter = isChecked
-                        applyFiltersAndSort()
-                    }
-                )
+            // --- FILTER KATEGORI ---
+            val filteredList = if (parentCategoryName != null) {
+                produkList.filter { it.kategori.equals(parentCategoryName, ignoreCase = true) }
+            } else {
+                produkList
             }
-        }
-    }
 
+            baseCategoryProducts = filteredList
+            applyFiltersAndSort()
+
+            // --- UPDATE COMPOSE UI (Dalam Observer) ---
+            filterSortContainer.setContent {
+                UMKMTheme {
+                    ProductFilterControls(
+                        totalItemsCount = baseCategoryProducts.size,
+                        currentSort = currentSort,
+                        onSortChange = { newSort ->
+                            currentSort = newSort
+                            applyFiltersAndSort()
+                        },
+                        onStockFilterChange = { isChecked ->
+                            isReadyStockFilter = isChecked
+                            applyFiltersAndSort()
+                        }
+                    )
+                }
+            }
+        } // Tutup Observer
+
+    } // <--- INI KURUNG KURAWAL PENUTUP onViewCreated YANG TADI HILANG
 
     /**
      * Fungsi utama untuk menerapkan filter dan sorting pada daftar produk.
@@ -105,7 +113,7 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
         // B. SORTING
         resultList = when (currentSort) {
-            ProductSortOption.TERBARU -> resultList.sortedByDescending { it.id } // Asumsi ID yang lebih tinggi = lebih baru
+            ProductSortOption.TERBARU -> resultList.sortedByDescending { it.id }
             ProductSortOption.TERLARIS -> resultList.sortedByDescending { it.terjual }
             ProductSortOption.HARGA_MAHAL -> resultList.sortedByDescending { it.harga }
             ProductSortOption.HARGA_MURAH -> resultList.sortedBy { it.harga }

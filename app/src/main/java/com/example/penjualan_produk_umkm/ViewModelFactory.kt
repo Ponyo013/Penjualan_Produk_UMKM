@@ -36,7 +36,7 @@ class ViewModelFactory(
             }
 
             modelClass.isAssignableFrom(CheckoutViewModel::class.java) -> {
-                CheckoutViewModel(db!!, userId!!) as T
+                CheckoutViewModel(db!!, userId!!, pesananId!!) as T
             }
 
             modelClass.isAssignableFrom(UlasanViewModel::class.java) -> {

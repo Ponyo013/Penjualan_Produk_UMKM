@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.auth.UserPreferences
 import com.example.penjualan_produk_umkm.client.ui.beranda.CartAdapter
 import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.database.model.ItemPesanan
@@ -27,7 +28,8 @@ import com.example.penjualan_produk_umkm.viewModel.CheckoutViewModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 
-class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : Fragment() {
+// PERBAIKAN 1: Hapus parameter di constructor. Biarkan kosong.
+class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
     private lateinit var cartAdapter: CartAdapter
     private var selectedShippingCost: Double = 0.0
@@ -37,16 +39,17 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
     private lateinit var tvUserPhone: TextView
     private lateinit var tvUserAddress: TextView
 
+    // PERBAIKAN 2: Inisialisasi ViewModel dengan mengambil Context, DB, dan UserID di sini
     private val viewModel: CheckoutViewModel by viewModels {
-        ViewModelFactory(db = db, userId = userId)
+        val context = requireContext()
+        val db = AppDatabase.getDatabase(context)
+        val prefs = UserPreferences(context)
+        val userId = prefs.getUserId()
+
+        ViewModelFactory(db = db, userId = userId, pesananId = 1)
     }
 
     private var cartItems: List<ItemPesanan> = emptyList()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.fragment_checkout, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -76,11 +79,13 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
 
         // Shipping options
         viewModel.ekspedisiAktif.observe(viewLifecycleOwner) { ekspedisiList ->
-            val ekspedisiItems = ekspedisiList.map { "${it.nama} (${it.estimasiHari} hari) - Rp ${it.biaya}" }
+            // Format text spinner
+            val ekspedisiItems = ekspedisiList.map { "${it.nama} (${it.estimasiHari} hari) - Rp ${String.format("%,.0f", it.biaya)}" }
             val actEkspedisi = view.findViewById<AutoCompleteTextView>(R.id.act_ekspedisi)
             val ekspedisiAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, ekspedisiItems)
             actEkspedisi.setAdapter(ekspedisiAdapter)
 
+            // Set default jika list tidak kosong
             if (ekspedisiList.isNotEmpty()) {
                 selectedShippingCost = ekspedisiList[0].biaya
                 actEkspedisi.setText(ekspedisiItems[0], false)
@@ -98,7 +103,10 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
         val actMetodePembayaran = view.findViewById<AutoCompleteTextView>(R.id.act_metode_pembayaran)
         val paymentMethodAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, paymentMethodItems)
         actMetodePembayaran.setAdapter(paymentMethodAdapter)
+
+        // Set default payment
         actMetodePembayaran.setText(paymentMethodItems[0], false)
+
         actMetodePembayaran.setOnItemClickListener { _, _, position, _ ->
             selectedPaymentMethod = MetodePembayaran.values()[position]
         }
@@ -110,12 +118,17 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
 
     private fun setupRecyclerView(view: View) {
         val rvProdukCheckout = view.findViewById<RecyclerView>(R.id.rv_produk_checkout)
+
         viewModel.itemsWithProduk.observe(viewLifecycleOwner) { itemsWithProduk ->
-            cartAdapter = CartAdapter(itemsWithProduk, isCheckout = true)
+            // PERBAIKAN 3: Pastikan hanya mengambil barang yang dipilih (isSelected = true)
+            // Meskipun ViewModel mungkin sudah memfilter, filter lagi di sini untuk keamanan tampilan
+            val selectedItems = itemsWithProduk.filter { it.itemPesanan.isSelected }
+
+            cartAdapter = CartAdapter(selectedItems, isCheckout = true)
             rvProdukCheckout.layoutManager = LinearLayoutManager(requireContext())
             rvProdukCheckout.adapter = cartAdapter
 
-            cartItems = itemsWithProduk.map { it.itemPesanan }
+            cartItems = selectedItems.map { it.itemPesanan }
             updatePaymentDetails(view)
         }
     }
@@ -164,8 +177,10 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
     }
 
     private fun updatePaymentDetails(view: View) {
-        val itemsWithProduk = viewModel.itemsWithProduk.value ?: emptyList()
-        val subtotal = itemsWithProduk.sumOf { it.itemPesanan.jumlah * it.produk.harga }
+        // Hitung ulang hanya untuk item yang tampil (isSelected)
+        val currentItems = viewModel.itemsWithProduk.value?.filter { it.itemPesanan.isSelected } ?: emptyList()
+
+        val subtotal = currentItems.sumOf { it.itemPesanan.jumlah * it.produk.harga }
         val total = subtotal + selectedShippingCost
 
         view.findViewById<TextView>(R.id.tv_subtotal_produk).text = "Rp ${String.format("%,.0f", subtotal)}"
@@ -175,11 +190,18 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
 
     private fun checkout(view: View) {
         if (cartItems.isEmpty()) {
-            Toast.makeText(requireContext(), "Keranjang kosong!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Keranjang kosong atau tidak ada barang dipilih!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val selectedEkspedisi = viewModel.ekspedisiAktif.value?.find { it.biaya == selectedShippingCost } ?: return
+        // Cari objek ekspedisi yang sesuai dengan biaya yang dipilih
+        val selectedEkspedisiList = viewModel.ekspedisiAktif.value
+        val selectedEkspedisi = selectedEkspedisiList?.find { it.biaya == selectedShippingCost }
+
+        if (selectedEkspedisi == null) {
+            Toast.makeText(requireContext(), "Mohon pilih ekspedisi", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         viewModel.createPesanan(
             items = cartItems,
@@ -187,9 +209,10 @@ class CheckoutFragment(private val db: AppDatabase, private val userId: Int) : F
             metodePembayaran = selectedPaymentMethod,
             onSuccess = {
                 Toast.makeText(requireContext(), "Pesanan berhasil dibuat!", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.BerandaFragment) {
-                    popUpTo(R.id.BerandaFragment) { inclusive = true }
-                }
+
+                // Navigasi balik ke Beranda
+                // Menggunakan ID Fragment tujuan, bukan action ID, agar lebih aman jika action belum didefinisikan
+                findNavController().popBackStack(R.id.BerandaFragment, false)
             },
             onError = { errorMsg ->
                 Toast.makeText(requireContext(), "Gagal membuat pesanan: $errorMsg", Toast.LENGTH_SHORT).show()

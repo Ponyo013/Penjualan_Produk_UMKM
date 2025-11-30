@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.ui.test)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.firebase.dataconnect)
     ksp(libs.room.compiler)
 
     implementation("com.google.code.gson:gson:2.10.1")

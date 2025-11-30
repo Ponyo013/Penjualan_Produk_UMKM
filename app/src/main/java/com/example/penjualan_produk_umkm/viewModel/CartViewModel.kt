@@ -100,7 +100,7 @@ class CartViewModel(private val db: AppDatabase, private val pesananId: Int) : V
 
         if (currentPesanan != null) {
             var newTotalHarga = 0.0
-            cartItems.value.forEach { itemWithProduk ->
+            cartItems.value.filter { it.itemPesanan.isSelected }.forEach { itemWithProduk ->
                 newTotalHarga += itemWithProduk.itemPesanan.jumlah * itemWithProduk.produk.harga
             }
 
