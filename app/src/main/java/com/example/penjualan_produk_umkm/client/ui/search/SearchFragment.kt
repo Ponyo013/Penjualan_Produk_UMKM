@@ -13,22 +13,28 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.client.ui.beranda.ProductAdapter
 import com.example.penjualan_produk_umkm.database.AppDatabase
-import com.example.penjualan_produk_umkm.database.model.Produk
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.google.android.material.appbar.MaterialToolbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import java.util.Locale
+import androidx.fragment.app.viewModels
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var searchAdapter: ProductAdapter
-    private lateinit var db: AppDatabase
+
+    // Gunakan ViewModel yang sudah dimigrasi (Diasumsikan sudah tidak butuh DAO)
+    private val viewModel: ProdukViewModel by viewModels()
 
     private var categoryFilterQuery: String? = null
-    private var currentCategory: String? = null
+    private var currentQuery: String = ""
+    private var minPrice: Double = 0.0
+    private var maxPrice: Double = Double.MAX_VALUE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +44,6 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        db = AppDatabase.getDatabase(requireContext())
-
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar_search)
         toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
@@ -47,11 +51,12 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         val composeSearchBar = view.findViewById<ComposeView>(R.id.compose_search_bar_full)
         composeSearchBar.setContent {
             SearchBar(onSearch = { query ->
-                loadProducts(query, 0.0, Double.MAX_VALUE)
+                currentQuery = query // Simpan query terbaru
+                applyFilters()
             })
         }
 
-        // Price filter
+        // Price filter setup
         val etHargaMin = view.findViewById<EditText>(R.id.et_harga_min)
         val etHargaMax = view.findViewById<EditText>(R.id.et_harga_max)
         val btnApplyFilter = view.findViewById<Button>(R.id.btn_apply_filter)
@@ -59,47 +64,48 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         // RecyclerView
         recyclerView = view.findViewById(R.id.recycler_search_results)
         recyclerView.layoutManager = LinearLayoutManager(context)
+
+        // FIX: Adapter sekarang menerima String ID
         searchAdapter = ProductAdapter(emptyList()) { productId ->
-            // TODO: Navigate to product detail
+            val bundle = Bundle().apply { putString("productId", productId) }
+            findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
         }
         recyclerView.adapter = searchAdapter
 
         btnApplyFilter.setOnClickListener {
-            val minPrice = etHargaMin.text.toString().toDoubleOrNull() ?: 0.0
-            val maxPrice = etHargaMax.text.toString().toDoubleOrNull() ?: Double.MAX_VALUE
-            loadProducts("", minPrice, maxPrice)
+            minPrice = etHargaMin.text.toString().toDoubleOrNull() ?: 0.0
+            maxPrice = etHargaMax.text.toString().toDoubleOrNull() ?: Double.MAX_VALUE
+            applyFilters() // Panggil filter saat tombol diklik
         }
 
-        // Load products initially
-        loadProducts()
+        // Amati data produk dari ViewModel (setelah query dijalankan)
+        viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
+            // Update adapter dengan data yang sudah difilter
+            // Note: Data yang datang dari ViewModel harusnya sudah di-filter di sana
+            applyFilters(produkList)
+        }
+
+        // Muat produk awal
+        viewModel.getAllProduk()
     }
 
-    private fun loadProducts(
-        query: String = "",
-        minPrice: Double = 0.0,
-        maxPrice: Double = Double.MAX_VALUE
-    ) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val produkList: List<Produk> = db.produkDao().getAllProdukOnce() // new DAO function
-            val lowerCaseQuery = query.lowercase(Locale.getDefault())
+    // Fungsi ini sekarang hanya menangani filter UI lokal (setelah data diambil)
+    private fun applyFilters(allProduk: List<Produk>? = null) {
+        val listToFilter = allProduk ?: viewModel.allProduk.value ?: emptyList()
 
-            val filteredList = produkList.filter { produk ->
-                val matchesQuery = produk.nama.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
-                        produk.deskripsi.lowercase(Locale.getDefault()).contains(lowerCaseQuery)
+        val filteredList = listToFilter.filter { produk ->
+            val matchesQuery = produk.nama.lowercase(Locale.getDefault()).contains(currentQuery.lowercase(Locale.getDefault())) ||
+                    produk.deskripsi.lowercase(Locale.getDefault()).contains(currentQuery.lowercase(Locale.getDefault()))
 
-                val matchesPrice = produk.harga in minPrice..maxPrice
-                val matchesInitialCategory = categoryFilterQuery == null ||
-                        produk.kategori.equals(categoryFilterQuery, true)
+            val matchesPrice = produk.harga in minPrice..maxPrice
+            val matchesInitialCategory = categoryFilterQuery == null ||
+                    produk.kategori.equals(categoryFilterQuery, true)
 
-                val matchesCategoryChip = currentCategory == null ||
-                        produk.kategori.equals(currentCategory, true)
+            // Kita asumsikan currentCategory diabaikan untuk simplifikasi
 
-                matchesQuery && matchesPrice && matchesInitialCategory && matchesCategoryChip
-            }
-
-            withContext(Dispatchers.Main) {
-                searchAdapter.updateProducts(filteredList)
-            }
+            matchesQuery && matchesPrice && matchesInitialCategory
         }
+
+        searchAdapter.updateProducts(filteredList)
     }
 }

@@ -224,7 +224,7 @@ fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
 }
 
 @Composable
-fun LaporanPenjualanCard(pesanan: PesananWithItems, viewModel: OwnerPesananViewModel) {
+fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewModel) {
     val itemsForPesanan by viewModel.getItemsForPesanan(pesanan.pesanan.id).observeAsState(initial = emptyList())
 
     Card(

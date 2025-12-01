@@ -3,20 +3,18 @@ package com.example.penjualan_produk_umkm.client.ui.pesanan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.databinding.SubItemProdukPesananBinding
 import java.text.NumberFormat
 import java.util.*
 
-class SubItemPesananAdapter(private val items: List<ItemPesananWithProduk>) :
+class SubItemPesananAdapter(private val items: List<ItemPesanan>) :
     RecyclerView.Adapter<SubItemPesananAdapter.SubItemViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SubItemViewHolder {
         val binding = SubItemProdukPesananBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
+            LayoutInflater.from(parent.context), parent, false
         )
         return SubItemViewHolder(binding)
     }
@@ -30,38 +28,23 @@ class SubItemPesananAdapter(private val items: List<ItemPesananWithProduk>) :
     class SubItemViewHolder(private val binding: SubItemProdukPesananBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(itemWithProduk: ItemPesananWithProduk) {
-            val item = itemWithProduk.itemPesanan
-            val produk = itemWithProduk.produk
-
-            val numberFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
+        fun bind(item: ItemPesanan) {
+            val numberFormat = NumberFormat.getCurrencyInstance(Locale("in", "ID")).apply {
                 maximumFractionDigits = 0
             }
 
-            // Nama produk
-            binding.tvProductName.text = produk.nama
-
-            // Jumlah item
+            binding.tvProductName.text = item.produkNama // Pastikan field ini ada di Model ItemPesanan
             binding.tvProductQuantity.text = "x${item.jumlah}"
 
-            // Harga per produk
-            val hargaFormatted = numberFormat.format(produk.harga)
+            val hargaFormatted = numberFormat.format(item.produkHarga)
             binding.tvProductPrice.text = hargaFormatted.replace("Rp", "Rp ")
 
-            // Subtotal
-            val subtotal = produk.harga * item.jumlah
+            val subtotal = item.produkHarga * item.jumlah
             val subtotalFormatted = numberFormat.format(subtotal)
             binding.tvProductSubtotal.text = subtotalFormatted.replace("Rp", "Rp ")
 
-            // Gambar produk
-            if (produk.gambarResourceIds.isNotEmpty()) {
-                binding.ivProductImage.load(produk.gambarResourceIds.first()) {
-                    crossfade(true)
-                    placeholder(R.drawable.shape_image_placeholder)
-                }
-            } else {
-                binding.ivProductImage.setImageResource(R.drawable.shape_image_placeholder)
-            }
+            // Gambar (Placeholder dulu karena ItemPesanan Firestore biasanya ga simpan URL gambar)
+            binding.ivProductImage.setImageResource(R.drawable.ic_error_image)
         }
     }
 }

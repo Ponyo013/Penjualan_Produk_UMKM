@@ -54,7 +54,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
@@ -125,7 +125,7 @@ fun ProdukManage(
                     ProdukList(
                         produkItems = filteredProduk,
                         onEditClick = { produk -> navController.navigate("edit_produk/${produk.id}") },
-                        onHapusClick = { produk -> produkViewModel.delete(produk) },
+                        onHapusClick = { produk -> produkViewModel.deleteProduk(produk) },
                         onDetailUlasan = { produk -> navController.navigate("ulasan/${produk.id}") }
                     )
                 }
@@ -235,7 +235,7 @@ fun ProdukList(
                     ) {
                         // Gambar di kiri
                         AsyncImage(
-                            model = produk.gambarResourceIds.firstOrNull(),
+                            model = produk.gambarUrl.firstOrNull(),
                             contentDescription = "Contoh Gambar",
                             modifier = Modifier.size(100.dp),
                             contentScale = ContentScale.Crop

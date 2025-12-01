@@ -32,7 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.database.AppDatabase
-import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 
 // TAMBAHKAN BARIS INI
@@ -89,13 +89,14 @@ fun AddProdukScreen(
                                 && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()
                             ) {
                                 val produk = Produk(
+                                    id = "",
                                     nama = nama,
                                     deskripsi = deskripsi,
                                     spesifikasi = spesifikasi,
                                     harga = harga.toDouble(),
                                     stok = stok.toInt(),
                                     kategori = kategori,
-                                    gambarResourceIds = listOf(R.drawable.ic_empty_star),
+                                    gambarUrl ="",
                                     rating = 0f,
                                     terjual = 0
                                 )

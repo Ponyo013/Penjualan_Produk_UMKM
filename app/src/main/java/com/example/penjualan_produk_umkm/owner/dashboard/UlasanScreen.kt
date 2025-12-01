@@ -23,7 +23,7 @@ import org.threeten.bp.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UlasanScreen(
-    produkId: Int,
+    produkId: String,
     navController: NavController,
     ulasanViewModel: UlasanViewModel
 ) {
