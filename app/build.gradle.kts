@@ -5,6 +5,8 @@ plugins {
     id("kotlin-kapt")
     id("kotlin-parcelize")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -47,7 +49,12 @@ android {
 }
 
 dependencies {
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
     // Database
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -55,6 +62,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.dataconnect)
     ksp(libs.room.compiler)
+
 
     implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.androidx.core.ktx)

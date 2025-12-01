@@ -229,11 +229,9 @@ abstract class AppDatabase : RoomDatabase() {
         private fun getReviewsForProduct(produkId: Int, namaProduk: String, userId: Int): List<Ulasan> {
             val today = LocalDate.now()
 
-            // Gunakan lowercase agar pencocokan tidak sensitif huruf besar/kecil
             val name = namaProduk.lowercase()
 
             return when {
-                // Cek kata kunci spesifik yang pasti ada di nama produk
                 name.contains("polygon") -> listOf(
                     Ulasan(0, produkId, userId, 5.0f, "Sepeda impian! Pengiriman aman dan rakitnya gampang.", today.minusDays(2)),
                     Ulasan(0, produkId, userId, 4.0f, "Barang bagus, cuma settingan RD perlu disetel dikit.", today.minusDays(10))
@@ -270,7 +268,6 @@ abstract class AppDatabase : RoomDatabase() {
                 name.contains("rantai") || name.contains("kmc") -> listOf(
                     Ulasan(0, produkId, userId, 5.0f, "Pindah gigi jadi smooth banget pake rantai ini.", today.minusDays(3))
                 )
-                // Fallback: Jika tidak ada yang cocok, tetap berikan 1 ulasan default agar tidak kosong
                 else -> listOf(
                     Ulasan(0, produkId, userId, 5.0f, "Produk sangat berkualitas! Recommended seller.", today.minusDays(1))
                 )

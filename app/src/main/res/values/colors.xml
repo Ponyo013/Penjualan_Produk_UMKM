@@ -8,6 +8,10 @@
     <color name="Secondary_2">#3B507D</color>
     <color name="Secondary_3">#031C38</color>
 
+    <color name="TextSecondary">#8C8C8C</color>
+    <color name="TextSecondaryDark">#4A4A4A</color>
+
+
     <!-- For Text   -->
     <color name="text_secondary">#8C8C8C</color>
     <color name="text_secondary_dark">#4A4A4A</color>
@@ -22,6 +26,6 @@
     <color name="dark_blue">#1A2C42</color>
 
     <color name="red">#D32F2F</color>
-    
+
     <color name="bottom_nav_background">#FF202124</color>
 </resources>

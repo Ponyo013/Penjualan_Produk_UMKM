@@ -26,20 +26,17 @@ class AuthActivity : AppCompatActivity() {
         val prefs = UserPreferences(this)
 
         if (prefs.isLoggedIn()) {
-            // KODE RILNYA
-//            val role = prefs.getUserRole()
-//
-//            val intent = if (role == "owner") {
-//                Intent(this, OwnerActivity::class.java)
-//            } else {
-//                Intent(this, MainActivity::class.java)
-//            }
-            // Kode Bypass ke Owner
-            val intent = Intent(this, OwnerActivity::class.java)
+            val role = prefs.getUserRole()
+
+            val intent = if (role == "owner") {
+                Intent(this, OwnerActivity::class.java)
+            } else {
+                Intent(this, MainActivity::class.java)
+            }
 
             startActivity(intent)
             finish()
-            return   // jangan lanjut ke fragment login
+            return
         }
 
         if (savedInstanceState == null) {

@@ -19,11 +19,11 @@ class ViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
-                LoginViewModel(userDao!!) as T
+                LoginViewModel() as T
             }
 
             modelClass.isAssignableFrom(RegisterViewModel::class.java) -> {
-                RegisterViewModel(userDao!!) as T
+                RegisterViewModel() as T
             }
 
             modelClass.isAssignableFrom(ProdukViewModel::class.java) -> {
@@ -31,7 +31,6 @@ class ViewModelFactory(
             }
 
             modelClass.isAssignableFrom(CartViewModel::class.java) -> {
-                // pesananId is now guaranteed to be non-null when CartViewModel is requested
                 CartViewModel(db!!, pesananId!!) as T
             }
 
@@ -57,6 +56,10 @@ class ViewModelFactory(
 
             modelClass.isAssignableFrom(OwnerPesananViewModel::class.java) -> {
                 OwnerPesananViewModel(db!!.pesananDao(), db.itemPesananDao()) as T
+            }
+
+            modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
+                ProfileViewModel() as T
             }
 
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
