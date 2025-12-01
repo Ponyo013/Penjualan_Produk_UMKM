@@ -3,16 +3,15 @@ package com.example.penjualan_produk_umkm.client.ui.detailProduk
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class DetailPagerAdapter(fragment: DetailProdukFragment) : FragmentStateAdapter(fragment) {
-
-    // Ambil ID produk dari DetailProdukFragment
-    private val produkId = fragment.produk?.id
+class DetailPagerAdapter(
+    fragment: Fragment,
+    private val produkId: String
+) : FragmentStateAdapter(fragment) {
 
     private val fragments = listOf(
-        // Oper ID produk, bukan objek Produk
-        DeskripsiFragment.newInstance(produkId ?: 0),
-        SpesifikasiFragment.newInstance(produkId ?: 0),
-        UlasanFragment.newInstance(produkId ?: 0)
+        DeskripsiFragment.newInstance(produkId),
+        SpesifikasiFragment.newInstance(produkId),
+        UlasanFragment.newInstance(produkId)
     )
 
     override fun getItemCount(): Int = fragments.size

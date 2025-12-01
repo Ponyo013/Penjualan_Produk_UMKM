@@ -9,13 +9,13 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import java.text.NumberFormat
 import java.util.*
 
 class ProductAdapter(
     private var products: List<Produk>,
-    private val onItemClick: (Int) -> Unit
+    private val onItemClick: (String) -> Unit // Firestore ID string
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -43,10 +43,9 @@ class ProductAdapter(
             // Jumlah terjual
             productSoldCount.text = "Terjual ${produk.terjual}"
 
-            // Gambar produk (gunakan gambar pertama)
-            val firstImageId = produk.gambarResourceIds.firstOrNull()
-            if (firstImageId != null) {
-                productImage.load(firstImageId) {
+            // Gambar produk (dari Firestore URL)
+            if (produk.gambarUrl.isNotEmpty()) {
+                productImage.load(produk.gambarUrl) {
                     placeholder(R.color.grey)
                     error(R.drawable.ic_error_image)
                     crossfade(true)

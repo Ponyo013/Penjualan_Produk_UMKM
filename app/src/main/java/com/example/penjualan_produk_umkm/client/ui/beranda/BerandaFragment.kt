@@ -14,8 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.LinearLayout
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
-import com.example.penjualan_produk_umkm.ViewModelFactory
-import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 
 class BerandaFragment : Fragment(R.layout.fragment_beranda) {
@@ -23,20 +21,19 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductAdapter
 
-    private val viewModel: ProdukViewModel by viewModels {
-        val db = AppDatabase.getDatabase(requireContext())
-        ViewModelFactory(produkDao = db.produkDao())
-    }
+    private val viewModel: ProdukViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_beranda, container, false)
+
+        // RecyclerView setup
         recyclerView = view.findViewById(R.id.recycler_popular_products)
         recyclerView.layoutManager = GridLayoutManager(context, 2)
         adapter = ProductAdapter(emptyList()) { productId ->
-            val bundle = Bundle().apply { putInt("productId", productId) }
+            val bundle = Bundle().apply { putString("productId", productId) }
             findNavController().navigate(R.id.action_BerandaFragment_to_detailProdukFragment, bundle)
         }
         recyclerView.adapter = adapter

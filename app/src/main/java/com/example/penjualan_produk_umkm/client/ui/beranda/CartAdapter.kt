@@ -10,26 +10,17 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import java.text.NumberFormat
 import java.util.Locale
 
 class CartAdapter(
-    private val cartItems: MutableList<ItemPesananWithProduk>,
-    private val onIncrease: (ItemPesananWithProduk) -> Unit,
-    private val onDecrease: (ItemPesananWithProduk) -> Unit,
-    private val onItemSelectChanged: (ItemPesananWithProduk) -> Unit,
-    private val onItemClick: (ItemPesananWithProduk) -> Unit
+    private val cartItems: MutableList<ItemPesanan>,
+    private val onIncrease: (ItemPesanan) -> Unit,
+    private val onDecrease: (ItemPesanan) -> Unit,
+    private val onItemSelectChanged: (ItemPesanan) -> Unit,
+    private val onItemClick: (ItemPesanan) -> Unit
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
-
-    // Secondary constructor untuk checkout mode (read-only)
-    constructor(cartItems: List<ItemPesananWithProduk>, isCheckout: Boolean) : this(
-        cartItems.toMutableList(),
-        onIncrease = {},
-        onDecrease = {},
-        onItemSelectChanged = {},
-        onItemClick = {}
-    )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -43,7 +34,7 @@ class CartAdapter(
 
     override fun getItemCount(): Int = cartItems.size
 
-    fun updateCartItems(newItems: List<ItemPesananWithProduk>) {
+    fun updateCartItems(newItems: List<ItemPesanan>) {
         cartItems.clear()
         cartItems.addAll(newItems)
         notifyDataSetChanged()
@@ -58,41 +49,27 @@ class CartAdapter(
         private val decreaseButton: ImageButton = itemView.findViewById(R.id.btn_decrease_quantity)
         private val increaseButton: ImageButton = itemView.findViewById(R.id.btn_increase_quantity)
 
-        fun bind(item: ItemPesananWithProduk) {
-            val produk = item.produk
-            val itemPesanan = item.itemPesanan
-
+        fun bind(item: ItemPesanan) {
             // Checkbox
-            selectCheckBox.isChecked = itemPesanan.isSelected
+            selectCheckBox.isChecked = item.isSelected
 
-            // Nama dan harga
-            productName.text = produk.nama
+            // Nama dan harga: sementara kita pakai produkId sebagai nama, harga default
+            productName.text = "Produk ID: ${item.produkId}"
             productPrice.text = NumberFormat
                 .getCurrencyInstance(Locale("id", "ID"))
-                .format(produk.harga)
+                .format(item.produkHarga) // Tambahkan properti produkHarga di ItemPesanan jika ingin tampil
 
             // Jumlah
-            quantity.text = itemPesanan.jumlah.toString()
+            quantity.text = item.jumlah.toString()
 
-            // Gambar (pakai coil)
-            val firstImageId = produk.gambarResourceIds.firstOrNull()
-            if (firstImageId != null) {
-                productImage.load(firstImageId) {
-                    placeholder(R.color.grey)
-                    error(R.drawable.ic_error_image)
-                    crossfade(true)
-                }
-            } else {
-                productImage.setImageResource(R.drawable.ic_error_image)
-            }
+            // Gambar: bisa di-load pakai URL jika ada, atau placeholder
+            productImage.setImageResource(R.drawable.ic_error_image)
 
             // Aksi tombol dan checkbox
             increaseButton.setOnClickListener { onIncrease(item) }
             decreaseButton.setOnClickListener { onDecrease(item) }
             selectCheckBox.setOnClickListener {
-                val updatedItem = item.copy(
-                    itemPesanan = itemPesanan.copy(isSelected = selectCheckBox.isChecked)
-                )
+                val updatedItem = item.copy(isSelected = selectCheckBox.isChecked)
                 onItemSelectChanged(updatedItem)
             }
             itemView.setOnClickListener { onItemClick(item) }

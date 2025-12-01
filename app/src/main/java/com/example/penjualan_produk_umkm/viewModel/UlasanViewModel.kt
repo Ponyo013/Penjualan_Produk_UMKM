@@ -1,24 +1,38 @@
 package com.example.penjualan_produk_umkm.viewModel
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.penjualan_produk_umkm.database.dao.UlasanDao
-import com.example.penjualan_produk_umkm.database.model.Ulasan
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.penjualan_produk_umkm.database.firestore.model.Ulasan
+import com.google.firebase.firestore.FirebaseFirestore
 
-class UlasanViewModel(private val ulasanDao: UlasanDao) : ViewModel() {
+class UlasanViewModel : ViewModel() {
 
-    // Ambil ulasan untuk produk tertentu
-    fun getUlasanByProdukId(produkId: Int): LiveData<List<Ulasan>> {
-        return ulasanDao.getUlasanByProdukId(produkId)
+    private val db = FirebaseFirestore.getInstance()
+    private val ulasanCollection = db.collection("ulasan")
+
+    private val _ulasanList = MutableLiveData<List<Ulasan>>()
+    val ulasanList: LiveData<List<Ulasan>> get() = _ulasanList
+
+    // Ambil ulasan untuk produk tertentu (real-time)
+    fun getUlasanByProdukId(produkId: String) {
+        ulasanCollection
+            .whereEqualTo("produkId", produkId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+
+                val list = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(Ulasan::class.java)?.apply { id = doc.id }
+                } ?: emptyList()
+
+                _ulasanList.value = list
+            }
     }
 
     // Insert ulasan baru
     fun insertUlasan(ulasan: Ulasan) {
-        viewModelScope.launch(Dispatchers.IO) {
-            ulasanDao.insertUlasan(ulasan)
-        }
+        val newDoc = ulasanCollection.document()
+        ulasan.id = newDoc.id
+        newDoc.set(ulasan)
     }
 }

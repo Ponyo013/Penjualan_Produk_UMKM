@@ -29,11 +29,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +55,7 @@ fun EditProdukScreen(
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
 
-    var gambarResourceId by remember { mutableStateOf<Int?>(produk.gambarResourceIds.firstOrNull()) }
+    var gambarUrl by remember { mutableStateOf(produk.gambarUrl) }
     var newGambarUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -61,7 +63,7 @@ fun EditProdukScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             newGambarUri = uri
-            gambarResourceId = null
+            gambarUrl = ""
         }
     }
 
@@ -117,24 +119,39 @@ fun EditProdukScreen(
                                         snackbarHostState.showSnackbar("Semua field wajib diisi!")
                                     }
                                 } else {
-                                    val currentImageIdList = when {
-                                        newGambarUri != null -> listOf(R.drawable.ic_empty_star) // Placeholder, logic
-                                        gambarResourceId != null -> listOf(gambarResourceId!!)
-                                        else -> emptyList()
-                                    }
+                                    if (newGambarUri != null) {
+                                        val storageRef = FirebaseStorage.getInstance()
+                                            .reference.child("produk/${produk.id}.jpg")
 
-                                    val updatedProduk = produk.copy(
-                                        nama = nama,
-                                        deskripsi = deskripsi,
-                                        spesifikasi = spesifikasi,
-                                        harga = harga.toDoubleOrNull() ?: produk.harga,
-                                        stok = stok.toIntOrNull() ?: produk.stok,
-                                        kategori = kategori,
-                                        gambarResourceIds = currentImageIdList
-                                    )
-                                    // DIUBAH: Memanggil fungsi update dari ViewModel
-                                    produkViewModel.updateProduk(updatedProduk)
-                                    showDialogBerhasil = true
+                                        storageRef.putFile(newGambarUri!!).addOnSuccessListener {
+                                            storageRef.downloadUrl.addOnSuccessListener { uri ->
+                                                val updatedProduk = produk.copy(
+                                                    nama = nama,
+                                                    deskripsi = deskripsi,
+                                                    spesifikasi = spesifikasi,
+                                                    harga = harga.toDoubleOrNull() ?: produk.harga,
+                                                    stok = stok.toIntOrNull() ?: produk.stok,
+                                                    kategori = kategori,
+                                                    gambarUrl = uri.toString() // URL baru dari Storage
+                                                )
+                                                produkViewModel.updateProduk(updatedProduk)
+                                                showDialogBerhasil = true
+                                            }
+                                        }
+                                    } else {
+                                        // Tidak ada gambar baru, pakai URL lama
+                                        val updatedProduk = produk.copy(
+                                            nama = nama,
+                                            deskripsi = deskripsi,
+                                            spesifikasi = spesifikasi,
+                                            harga = harga.toDoubleOrNull() ?: produk.harga,
+                                            stok = stok.toIntOrNull() ?: produk.stok,
+                                            kategori = kategori,
+                                            gambarUrl = produk.gambarUrl
+                                        )
+                                        produkViewModel.updateProduk(updatedProduk)
+                                        showDialogBerhasil = true
+                                    }
                                 }
                             },
                             modifier = Modifier.weight(1f),
@@ -166,16 +183,11 @@ fun EditProdukScreen(
                         .clickable { launcher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (newGambarUri != null) {
-                        Image(
-                            painter = rememberAsyncImagePainter(newGambarUri),
-                            contentDescription = "Gambar Produk",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else if (gambarResourceId != null && gambarResourceId != 0) {
-                        Image(
-                            painter = rememberAsyncImagePainter(gambarResourceId),
+                    val currentImageModel = newGambarUri ?: gambarUrl.ifEmpty { null }
+
+                    if (currentImageModel != null) {
+                        AsyncImage(
+                            model = currentImageModel,
                             contentDescription = "Gambar Produk",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.fillMaxSize()

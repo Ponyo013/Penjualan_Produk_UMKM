@@ -28,8 +28,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.penjualan_produk_umkm.database.model.StatusPesanan
-import com.example.penjualan_produk_umkm.database.relation.ItemPesananWithProduk
-import com.example.penjualan_produk_umkm.database.relation.PesananWithItems
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
 

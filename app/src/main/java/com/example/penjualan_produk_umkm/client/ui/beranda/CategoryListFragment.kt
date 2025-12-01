@@ -1,5 +1,3 @@
-// File: com/example/penjualan_produk_umkm/client/ui/beranda/CategoryListFragment.kt
-
 package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.os.Bundle
@@ -11,10 +9,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.ViewModelFactory
-import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
-import com.example.penjualan_produk_umkm.database.model.Produk
+import com.example.penjualan_produk_umkm.client.ui.beranda.ProductAdapter
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.uiComponent.ProductFilterControls
 import com.example.penjualan_produk_umkm.uiComponent.ProductSortOption
 import com.example.penjualan_produk_umkm.style.UMKMTheme
@@ -34,6 +31,9 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
     // List produk lengkap yang sudah difilter berdasarkan kategori
     private var baseCategoryProducts: List<Produk> = emptyList()
+
+    // Firestore ViewModel
+    private val viewModel: ProdukViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,18 +55,12 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
         // Setup RecyclerView
         recyclerView.layoutManager = GridLayoutManager(context, 2)
         productAdapter = ProductAdapter(emptyList()) { productId ->
-            val bundle = Bundle().apply { putInt("productId", productId) }
+            val bundle = Bundle().apply { putString("productId", productId) } // Firestore ID = String
             findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
         }
         recyclerView.adapter = productAdapter
 
-        // Setup ViewModel
-        val dao = AppDatabase.getDatabase(requireContext()).produkDao()
-        val viewModel: ProdukViewModel by viewModels {
-            ViewModelFactory(produkDao = dao)
-        }
-
-        // Amati data produk
+        // Amati data produk dari Firestore
         viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
 
             // --- FILTER KATEGORI ---
@@ -97,8 +91,7 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
                 }
             }
         } // Tutup Observer
-
-    } // <--- INI KURUNG KURAWAL PENUTUP onViewCreated YANG TADI HILANG
+    }
 
     /**
      * Fungsi utama untuk menerapkan filter dan sorting pada daftar produk.
@@ -113,7 +106,7 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
         // B. SORTING
         resultList = when (currentSort) {
-            ProductSortOption.TERBARU -> resultList.sortedByDescending { it.id }
+            ProductSortOption.TERBARU -> resultList.sortedByDescending { it.id } // Firestore ID String, descending lex
             ProductSortOption.TERLARIS -> resultList.sortedByDescending { it.terjual }
             ProductSortOption.HARGA_MAHAL -> resultList.sortedByDescending { it.harga }
             ProductSortOption.HARGA_MURAH -> resultList.sortedBy { it.harga }

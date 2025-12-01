@@ -6,38 +6,37 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.database.model.Ulasan
-import com.example.penjualan_produk_umkm.database.model.User
+import com.example.penjualan_produk_umkm.database.firestore.model.Ulasan
+import java.text.SimpleDateFormat
 import java.util.*
-import org.threeten.bp.format.DateTimeFormatter
 
 class ReviewAdapter(
-    private var reviews: List<Ulasan>,
-    private val users: List<User>
+    private var reviews: List<Ulasan>
 ) : RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder>() {
 
-    // Membuat map userId: User agar cepat lookup
-    private val userMap: Map<Int, User> = users.associateBy { it.id }
-
     class ReviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val reviewerName: TextView = itemView.findViewById(R.id.reviewer_name)
-        val reviewComment: TextView = itemView.findViewById(R.id.review_comment)
-        val reviewRatingText: TextView = itemView.findViewById(R.id.review_rating_text)
-        val reviewDate: TextView = itemView.findViewById(R.id.review_date)
+        private val reviewerName: TextView = itemView.findViewById(R.id.reviewer_name)
+        private val reviewComment: TextView = itemView.findViewById(R.id.review_comment)
+        private val reviewRatingText: TextView = itemView.findViewById(R.id.review_rating_text)
+        private val reviewDate: TextView = itemView.findViewById(R.id.review_date)
 
-        fun bind(ulasan: Ulasan, userMap: Map<Int, User>) {
-            val reviewerNameText = userMap[ulasan.userId]?.nama ?: "Anonymous User"
-            reviewerName.text = reviewerNameText
+        fun bind(ulasan: Ulasan) {
+            reviewerName.text = ulasan.userName
             reviewComment.text = ulasan.komentar
 
             val starString = buildString {
                 repeat(ulasan.rating.toInt()) { append("★") }
                 repeat(5 - ulasan.rating.toInt()) { append("☆") }
             }
-            reviewRatingText.text = starString + String.format(Locale.US, " %.1f", ulasan.rating)
+            reviewRatingText.text = "$starString ${"%.1f".format(ulasan.rating)}"
 
-            val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale("in", "ID"))
-            reviewDate.text = ulasan.tanggal.format(formatter)
+            // Format tanggal dari Timestamp Firestore
+            ulasan.tanggal?.toDate()?.let { date ->
+                val formatter = SimpleDateFormat("dd MMM yyyy", Locale("in", "ID"))
+                reviewDate.text = formatter.format(date)
+            } ?: run {
+                reviewDate.text = ""
+            }
         }
     }
 
@@ -48,7 +47,7 @@ class ReviewAdapter(
     }
 
     override fun onBindViewHolder(holder: ReviewViewHolder, position: Int) {
-        holder.bind(reviews[position], userMap)
+        holder.bind(reviews[position])
     }
 
     override fun getItemCount() = reviews.size

@@ -8,27 +8,21 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.ViewModelFactory
-import com.example.penjualan_produk_umkm.database.AppDatabase
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
 private const val ARG_PRODUK_ID = "produkId"
 
 class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
 
-    private var produkId: Int? = null
-    private lateinit var viewModel: ProdukViewModel
+    private var produkId: String? = null
+    private val viewModel: ProdukViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         arguments?.let {
-            produkId = it.getInt(ARG_PRODUK_ID)
+            produkId = it.getString(ARG_PRODUK_ID)
         }
-
-        val db = AppDatabase.getDatabase(requireContext())
-        val factory = ViewModelFactory(produkDao = db.produkDao())
-        viewModel = viewModels<ProdukViewModel> { factory }.value
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -38,9 +32,7 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
         val container = view.findViewById<LinearLayout>(R.id.spesifikasi_container)
 
         produkId?.let { id ->
-            viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
-                val produk = produkList.find { it.id == id }
-
+            viewModel.getProdukById(id) { produk ->
                 produk?.let { p ->
                     headingTextView.text = "Detail Spesifikasi Produk"
                     populateSpesifikasiTable(container, p.spesifikasi, layoutInflater)
@@ -56,6 +48,7 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
         spesifikasiString: String,
         inflater: LayoutInflater
     ) {
+        container.removeAllViews() // Pastikan bersih sebelum menambah row
         val lines = spesifikasiString.split("\n")
         for (line in lines) {
             val parts = line.split(":", limit = 2)
@@ -67,7 +60,7 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
                 val labelView = rowView.findViewById<TextView>(R.id.spec_label)
                 val valueView = rowView.findViewById<TextView>(R.id.spec_value)
 
-                labelView.text = label + " :"
+                labelView.text = "$label :"
                 valueView.text = value
 
                 container.addView(rowView)
@@ -77,10 +70,10 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
 
     companion object {
         @JvmStatic
-        fun newInstance(produkId: Int) =
+        fun newInstance(produkId: String) =
             SpesifikasiFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(ARG_PRODUK_ID, produkId)
+                    putString(ARG_PRODUK_ID, produkId)
                 }
             }
     }

@@ -31,6 +31,7 @@ lifecycleViewmodelKtx = "2.9.4"
 uiTest = "1.9.4"
 runtimeLivedata = "1.9.4"
 firebaseDataconnect = "17.1.2"
+firebaseStorageKtx = "22.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -72,6 +73,7 @@ androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifec
 androidx-ui-test = { group = "androidx.compose.ui", name = "ui-test", version.ref = "uiTest" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 firebase-dataconnect = { group = "com.google.firebase", name = "firebase-dataconnect", version.ref = "firebaseDataconnect" }
+firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

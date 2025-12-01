@@ -3,47 +3,36 @@ package com.example.penjualan_produk_umkm.client.ui.detailProduk
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.ViewModelFactory
-import com.example.penjualan_produk_umkm.database.AppDatabase
-import com.example.penjualan_produk_umkm.database.model.Ulasan
-import com.example.penjualan_produk_umkm.database.model.User
+import com.example.penjualan_produk_umkm.database.firestore.model.Ulasan
 import com.example.penjualan_produk_umkm.viewModel.UlasanViewModel
-import org.threeten.bp.LocalDate
+import com.google.firebase.Timestamp
 
 private const val ARG_PRODUK_ID = "produkId"
 
 class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
 
-    private var produkId: Int? = null
+    private var produkId: String? = null
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var starIcons: List<ImageView>
     private lateinit var recyclerView: RecyclerView
 
-    // ViewModel
-    private lateinit var ulasanViewModel: UlasanViewModel
+    private val ulasanViewModel: UlasanViewModel by viewModels()
 
-    // Variabel penampung data sementara
-    private var listUser: List<User> = emptyList()
     private var listUlasan: List<Ulasan> = emptyList()
+
+    private var currentRating: Int = 4
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            produkId = it.getInt(ARG_PRODUK_ID)
+            produkId = it.getString(ARG_PRODUK_ID)
         }
-
-        val db = AppDatabase.getDatabase(requireContext())
-        val factory = ViewModelFactory(db = db)
-        ulasanViewModel = viewModels<UlasanViewModel> { factory }.value
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,54 +41,22 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         recyclerView = view.findViewById(R.id.recycler_reviews)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Inisialisasi Adapter kosong dulu agar tidak error
-        reviewAdapter = ReviewAdapter(emptyList(), emptyList())
+        reviewAdapter = ReviewAdapter(emptyList()) // Sesuaikan constructor ReviewAdapter
         recyclerView.adapter = reviewAdapter
 
         setupStarRating(view)
+        setupKirimButton(view)
 
+        // Load ulasan dari Firestore
         produkId?.let { id ->
             Log.d("UlasanFragment", "Loading ulasan untuk Produk ID: $id")
-            setupDataObservation(id)
-            setupKirimButton(view, id)
+            ulasanViewModel.getUlasanByProdukId(id)
+            ulasanViewModel.ulasanList.observe(viewLifecycleOwner) { reviews ->
+                listUlasan = reviews
+                reviewAdapter.updateReviews(listUlasan)
+            }
         }
     }
-
-    // --- PERBAIKAN UTAMA ADA DI SINI ---
-    private fun setupDataObservation(id: Int) {
-        val db = AppDatabase.getDatabase(requireContext())
-        val userDao = db.userDao()
-
-        // 1. Ambil Data User (Secara Independen)
-        userDao.getAllUsers().observe(viewLifecycleOwner) { users ->
-            Log.d("UlasanFragment", "Data Users didapat: ${users.size} user")
-            listUser = users
-            updateUI() // Coba update UI setiap data user berubah
-        }
-
-        // 2. Ambil Data Ulasan (Secara Independen)
-        ulasanViewModel.getUlasanByProdukId(id).observe(viewLifecycleOwner) { reviews ->
-            Log.d("UlasanFragment", "Data Ulasan didapat: ${reviews.size} ulasan")
-            listUlasan = reviews
-            updateUI() // Coba update UI setiap data ulasan berubah
-        }
-    }
-
-    private fun updateUI() {
-        // Kita update adapter hanya jika data user DAN data ulasan sudah siap (opsional)
-        // Atau update saja langsung apa adanya.
-        if (listUlasan.isNotEmpty()) {
-            // Update data di adapter
-            // Pastikan ReviewAdapter punya fungsi updateReviews atau buat instance baru
-            reviewAdapter = ReviewAdapter(listUlasan, listUser)
-            recyclerView.adapter = reviewAdapter
-        } else {
-            Log.d("UlasanFragment", "List ulasan masih kosong")
-        }
-    }
-    // -----------------------------------
-
-    private var currentRating: Int = 4
 
     private fun setupStarRating(view: View) {
         starIcons = listOf(
@@ -123,26 +80,24 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         }
     }
 
-    private fun setupKirimButton(view: View, produkId: Int) {
+    private fun setupKirimButton(view: View) {
         val buttonKirim = view.findViewById<Button>(R.id.button_kirim)
         val editTextComment = view.findViewById<EditText>(R.id.edit_text_comment)
 
         buttonKirim.setOnClickListener {
             val comment = editTextComment.text.toString().trim()
-
-            // Validasi input
             if (comment.isEmpty()) {
                 Toast.makeText(context, "Mohon isi komentar", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val newReview = Ulasan(
-                id = 0,
-                produkId = produkId,
-                userId = 1, // Hardcode sementara user 1 (Owner) atau 2 (Pembeli)
+                id = "",
+                produkId = produkId ?: "",
+                userId = "user123", // Ganti sesuai user login
                 rating = currentRating.toFloat(),
                 komentar = comment,
-                tanggal = LocalDate.now()
+                tanggal = Timestamp.now()
             )
             ulasanViewModel.insertUlasan(newReview)
 
@@ -155,10 +110,10 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
 
     companion object {
         @JvmStatic
-        fun newInstance(produkId: Int) =
+        fun newInstance(produkId: String) =
             UlasanFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(ARG_PRODUK_ID, produkId)
+                    putString(ARG_PRODUK_ID, produkId)
                 }
             }
     }
