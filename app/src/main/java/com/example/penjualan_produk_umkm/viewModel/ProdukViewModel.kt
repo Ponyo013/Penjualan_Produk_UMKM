@@ -12,6 +12,7 @@ class ProdukViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
     private val produkCollection = db.collection("produk")
+    private val pesananItemCollection = db.collection("itemPesanan")
 
     private val _allProduk = MutableLiveData<List<Produk>>()
     val allProduk: LiveData<List<Produk>> = _allProduk
@@ -53,12 +54,34 @@ class ProdukViewModel : ViewModel() {
         }
     }
 
-    // 4. Hapus Produk
+    // 4. Hapus Produk + Item Keranjang
     fun deleteProduk(produk: Produk) {
-        if (produk.id.isNotEmpty()) {
-            produkCollection.document(produk.id).delete()
-        }
+        val produkId = produk.id
+        if (produkId.isEmpty()) return
+
+        // Hapus produk
+        produkCollection.document(produkId).delete()
+            .addOnSuccessListener {
+                // Setelah produk dihapus → hapus semua item di keranjang
+                deleteProdukFromCart(produkId)
+            }
     }
+
+    // Fungsi untuk menghapus produk dari semua keranjang
+    private fun deleteProdukFromCart(produkId: String) {
+        pesananItemCollection
+            .whereEqualTo("produkId", produkId)
+            .whereEqualTo("status", "KERANJANG") // hanya menghapus produk di keranjang
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                if (snapshot == null) return@addSnapshotListener
+
+                for (doc in snapshot.documents) {
+                    doc.reference.delete()
+                }
+            }
+    }
+
 
     // 5. Get by ID (Untuk Edit/Detail)
     fun getProdukById(id: String, onResult: (Produk?) -> Unit) {
@@ -72,4 +95,6 @@ class ProdukViewModel : ViewModel() {
                 onResult(null)
             }
     }
+
+
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.*
 import com.example.penjualan_produk_umkm.database.firestore.model.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,7 +72,7 @@ class CheckoutViewModel : ViewModel() {
                 // Cari pesanan yang statusnya DIPROSES (sebagai keranjang aktif)
                 val snapshot = db.collection("pesanan")
                     .whereEqualTo("userId", uid)
-                    .whereEqualTo("status", StatusPesanan.DIPROSES.name) // Menggunakan String Name
+                    .whereEqualTo("status", StatusPesanan.KERANJANG.name) // Menggunakan String Name
                     .limit(1)
                     .get()
                     .await()
@@ -166,6 +167,19 @@ class CheckoutViewModel : ViewModel() {
                     .update(updates)
                     .await()
 
+                val batch = db.batch()
+
+                items.forEach { item ->
+                    val produkRef = db.collection("produk").document(item.produkId)
+
+                    batch.update(produkRef, mapOf(
+                        "stok" to FieldValue.increment(-item.jumlah.toLong()),
+                        "terjual" to FieldValue.increment(item.jumlah.toLong())
+                    ))
+                }
+
+                batch.commit().await()
+
                 // Kembali ke UI Thread
                 launch(Dispatchers.Main) { onSuccess() }
 
@@ -205,4 +219,33 @@ class CheckoutViewModel : ViewModel() {
             }
         }
     }
+
+    private fun updateProdukStockAndSold(items: List<ItemPesanan>) {
+        val produkRef = db.collection("produk")
+
+        items.forEach { item ->
+            val docRef = produkRef.document(item.produkId)
+
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                val currentStock = snapshot.getLong("stok") ?: 0
+                val currentTerjual = snapshot.getLong("terjual") ?: 0
+
+                val newStock = currentStock - item.jumlah
+
+                val newTerjual = currentTerjual + item.jumlah
+
+                // Cegah stock minus
+                if (newStock < 0) {
+                    throw Exception("Stok tidak cukup")
+                }
+
+                transaction.update(docRef, mapOf(
+                    "stok" to newStock,
+                    "terjual" to newTerjual
+                ))
+            }
+        }
+    }
+
 }

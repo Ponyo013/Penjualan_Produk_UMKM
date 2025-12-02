@@ -22,6 +22,8 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -37,9 +39,13 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private lateinit var btnDecrease: ImageButton
     private lateinit var tvQuantity: TextView
 
+
     // Inisialisasi ViewModel dengan Factory Kosong (Firebase)
     private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
     private val produkViewModel: ProdukViewModel by viewModels { ViewModelFactory() }
+
+    private var produkListener: ListenerRegistration? = null
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -58,6 +64,10 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
                 findNavController().popBackStack()
             } else {
                 produk = p
+
+                // untuk real time
+                listenProdukRealtime(productId, view)
+
                 setupToolbar(view)
                 setupProductInfo(view, p)
                 setupRatingInfo(view, p)
@@ -101,6 +111,11 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
 
         // Tombol tambah ke keranjang
         btnAddToCart.setOnClickListener {
+            if (produk.stok <= 0) {
+                Toast.makeText(requireContext(), "Stok habis", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             // Cek apakah item sudah ada di keranjang (list item dari viewModel)
             val currentItems = cartViewModel.cartItems.value
             val existingItem = currentItems.find { it.produkId == produk.id }
@@ -131,7 +146,16 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         btnIncrease.setOnClickListener {
             val currentItems = cartViewModel.cartItems.value
             val existingItem = currentItems.find { it.produkId == produk.id }
-            existingItem?.let { cartViewModel.increaseQuantity(it) }
+            existingItem?.let {
+
+                // Cegah pembelian lebih dari stok
+                if (it.jumlah >= produk.stok) {
+                    Toast.makeText(requireContext(), "Jumlah sudah mencapai stok maksimum", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                cartViewModel.increaseQuantity(it)
+            }
         }
 
         // Tombol decrease
@@ -151,6 +175,9 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             btnAddToCart.visibility = View.GONE
             quantityControls.visibility = View.VISIBLE
             tvQuantity.text = existingItem.jumlah.toString()
+
+            btnIncrease.isEnabled = existingItem.jumlah < produk.stok
+            btnIncrease.alpha = if (existingItem.jumlah < produk.stok) 1f else 0.3f
         } else {
             btnAddToCart.visibility = View.VISIBLE
             quantityControls.visibility = View.GONE
@@ -208,4 +235,32 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         }
         galleryViewPager.adapter = galleryAdapter
     }
+
+    private fun listenProdukRealtime(produkId: String, view: View) {
+        val db = FirebaseFirestore.getInstance()
+        val produkRef = db.collection("produk").document(produkId)
+
+        produkListener = produkRef.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+            if (snapshot != null && snapshot.exists()) {
+
+                val produkUpdated = snapshot.toObject(Produk::class.java)
+                if (produkUpdated != null) {
+
+                    // Update data lokal
+                    produk = produkUpdated
+
+                    // 🔥 UI update real-time!
+                    setupRatingInfo(view, produkUpdated)
+                    setupProductInfo(view, produkUpdated)
+                }
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        produkListener?.remove()
+    }
+
 }

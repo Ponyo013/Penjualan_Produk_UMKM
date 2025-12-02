@@ -1,6 +1,7 @@
 package com.example.penjualan_produk_umkm.client.ui.detailProduk
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
@@ -42,6 +43,8 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
             viewModel.getProdukById(id) { produk ->
                 produk?.let { p ->
                     headingTextView.text = "Detail Spesifikasi Produk"
+                    Log.d("SPESIFIKASI", "DATA: ${p.spesifikasi}")
+
                     populateSpesifikasiTable(container, p.spesifikasi, layoutInflater)
                 } ?: run {
                     headingTextView.text = "Data spesifikasi tidak tersedia."

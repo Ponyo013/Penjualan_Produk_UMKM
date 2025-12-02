@@ -209,9 +209,7 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
                 Toast.makeText(requireContext(), "Pesanan berhasil dibuat!", Toast.LENGTH_SHORT).show()
 
                 // Navigasi balik ke Beranda dan bersihkan backstack
-                findNavController().navigate(R.id.BerandaFragment) {
-                    popUpTo(R.id.BerandaFragment) { inclusive = true }
-                }
+                findNavController().popBackStack(R.id.BerandaFragment, false)
             },
             onError = { errorMsg ->
                 Toast.makeText(requireContext(), "Gagal membuat pesanan: $errorMsg", Toast.LENGTH_SHORT).show()

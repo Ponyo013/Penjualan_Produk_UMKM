@@ -10,6 +10,8 @@ class UlasanViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
     private val ulasanCollection = db.collection("ulasan")
+    private val produkCollection = db.collection("produk")
+
 
     // Pastikan nama variabel ini 'ulasanList' (public)
     private val _ulasanList = MutableLiveData<List<Ulasan>>()
@@ -35,6 +37,39 @@ class UlasanViewModel : ViewModel() {
     fun insertUlasan(ulasan: Ulasan) {
         val newDoc = ulasanCollection.document()
         ulasan.id = newDoc.id
+
         newDoc.set(ulasan)
+            .addOnSuccessListener {
+                // Setelah ulasan disimpan → update rating produk
+                updateProdukRating(ulasan.produkId)
+            }
     }
+
+
+    fun updateProdukRating(produkId: String) {
+        ulasanCollection
+            .whereEqualTo("produkId", produkId)
+            .get()
+            .addOnSuccessListener { query ->
+                if (!query.isEmpty) {
+                    var total = 0.0
+                    for (doc in query.documents) {
+                        val rating = doc.getDouble("rating") ?: 0.0
+                        total += rating
+                    }
+
+                    val rataRata = total / query.size()
+
+                    // Update rating ke tabel produk
+                    produkCollection.document(produkId)
+                        .update("rating", rataRata)
+                } else {
+                    // Jika tidak ada ulasan, rating jadi 0
+                    produkCollection.document(produkId)
+                        .update("rating", 0)
+                }
+            }
+
+    }
+
 }
