@@ -50,6 +50,7 @@ import coil.compose.AsyncImage
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -227,7 +228,7 @@ fun ProdukList(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             // Gambar di kiri (FIX: Gunakan gambarUrl String)
-                            val imageModel = if (produk.gambarUrl.isNotEmpty()) produk.gambarUrl else com.example.penjualan_produk_umkm.R.drawable.ic_error_image
+                            val imageModel = if (produk.gambarUrl.isNotEmpty()) produk.gambarUrl else com.example.penjualan_produk_umkm.R.drawable.ic_error_image // Fallback ke drawable
 
                             AsyncImage(
                                 model = imageModel,
@@ -255,7 +256,8 @@ fun ProdukList(
                                 }
 
                                 Text(
-                                    text = "Rp ${String.format("%,.0f", produk.harga)}", // Format Rupiah Sederhana
+                                    // FIX: Tambahkan format rupiah yang lebih aman
+                                    text = "Rp ${String.format(Locale("in", "ID"), "%,.0f", produk.harga)}",
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         color = MaterialTheme.colorScheme.secondary,
                                         fontWeight = FontWeight.SemiBold

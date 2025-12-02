@@ -71,4 +71,20 @@ class LoginViewModel : ViewModel() {
                 _loginState.value = LoginState.Error("Gagal mengambil data: ${e.message}")
             }
     }
+
+    // Fungsi untuk mengirim email reset password
+    fun resetPassword(email: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (email.isEmpty()) {
+            onError("Mohon masukkan email Anda terlebih dahulu")
+            return
+        }
+
+        auth.sendPasswordResetEmail(email)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onError(e.message ?: "Gagal mengirim email reset password")
+            }
+    }
 }

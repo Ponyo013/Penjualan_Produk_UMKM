@@ -187,8 +187,25 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private fun setupRatingInfo(view: View, produk: Produk) {
         val ratingText = view.findViewById<TextView>(R.id.rating_text)
         val reviewCount = view.findViewById<TextView>(R.id.review_count)
+        // Asumsikan Anda punya view panah di layout, misalnya ID-nya 'btn_rating_arrow' atau container-nya
+        // Jika layout Anda menggunakan 'include' atau layout manual, pastikan Anda mencari view yang bisa diklik.
+
+        // Mencari view container rating atau panah chevron
+        // (Sesuaikan ID ini dengan XML 'fragment_detail_produk.xml' atau 'item_rating.xml' Anda)
+        val ratingContainer = view.findViewById<View>(R.id.rating_container)
+        // ATAU cari panahnya langsung:
+        // val arrowIcon = view.findViewById<ImageView>(R.id.iv_chevron_right)
+
         ratingText.text = String.format(Locale.US, "%.1f", produk.rating)
         reviewCount.text = "(${produk.terjual} terjual)"
+
+        // Tambahkan aksi klik
+        ratingContainer?.setOnClickListener {
+            // Pindah ke Tab ke-2 (Ulasan)
+            // Index: 0=Deskripsi, 1=Spesifikasi, 2=Ulasan
+            val viewPager = view.findViewById<ViewPager2>(R.id.view_pager)
+            viewPager.currentItem = 2
+        }
     }
 
     private fun setupToolbar(view: View) {

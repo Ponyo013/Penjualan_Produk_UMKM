@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".client.ui.detailProduk.DetailProdukFragment">
 
-    <!-- Toolbar is now fixed at the top -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
@@ -20,7 +19,6 @@
         app:navigationIcon="@drawable/back_icon"
         app:title="@null" />
 
-    <!-- ScrollView contains all the scrollable content -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -34,7 +32,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Using gallery_view_pager for the image and removed the redundant banner_image ImageView -->
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/gallery_view_pager"
                 android:layout_width="0dp"
@@ -45,8 +42,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Product Name -->
-            <!-- Constrained to gallery_view_pager -->
             <TextView
                 android:id="@+id/nama_produk"
                 android:layout_marginHorizontal="@dimen/default_margin_x"
@@ -62,7 +57,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
-            <!-- Product Price -->
             <TextView
                 android:id="@+id/harga_produk"
                 android:layout_width="match_parent"
@@ -99,10 +93,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginHorizontal="@dimen/default_margin_x"
-                android:layout_marginTop="12dp"
-                >
+                android:layout_marginTop="12dp">
 
-                <!-- Add to Cart Button -->
                 <Button
                     android:id="@+id/btn_add_to_cart"
                     android:layout_width="match_parent"
@@ -111,8 +103,7 @@
                     android:fontFamily="@font/montserrat_semibold"
                     android:textColor="@android:color/white"
                     android:backgroundTint="@color/Secondary_1"
-                    android:paddingVertical="12dp"
-                    />
+                    android:paddingVertical="12dp" />
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/quantity_controls"
@@ -168,81 +159,74 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/cart_button_container" />
 
-            <!-- Rating -->
-            <FrameLayout
-                android:id="@+id/rating"
-                android:layout_marginHorizontal="@dimen/default_margin_x"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/rating_container"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="@dimen/default_margin_x"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/divider_line">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/star_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/desc_star_icon"
+                    android:src="@drawable/star_icon" />
 
-                    <!-- Star Icon -->
-                    <ImageView
-                        android:id="@+id/star_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/desc_star_icon"
-                        android:src="@drawable/star_icon"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
 
-                    <!-- Rating Text -->
                     <TextView
                         android:id="@+id/rating_text"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="20dp"
+                        android:layout_height="wrap_content"
                         android:text="@string/rating_text"
                         android:textColor="@color/black"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:fontFamily="@font/montserrat_bold"
-                        app:layout_constraintStart_toEndOf="@id/star_icon"
-                        app:layout_constraintTop_toTopOf="@id/star_icon" />
+                        android:fontFamily="@font/montserrat_bold" />
 
-                    <!-- Review Count -->
                     <TextView
                         android:id="@+id/review_count"
-                        android:fontFamily="@font/montserrat_semibold"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:text="@string/review_count"
                         android:textColor="@android:color/secondary_text_dark"
                         android:textSize="14sp"
-                        android:layout_marginTop="2dp"
-                        app:layout_constraintStart_toStartOf="@id/rating_text"
-                        app:layout_constraintTop_toBottomOf="@id/rating_text" />
+                        android:fontFamily="@font/montserrat_semibold" />
+                </LinearLayout>
 
-                    <!-- Chevron Icon -->
-                    <ImageView
-                        android:id="@+id/chevron_icon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/desc_chev_icon"
-                        android:src="@drawable/chevron_icon"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </FrameLayout>
+                <ImageView
+                    android:id="@+id/chevron_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/desc_chev_icon"
+                    android:src="@drawable/chevron_icon" />
+
+            </LinearLayout>
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tab_layout"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 style="@style/CustomTabLayout"
                 android:backgroundTint="@android:color/white"
                 app:tabMode="fixed"
                 app:tabGravity="fill"
-                app:layout_constraintTop_toBottomOf="@id/rating"
+                app:layout_constraintTop_toBottomOf="@id/rating_container"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 

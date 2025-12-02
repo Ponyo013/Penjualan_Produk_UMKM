@@ -40,18 +40,16 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // --- [PERBAIKAN DI SINI] ---
-        // Hapus kode AppDatabase dan UserDao yang lama.
-        // Gunakan Factory kosong karena ViewModel sudah init Firebase sendiri.
+        // Gunakan Factory kosong (ViewModel handle Firebase sendiri)
         val viewModelFactory = ViewModelFactory()
         viewModel = ViewModelProvider(this, viewModelFactory)[LoginViewModel::class.java]
-        // ---------------------------
 
         setupObservers()
         setupClickListeners()
     }
 
     private fun setupClickListeners() {
+        // Tombol Login
         binding.loginButton.setOnClickListener {
             val email = binding.editTextUsername.text.toString().trim()
             val password = binding.editTextPassword.text.toString().trim()
@@ -62,6 +60,27 @@ class LoginFragment : Fragment() {
                 showToast("Email dan password tidak boleh kosong.")
             }
         }
+
+        // --- [FITUR LUPA PASSWORD] ---
+        // Pastikan di fragment_login.xml ada TextView dengan ID: tvForgotPassword
+        binding.tvForgotPassword.setOnClickListener {
+            val email = binding.editTextUsername.text.toString().trim()
+
+            if (email.isEmpty()) {
+                showToast("Mohon masukkan email Anda di kolom username terlebih dahulu.")
+            } else {
+                // Panggil fungsi reset di ViewModel
+                viewModel.resetPassword(email,
+                    onSuccess = {
+                        showToast("Link reset password telah dikirim ke email $email. Silakan cek inbox/spam.")
+                    },
+                    onError = { errorMessage ->
+                        showToast(errorMessage)
+                    }
+                )
+            }
+        }
+        // -----------------------------
 
         makeRegisterClick()
     }
@@ -84,7 +103,7 @@ class LoginFragment : Fragment() {
                     val userPreferences = UserPreferences(requireContext())
 
                     userPreferences.saveUser(
-                        id = state.user.id, // Pastikan saveUser menerima String (karena ID Firebase itu String)
+                        id = state.user.id, // ID String dari Firebase
                         email = state.user.email,
                         role = state.user.role.ifEmpty { "user" }
                     )
@@ -118,7 +137,6 @@ class LoginFragment : Fragment() {
         startActivity(intent)
         requireActivity().finish()
     }
-
 
     private fun makeRegisterClick() {
         val fullText = getString(R.string.login_hyperlink)

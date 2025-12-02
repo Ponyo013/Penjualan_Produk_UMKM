@@ -19,7 +19,6 @@ import com.example.penjualan_produk_umkm.auth.UserPreferences
 import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.example.penjualan_produk_umkm.databinding.FragmentProfileBinding
 import com.example.penjualan_produk_umkm.viewModel.ProfileViewModel
-
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
@@ -66,6 +65,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding.rlEditProfile.setOnClickListener { showEditProfilePopup() }
+        binding.rlChangePassword.setOnClickListener { showChangePasswordPopup() }
         binding.rlLogout.setOnClickListener { showLogoutPopup() }
     }
 
@@ -136,7 +136,53 @@ class ProfileFragment : Fragment() {
 
         dialog.show()
     }
+    private fun showChangePasswordPopup() {
+        val builder = AlertDialog.Builder(requireContext())
+        val dialogLayout = layoutInflater.inflate(R.layout.popup_change_password, null)
+        val dialog = builder.setView(dialogLayout).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
+        val etOldPass = dialogLayout.findViewById<EditText>(R.id.et_old_password)
+        val etNewPass = dialogLayout.findViewById<EditText>(R.id.et_new_password)
+        val etConfirmPass = dialogLayout.findViewById<EditText>(R.id.et_confirm_new_password)
+        val btnSave = dialogLayout.findViewById<Button>(R.id.btn_save)
+        val btnCancel = dialogLayout.findViewById<Button>(R.id.btn_cancel)
+
+        btnSave.setOnClickListener {
+            val oldPass = etOldPass.text.toString()
+            val newPass = etNewPass.text.toString()
+            val confirmPass = etConfirmPass.text.toString()
+
+            if (oldPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
+                Toast.makeText(requireContext(), "Semua kolom wajib diisi", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (newPass != confirmPass) {
+                Toast.makeText(requireContext(), "Password baru tidak cocok", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (newPass.length < 6) {
+                Toast.makeText(requireContext(), "Password minimal 6 karakter", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Panggil ViewModel
+            viewModel.changePassword(oldPass, newPass,
+                onSuccess = {
+                    Toast.makeText(requireContext(), "Password berhasil diubah!", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                },
+                onError = { msg ->
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

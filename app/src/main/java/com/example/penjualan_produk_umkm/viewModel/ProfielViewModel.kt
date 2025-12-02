@@ -3,6 +3,7 @@ package com.example.penjualan_produk_umkm.viewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+// PENTING: Pastikan import ini mengarah ke Model Firestore, BUKAN database.model (Room)
 import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,22 +27,20 @@ class ProfileViewModel : ViewModel() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     try {
-                        // Mapping manual agar aman
-                        val user = User(
-                            id = userId, // FIX: ID diisi String userId dari Auth (bukan angka 0)
-                            nama = document.getString("nama") ?: "",
-                            email = document.getString("email") ?: "",
-                            password = "", // Password tidak diambil demi keamanan
-                            role = document.getString("role") ?: "user",
-                            noTelepon = document.getString("noTelepon") ?: "",
-                            alamat = document.getString("alamat") ?: ""
-                            // tanggal akan otomatis terisi default Timestamp.now() dari model
-                        )
-                        _user.value = user
+                        // Mengambil data dan memasukkannya ke object User
+                        val user = document.toObject(User::class.java)
+                        if (user != null) {
+                            user.id = userId // Pastikan ID terisi
+                            _user.value = user
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        _updateStatus.value = "Gagal memuat profil: ${e.message}"
                     }
                 }
+            }
+            .addOnFailureListener {
+                _updateStatus.value = "Gagal mengambil data: ${it.message}"
             }
     }
 
@@ -68,6 +67,29 @@ class ProfileViewModel : ViewModel() {
             .addOnFailureListener {
                 _updateStatus.value = "Gagal memperbarui profil: ${it.message}"
             }
+    }
+
+    // Fungsi Ganti Password
+    fun changePassword(currentPassword: String, newPassword: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val user = auth.currentUser
+        val email = user?.email
+
+        if (user != null && email != null) {
+            // Re-authenticate dulu (Wajib untuk operasi sensitif seperti ganti password)
+            val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(email, currentPassword)
+
+            user.reauthenticate(credential)
+                .addOnSuccessListener {
+                    user.updatePassword(newPassword)
+                        .addOnSuccessListener { onSuccess() }
+                        .addOnFailureListener { e -> onError("Gagal update password: ${e.message}") }
+                }
+                .addOnFailureListener {
+                    onError("Password lama salah")
+                }
+        } else {
+            onError("User tidak valid")
+        }
     }
 
     fun logout() {

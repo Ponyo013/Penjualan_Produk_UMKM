@@ -66,7 +66,6 @@
             app:layout_constraintTop_toBottomOf="@id/SecondaryText"
             app:layout_constraintWidth_max="360dp">
 
-            <!-- Username or Email -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputLayoutUsername"
                 style="@style/Widget.Penjualan_Produk_UMKM.TextInputLayout"
@@ -87,7 +86,6 @@
                     android:inputType="textEmailAddress" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputLayoutPassword"
                 style="@style/Widget.Penjualan_Produk_UMKM.TextInputLayout"
@@ -110,7 +108,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
-                android:id="@+id/tvAlreadyHaveAccount"
+                android:id="@+id/tvForgotPassword"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
@@ -126,14 +124,13 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/inputLayoutPassword" />
 
-            <!-- Login Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/login_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvAlreadyHaveAccount"
+                app:layout_constraintTop_toBottomOf="@id/tvForgotPassword"
                 app:layout_constraintWidth_max="360dp"
                 android:backgroundTint="@color/Secondary_1"
                 android:fontFamily="@font/montserrat_bold"
