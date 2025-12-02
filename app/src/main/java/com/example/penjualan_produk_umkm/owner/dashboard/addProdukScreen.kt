@@ -31,13 +31,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.penjualan_produk_umkm.ViewModelFactory
-import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
-
-// TAMBAHKAN BARIS INI
-import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +53,7 @@ fun AddProdukScreen(
     val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     var gambarUri by remember { mutableStateOf<Uri?>(null) }
     val launcher = rememberLauncherForActivityResult(
@@ -64,8 +64,12 @@ fun AddProdukScreen(
         }
     }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     UMKMTheme {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(title = { Text("Tambah Produk Baru") }, navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -77,7 +81,6 @@ fun AddProdukScreen(
                 })
             },
 
-            // 🔽 Tambahkan bottom bar di sini
             bottomBar = {
                 BottomAppBar(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -88,28 +91,43 @@ fun AddProdukScreen(
                             if (nama.isNotBlank() && deskripsi.isNotBlank() && spesifikasi.isNotBlank()
                                 && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()
                             ) {
-                                val produk = Produk(
-                                    id = "",
-                                    nama = nama,
-                                    deskripsi = deskripsi,
-                                    spesifikasi = spesifikasi,
-                                    harga = harga.toDouble(),
-                                    stok = stok.toInt(),
-                                    kategori = kategori,
-                                    gambarUrl ="",
-                                    rating = 0f,
-                                    terjual = 0
-                                )
-                                produkViewModel.insertProduk(produk)
-                                showDialogBerhasil = true
+                                isLoading = true
+
+                                // 1. Jika ada gambar, upload dulu ke Firebase Storage
+                                if (gambarUri != null) {
+                                    uploadImageToFirebase(gambarUri!!) { imageUrl ->
+                                        if (imageUrl != null) {
+                                            saveProduct(
+                                                nama, deskripsi, spesifikasi, harga, stok, kategori, imageUrl,
+                                                produkViewModel, { showDialogBerhasil = true }, { isLoading = false }
+                                            )
+                                        } else {
+                                            isLoading = false
+                                            scope.launch { snackbarHostState.showSnackbar("Gagal upload gambar") }
+                                        }
+                                    }
+                                } else {
+                                    // 2. Jika tidak ada gambar, simpan dengan URL kosong/placeholder
+                                    saveProduct(
+                                        nama, deskripsi, spesifikasi, harga, stok, kategori, "",
+                                        produkViewModel, { showDialogBerhasil = true }, { isLoading = false }
+                                    )
+                                }
+                            } else {
+                                scope.launch { snackbarHostState.showSnackbar("Semua field harus diisi") }
                             }
                         },
+                        enabled = !isLoading, // Disable tombol saat loading
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Tambahkan Produk")
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Tambahkan Produk")
+                        }
                     }
                 }
             }
@@ -245,15 +263,56 @@ fun AddProdukScreen(
                     }
                 }
 
-                // Panggil dialog jika diperlukan
                 if (showDialogBerhasil) {
                     ProdukBerhasilDialog(
-                        onDismiss = { showDialogBerhasil = false }
+                        onDismiss = {
+                            showDialogBerhasil = false
+                            navController.popBackStack() // Kembali ke halaman sebelumnya setelah sukses
+                        }
                     )
                 }
             }
         }
     }
+}
+
+// Fungsi Helper untuk menyimpan data ke Firestore
+fun saveProduct(
+    nama: String, deskripsi: String, spesifikasi: String, harga: String, stok: String, kategori: String, gambarUrl: String,
+    viewModel: ProdukViewModel, onSuccess: () -> Unit, onComplete: () -> Unit
+) {
+    val produk = Produk(
+        id = "", // ID akan di-generate di ViewModel
+        nama = nama,
+        deskripsi = deskripsi,
+        spesifikasi = spesifikasi,
+        harga = harga.toDoubleOrNull() ?: 0.0,
+        stok = stok.toIntOrNull() ?: 0,
+        kategori = kategori,
+        gambarUrl = gambarUrl, // String URL (bukan Int)
+        rating = 0f,
+        terjual = 0
+    )
+    viewModel.insertProduk(produk)
+    onSuccess()
+    onComplete()
+}
+
+// Fungsi Helper untuk Upload Gambar ke Firebase Storage
+fun uploadImageToFirebase(uri: Uri, onResult: (String?) -> Unit) {
+    val storageRef = FirebaseStorage.getInstance().reference
+    val fileName = "produk_images/${UUID.randomUUID()}.jpg"
+    val imageRef = storageRef.child(fileName)
+
+    imageRef.putFile(uri)
+        .addOnSuccessListener {
+            imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                onResult(downloadUri.toString())
+            }
+        }
+        .addOnFailureListener {
+            onResult(null)
+        }
 }
 
 @Composable

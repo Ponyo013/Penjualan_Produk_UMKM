@@ -11,6 +11,7 @@ class UlasanViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val ulasanCollection = db.collection("ulasan")
 
+    // Pastikan nama variabel ini 'ulasanList' (public)
     private val _ulasanList = MutableLiveData<List<Ulasan>>()
     val ulasanList: LiveData<List<Ulasan>> get() = _ulasanList
 
@@ -18,6 +19,7 @@ class UlasanViewModel : ViewModel() {
     fun getUlasanByProdukId(produkId: String) {
         ulasanCollection
             .whereEqualTo("produkId", produkId)
+            // .orderBy("tanggal", Query.Direction.DESCENDING) // Opsional: Urutkan tanggal
             .addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
 

@@ -1,42 +1,18 @@
-package com.example.penjualan_produk_umkm.database.model
+package com.example.penjualan_produk_umkm.database.firestore.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
-@Entity(
-    tableName = "item_pesanan",
-    foreignKeys = [
-        ForeignKey(
-            entity = Pesanan::class,
-            parentColumns = ["id"],
-            childColumns = ["pesanan_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = Produk::class,
-            parentColumns = ["id"],
-            childColumns = ["produk_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ]
-)
 data class ItemPesanan(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    var id: String = "",
+    var pesananId: String = "",
+    var produkId: String = "",
 
-    @ColumnInfo(name = "pesanan_id", index = true)
-    var pesananId: Int,
+    // Kita simpan Nama & Harga saat beli (Snapshot), 
+    // jaga-jaga kalau nanti nama/harga produk asli berubah/dihapus
+    var produkNama: String = "",
+    var produkHarga: Double = 0.0,
 
-    @ColumnInfo(name = "produk_id", index = true)
-    val produkId: Int,
+    var jumlah: Int = 0,
 
-    @ColumnInfo(name = "jumlah")
-    var jumlah: Int,
-
+    // @field:JvmField penting agar boolean isSelected terbaca oleh Firestore
+    @field:JvmField
     var isSelected: Boolean = false
-) : Parcelable
+)

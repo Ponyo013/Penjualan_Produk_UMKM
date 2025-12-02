@@ -1,17 +1,23 @@
 package com.example.penjualan_produk_umkm.client.ui.detailProduk
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.database.firestore.model.Ulasan
+import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.example.penjualan_produk_umkm.viewModel.UlasanViewModel
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 private const val ARG_PRODUK_ID = "produkId"
 
@@ -22,16 +28,29 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
     private lateinit var starIcons: List<ImageView>
     private lateinit var recyclerView: RecyclerView
 
-    private val ulasanViewModel: UlasanViewModel by viewModels()
+    private val ulasanViewModel: UlasanViewModel by viewModels { ViewModelFactory() }
 
-    private var listUlasan: List<Ulasan> = emptyList()
-
-    private var currentRating: Int = 4
+    // Data User yang sedang login (untuk kirim ulasan)
+    private var currentUserName: String? = null
+    private var currentUserId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
+            // FIX: Ambil String, bukan Int
             produkId = it.getString(ARG_PRODUK_ID)
+        }
+
+        // Ambil info user yang sedang login
+        val auth = FirebaseAuth.getInstance()
+        currentUserId = auth.currentUser?.uid
+        if (currentUserId != null) {
+            FirebaseFirestore.getInstance().collection("users").document(currentUserId!!)
+                .get()
+                .addOnSuccessListener { doc ->
+                    val user = doc.toObject(User::class.java)
+                    currentUserName = user?.nama
+                }
         }
     }
 
@@ -41,22 +60,25 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         recyclerView = view.findViewById(R.id.recycler_reviews)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        reviewAdapter = ReviewAdapter(emptyList()) // Sesuaikan constructor ReviewAdapter
+        reviewAdapter = ReviewAdapter(emptyList())
         recyclerView.adapter = reviewAdapter
 
         setupStarRating(view)
-        setupKirimButton(view)
 
-        // Load ulasan dari Firestore
         produkId?.let { id ->
-            Log.d("UlasanFragment", "Loading ulasan untuk Produk ID: $id")
-            ulasanViewModel.getUlasanByProdukId(id)
+            // Ambil data ulasan dari Firestore via ViewModel
+            ulasanViewModel.getUlasanByProdukId(id) // Picu load data
+
+            // Observasi hasilnya
             ulasanViewModel.ulasanList.observe(viewLifecycleOwner) { reviews ->
-                listUlasan = reviews
-                reviewAdapter.updateReviews(listUlasan)
+                reviewAdapter.updateReviews(reviews)
             }
+
+            setupKirimButton(view, id)
         }
     }
+
+    private var currentRating: Int = 4
 
     private fun setupStarRating(view: View) {
         starIcons = listOf(
@@ -80,25 +102,33 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         }
     }
 
-    private fun setupKirimButton(view: View) {
+    private fun setupKirimButton(view: View, produkId: String) {
         val buttonKirim = view.findViewById<Button>(R.id.button_kirim)
         val editTextComment = view.findViewById<EditText>(R.id.edit_text_comment)
 
         buttonKirim.setOnClickListener {
             val comment = editTextComment.text.toString().trim()
+
             if (comment.isEmpty()) {
                 Toast.makeText(context, "Mohon isi komentar", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
+            if (currentUserId == null) {
+                Toast.makeText(context, "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val newReview = Ulasan(
-                id = "",
-                produkId = produkId ?: "",
-                userId = "user123", // Ganti sesuai user login
+                id = "", // ID di-generate otomatis di ViewModel
+                produkId = produkId,
+                userId = currentUserId!!,
+                userName = currentUserName ?: "Pengguna", // Sertakan nama agar tidak perlu join table
                 rating = currentRating.toFloat(),
                 komentar = comment,
                 tanggal = Timestamp.now()
             )
+
             ulasanViewModel.insertUlasan(newReview)
 
             // Reset input

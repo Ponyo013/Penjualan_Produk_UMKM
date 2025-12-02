@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestore // Tambahkan ini
 import kotlinx.coroutines.launch
 
 class ProdukViewModel : ViewModel() {
@@ -14,54 +14,62 @@ class ProdukViewModel : ViewModel() {
     private val produkCollection = db.collection("produk")
 
     private val _allProduk = MutableLiveData<List<Produk>>()
-    val allProduk: LiveData<List<Produk>> get() = _allProduk
+    val allProduk: LiveData<List<Produk>> = _allProduk
 
     init {
         getAllProduk()
     }
 
-    // Ambil semua produk dari Firestore
+    // 1. Ambil Data Realtime
     fun getAllProduk() {
-        produkCollection.addSnapshotListener { snapshot, e ->
-            if (e != null) return@addSnapshotListener
+        produkCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
 
             val list = snapshot?.documents?.mapNotNull { doc ->
-                doc.toObject(Produk::class.java)?.apply { id = doc.id }
+                val p = doc.toObject(Produk::class.java)
+                p?.id = doc.id // Set ID dokumen ke objek agar bisa di-edit/delete
+                p
             } ?: emptyList()
 
             _allProduk.value = list
         }
     }
 
-    // Tambah produk
+    // 2. Tambah Produk
     fun insertProduk(produk: Produk) {
         viewModelScope.launch {
+            // Buat dokumen baru kosong untuk dapat ID
             val newDoc = produkCollection.document()
             produk.id = newDoc.id
+            // Simpan data
             newDoc.set(produk)
         }
     }
 
-    // Get produk by ID
-    fun getProdukById(id: String, callback: (Produk?) -> Unit) {
+    // 3. Update Produk
+    fun updateProduk(produk: Produk) {
+        if (produk.id.isNotEmpty()) {
+            produkCollection.document(produk.id).set(produk)
+        }
+    }
+
+    // 4. Hapus Produk
+    fun deleteProduk(produk: Produk) {
+        if (produk.id.isNotEmpty()) {
+            produkCollection.document(produk.id).delete()
+        }
+    }
+
+    // 5. Get by ID (Untuk Edit/Detail)
+    fun getProdukById(id: String, onResult: (Produk?) -> Unit) {
         produkCollection.document(id).get()
-            .addOnSuccessListener { doc ->
-                callback(doc.toObject(Produk::class.java))
+            .addOnSuccessListener { document ->
+                val p = document.toObject(Produk::class.java)
+                p?.id = document.id
+                onResult(p)
             }
             .addOnFailureListener {
-                callback(null)
+                onResult(null)
             }
-    }
-
-    // Update produk
-    fun updateProduk(produk: Produk) {
-        if (produk.id.isEmpty()) return
-        produkCollection.document(produk.id).set(produk)
-    }
-
-    // Delete produk
-    fun deleteProduk(produk: Produk) {
-        if (produk.id.isEmpty()) return
-        produkCollection.document(produk.id).delete()
     }
 }

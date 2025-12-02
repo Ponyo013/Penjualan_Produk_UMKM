@@ -1,29 +1,17 @@
-package com.example.penjualan_produk_umkm.database.model
+package com.example.penjualan_produk_umkm.database.firestore.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "ekspedisi")
 data class Ekspedisi(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    var id: String = "",
 
-    @ColumnInfo(name = "nama")
-    val nama: String,
+    var nama: String = "",
 
-    @ColumnInfo(name = "kode")
-    val kode: String,
+    val kode: String = "",
 
-    @ColumnInfo(name = "estimasi_hari")
-    val estimasiHari: Int,
+    var estimasiHari: Int = 0,
 
-    @ColumnInfo(name = "biaya")
-    val biaya: Double,
+    var biaya: Double = 0.0,
 
-    @ColumnInfo(name = "layanan")
     val layanan: String? = null,
-
-    @ColumnInfo(name = "is_active")
+    @field:JvmField
     var isActive: Boolean = true
 )

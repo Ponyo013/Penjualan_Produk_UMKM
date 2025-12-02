@@ -22,6 +22,7 @@ class CheckoutViewModel : ViewModel() {
     private val _itemsWithProduk = MutableLiveData<List<ItemPesanan>>()
     val itemsWithProduk: LiveData<List<ItemPesanan>> get() = _itemsWithProduk
 
+    // Karena kita pakai model ItemPesanan langsung, cartItems sama dengan itemsWithProduk
     val cartItems: LiveData<List<ItemPesanan>> get() = itemsWithProduk
 
     // LiveData ekspedisi aktif
@@ -63,13 +64,14 @@ class CheckoutViewModel : ViewModel() {
         }
     }
 
-    /** Load pesanan aktif */
+    /** Load pesanan aktif (Status: DIPROSES tapi belum final checkout, dianggap Keranjang di logic baru) */
     private fun loadPesanan(uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // Cari pesanan yang statusnya DIPROSES (sebagai keranjang aktif)
                 val snapshot = db.collection("pesanan")
                     .whereEqualTo("userId", uid)
-                    .whereEqualTo("status", StatusPesanan.DIPROSES)
+                    .whereEqualTo("status", StatusPesanan.DIPROSES.name) // Menggunakan String Name
                     .limit(1)
                     .get()
                     .await()
@@ -86,7 +88,7 @@ class CheckoutViewModel : ViewModel() {
         }
     }
 
-    /** Load item pesanan */
+    /** Load item pesanan berdasarkan ID Pesanan */
     private fun loadItems(pesananId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -96,6 +98,7 @@ class CheckoutViewModel : ViewModel() {
                     .await()
 
                 val items = snapshot.documents.mapNotNull { it.toObject(ItemPesanan::class.java) }
+                // Hanya ambil item yang dicentang (isSelected = true) untuk checkout
                 _itemsWithProduk.postValue(items.filter { it.isSelected })
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -122,7 +125,8 @@ class CheckoutViewModel : ViewModel() {
         }
     }
 
-    /** Membuat pesanan baru */
+    /** Finalisasi Pesanan (Checkout) */
+    // Logika baru: Kita UPDATE pesanan yang sudah ada, bukan buat baru, agar ID tetap sama
     fun createPesanan(
         items: List<ItemPesanan>,
         ekspedisi: Ekspedisi,
@@ -135,33 +139,40 @@ class CheckoutViewModel : ViewModel() {
             return
         }
 
+        val currentPesananId = _pesanan.value?.id ?: run {
+            // Jika null, buat baru (fallback)
+            val newRef = db.collection("pesanan").document()
+            newRef.id
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             _loading.postValue(true)
             try {
+                // Hitung total harga final
                 val subtotal = items.sumOf { it.produkHarga * it.jumlah }
                 val totalFinal = subtotal + ekspedisi.biaya
 
-                val newPesananRef = db.collection("pesanan").document()
-                val finalPesanan = Pesanan(
-                    id = newPesananRef.id,
-                    userId = uid,
-                    status = StatusPesanan.DIPROSES,
-                    ekspedisiId = ekspedisi.id,
-                    tanggal = Timestamp.now(),
-                    metodePembayaran = metodePembayaran,
-                    totalHarga = totalFinal
+                // Update data pesanan di Firestore
+                val updates = mapOf(
+                    "status" to StatusPesanan.DIPROSES.name, // Pastikan status "Deal"
+                    "ekspedisiId" to ekspedisi.id,
+                    "metodePembayaran" to metodePembayaran, // Firestore menyimpan enum sebagai map/string tergantung config, aman pakai object mapper
+                    "totalHarga" to totalFinal,
+                    "tanggal" to Timestamp.now() // Update tanggal transaksi
                 )
 
-                newPesananRef.set(finalPesanan).await()
+                // Lakukan update
+                db.collection("pesanan").document(currentPesananId)
+                    .update(updates)
+                    .await()
 
-                // Update LiveData pesanan
-                _pesanan.postValue(finalPesanan)
-
+                // Kembali ke UI Thread
                 launch(Dispatchers.Main) { onSuccess() }
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                _error.postValue("Gagal membuat pesanan: ${e.message}")
-                launch(Dispatchers.Main) { onError(e.message ?: "Gagal membuat pesanan") }
+                _error.postValue("Gagal checkout: ${e.message}")
+                launch(Dispatchers.Main) { onError(e.message ?: "Gagal checkout") }
             } finally {
                 _loading.postValue(false)
             }
@@ -182,7 +193,7 @@ class CheckoutViewModel : ViewModel() {
                         )
                     ).await()
 
-                // Update LiveData agar UI langsung berubah
+                // Update LiveData agar UI langsung berubah tanpa fetch ulang
                 _user.postValue(_user.value?.copy(
                     nama = nama,
                     noTelepon = noTelepon,

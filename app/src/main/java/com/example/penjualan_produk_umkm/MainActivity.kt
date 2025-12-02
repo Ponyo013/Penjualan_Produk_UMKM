@@ -35,28 +35,20 @@ class MainActivity : AppCompatActivity() {
         val pesananIcon = findViewById<ImageView>(R.id.pesanan_icon)
         val profilIcon = findViewById<ImageView>(R.id.profil_icon)
 
-        berandaIcon.setOnClickListener { 
-            navController.navigate(R.id.BerandaFragment)
-        }
-        pesananIcon.setOnClickListener { 
-            navController.navigate(R.id.pesananFragment)
-        }
-        profilIcon.setOnClickListener { 
-            navController.navigate(R.id.profileFragment)
-        }
+        berandaIcon.setOnClickListener { navController.navigate(R.id.BerandaFragment) }
+        pesananIcon.setOnClickListener { navController.navigate(R.id.pesananFragment) }
+        profilIcon.setOnClickListener { navController.navigate(R.id.profileFragment) }
 
         navController.addOnDestinationChangedListener { _, destination, arguments ->
             val showBottomNav = arguments?.getBoolean("showBottomNav", false) ?: false
             bottomNavContainer.visibility = if (showBottomNav) View.VISIBLE else View.GONE
-            
+
             when (destination.id) {
                 R.id.BerandaFragment -> updateBottomNav(berandaIcon)
                 R.id.pesananFragment -> updateBottomNav(pesananIcon)
                 R.id.profileFragment -> updateBottomNav(profilIcon)
             }
         }
-
-        // Set initial state
         updateBottomNav(berandaIcon)
     }
 
@@ -66,7 +58,6 @@ class MainActivity : AppCompatActivity() {
             findViewById<ImageView>(R.id.pesanan_icon),
             findViewById<ImageView>(R.id.profil_icon)
         )
-
         allIcons.forEach { icon ->
             icon.alpha = if (icon == selectedIcon) 1.0f else 0.5f
         }

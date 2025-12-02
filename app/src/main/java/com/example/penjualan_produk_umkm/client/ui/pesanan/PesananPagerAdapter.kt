@@ -2,7 +2,8 @@ package com.example.penjualan_produk_umkm.client.ui.pesanan
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.penjualan_produk_umkm.database.model.StatusPesanan
+// FIX: Gunakan import dari Firestore Model
+import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 
 class PesananPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 

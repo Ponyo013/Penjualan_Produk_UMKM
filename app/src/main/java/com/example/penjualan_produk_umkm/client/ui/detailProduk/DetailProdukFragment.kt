@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
@@ -36,33 +37,40 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private lateinit var btnDecrease: ImageButton
     private lateinit var tvQuantity: TextView
 
-    private val cartViewModel: CartViewModel by viewModels()
-    private val produkViewModel: ProdukViewModel by viewModels()
+    // Inisialisasi ViewModel dengan Factory Kosong (Firebase)
+    private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
+    private val produkViewModel: ProdukViewModel by viewModels { ViewModelFactory() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // FIX: Ambil ID Produk sebagai String (Firebase)
         val productId = arguments?.getString("productId") ?: run {
             findNavController().popBackStack()
             return
         }
 
-        setupToolbar(view)
-        setupViewPager(view)
-        setupViews(view)
-
         // Ambil produk dari Firestore
+        // Menggunakan callback karena di Firebase ViewModel getProdukById itu async callback, bukan LiveData
         produkViewModel.getProdukById(productId) { p ->
             if (p == null) {
+                Toast.makeText(context, "Produk tidak ditemukan", Toast.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             } else {
                 produk = p
-                displayProdukInfo(p)
+                setupToolbar(view)
+                setupProductInfo(view, p)
+                setupRatingInfo(view, p)
+                setupViewPager(view, p.id) // Kirim ID Produk untuk Pager Adapter
+                setupGallery(view, p)
+
+                // Update status tombol cart awal (nanti diupdate lagi oleh flow)
+                updateCartControls(p, emptyList())
             }
         }
 
-        // Observe cart items untuk update UI secara real-time
-        lifecycleScope.launch {
+        // Observe cart items untuk update UI secara otomatis (Realtime)
+        viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 cartViewModel.cartItems.collectLatest { items ->
                     produk?.let { updateCartControls(it, items) }
@@ -71,43 +79,47 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         }
     }
 
-    private fun setupViews(view: View) {
+    private fun setupProductInfo(view: View, produk: Produk) {
+        val namaProduk = view.findViewById<TextView>(R.id.nama_produk)
+        val hargaProduk = view.findViewById<TextView>(R.id.harga_produk)
+        val stockStatus = view.findViewById<TextView>(R.id.stock_status)
         btnAddToCart = view.findViewById(R.id.btn_add_to_cart)
         quantityControls = view.findViewById(R.id.quantity_controls)
         btnIncrease = view.findViewById(R.id.btn_increase_quantity)
         btnDecrease = view.findViewById(R.id.btn_decrease_quantity)
         tvQuantity = view.findViewById(R.id.tv_quantity)
-    }
 
-    private fun displayProdukInfo(produk: Produk) {
-        val namaProduk = requireView().findViewById<TextView>(R.id.nama_produk)
-        val hargaProduk = requireView().findViewById<TextView>(R.id.harga_produk)
-        val stockStatus = requireView().findViewById<TextView>(R.id.stock_status)
-
+        // Display info produk
         namaProduk.text = produk.nama
         val formatRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        formatRupiah.maximumFractionDigits = 0
         hargaProduk.text = formatRupiah.format(produk.harga).replace("Rp", "Rp ").trim()
+
         stockStatus.text = "Tersedia: ${produk.stok} Buah"
-        stockStatus.setTextColor(
-            resources.getColor(
-                if (produk.stok > 0) R.color.Secondary_1 else R.color.red,
-                null
-            )
-        )
+        stockStatus.setTextColor(resources.getColor(if (produk.stok > 0) R.color.Secondary_1 else R.color.red, null))
         btnAddToCart.isEnabled = produk.stok > 0
 
+        // Tombol tambah ke keranjang
         btnAddToCart.setOnClickListener {
-            val existingItem = cartViewModel.cartItems.value.find { it.produkId == produk.id }
+            // Cek apakah item sudah ada di keranjang (list item dari viewModel)
+            val currentItems = cartViewModel.cartItems.value
+            val existingItem = currentItems.find { it.produkId == produk.id }
+
             if (existingItem != null) {
                 cartViewModel.increaseQuantity(existingItem)
             } else {
-                val pesananId = cartViewModel.pesanan.value?.id ?: return@setOnClickListener
+                // Insert Item Baru
+                // ID pesanan akan dihandle otomatis oleh ViewModel (mencari pesanan aktif)
+                val pesananAktifId = cartViewModel.pesanan.value?.id ?: ""
+
+                // Jika pesanan belum ada, ViewModel biasanya handle, tapi kita buat object item dulu
                 val newItem = ItemPesanan(
-                    id = "", // akan di-generate di insertItem
-                    pesananId = pesananId,
-                    jumlah = 1,
+                    id = "", // ID di-generate di ViewModel/Firestore
+                    pesananId = pesananAktifId, // Nanti diset ulang di ViewModel jika kosong
                     produkId = produk.id,
+                    produkNama = produk.nama,
                     produkHarga = produk.harga,
+                    jumlah = 1,
                     isSelected = true
                 )
                 cartViewModel.insertItem(newItem)
@@ -115,19 +127,26 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
         }
 
+        // Tombol increase
         btnIncrease.setOnClickListener {
-            val existingItem = cartViewModel.cartItems.value.find { it.produkId == produk.id }
+            val currentItems = cartViewModel.cartItems.value
+            val existingItem = currentItems.find { it.produkId == produk.id }
             existingItem?.let { cartViewModel.increaseQuantity(it) }
         }
 
+        // Tombol decrease
         btnDecrease.setOnClickListener {
-            val existingItem = cartViewModel.cartItems.value.find { it.produkId == produk.id }
+            val currentItems = cartViewModel.cartItems.value
+            val existingItem = currentItems.find { it.produkId == produk.id }
             existingItem?.let { cartViewModel.decreaseQuantity(it) }
         }
     }
 
+    // FIX: Parameter kedua menerima List<ItemPesanan> Firestore
     private fun updateCartControls(produk: Produk, items: List<ItemPesanan>) {
+        // Cari item di keranjang yang produkId-nya sama dengan produk yang sedang dibuka
         val existingItem = items.find { it.produkId == produk.id }
+
         if (existingItem != null) {
             btnAddToCart.visibility = View.GONE
             quantityControls.visibility = View.VISIBLE
@@ -136,6 +155,13 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             btnAddToCart.visibility = View.VISIBLE
             quantityControls.visibility = View.GONE
         }
+    }
+
+    private fun setupRatingInfo(view: View, produk: Produk) {
+        val ratingText = view.findViewById<TextView>(R.id.rating_text)
+        val reviewCount = view.findViewById<TextView>(R.id.review_count)
+        ratingText.text = String.format(Locale.US, "%.1f", produk.rating)
+        reviewCount.text = "(${produk.terjual} terjual)"
     }
 
     private fun setupToolbar(view: View) {
@@ -150,14 +176,15 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         }
     }
 
-    private fun setupViewPager(view: View) {
+    // FIX: Menerima String productId
+    private fun setupViewPager(view: View, productId: String) {
         val viewPager: ViewPager2 = view.findViewById(R.id.view_pager)
         val tabLayout: TabLayout = view.findViewById(R.id.tab_layout)
-        produk?.let { p ->
-            val adapter = DetailPagerAdapter(this, p.id) // kirim fragment + produkId
-            val viewPager: ViewPager2 = requireView().findViewById(R.id.view_pager)
-            viewPager.adapter = adapter
-        }
+
+        // Pastikan DetailPagerAdapter Anda sudah diupdate constructor-nya menerima String
+        val adapter = DetailPagerAdapter(this, productId)
+        viewPager.adapter = adapter
+        viewPager.isUserInputEnabled = false
 
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = when (position) {
@@ -167,5 +194,18 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
                 else -> ""
             }
         }.attach()
+    }
+
+    private fun setupGallery(view: View, produk: Produk) {
+        val galleryViewPager = view.findViewById<ViewPager2>(R.id.gallery_view_pager)
+
+        // FIX: Menggunakan gambarUrl (String)
+        // Masukkan ke list karena GalleryAdapter mungkin menerima List<String>
+        val imageUrls = if (produk.gambarUrl.isNotEmpty()) listOf(produk.gambarUrl) else emptyList()
+
+        val galleryAdapter = GalleryAdapter(imageUrls) { position ->
+            // klik untuk full screen
+        }
+        galleryViewPager.adapter = galleryAdapter
     }
 }

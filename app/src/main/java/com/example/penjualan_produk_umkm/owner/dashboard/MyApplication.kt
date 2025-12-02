@@ -9,5 +9,5 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         AndroidThreeTen.init(this)
-        com.google.firebase.FirebaseApp.initializeApp(this)    }
+        FirebaseApp.initializeApp(this)    }
 }

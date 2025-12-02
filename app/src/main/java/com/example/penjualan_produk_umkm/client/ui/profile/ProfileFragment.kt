@@ -16,7 +16,7 @@ import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.auth.UserPreferences
-import com.example.penjualan_produk_umkm.database.model.User
+import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.example.penjualan_produk_umkm.databinding.FragmentProfileBinding
 import com.example.penjualan_produk_umkm.viewModel.ProfileViewModel
 
@@ -30,6 +30,7 @@ class ProfileFragment : Fragment() {
         ViewModelFactory()
     }
 
+    // Variabel ini sekarang menggunakan tipe User dari Firestore
     private var currentUserData: User? = null
 
     override fun onCreateView(
@@ -48,6 +49,7 @@ class ProfileFragment : Fragment() {
 
         // Observasi Data User dari Firebase
         viewModel.user.observe(viewLifecycleOwner) { user ->
+            // Sekarang tipe datanya cocok (Firestore User -> Firestore User)
             currentUserData = user
             if (user != null) {
                 binding.tvName.text = user.nama
@@ -72,11 +74,11 @@ class ProfileFragment : Fragment() {
         val dialogLayout = layoutInflater.inflate(R.layout.popup_edit_address, null)
 
         // Inisialisasi View dari Popup
-        // Pastikan ID di XML sudah diganti jadi EditText
         val etName = dialogLayout.findViewById<EditText>(R.id.et_name_popup)
-        val tvEmail = dialogLayout.findViewById<TextView>(R.id.tv_email_popup) // Email tetap TextView (ReadOnly)
+        // Email tetap TextView karena ReadOnly
+        val tvEmail = dialogLayout.findViewById<TextView>(R.id.tv_email_popup)
         val etPhone = dialogLayout.findViewById<EditText>(R.id.et_phone_popup)
-        val etAddress = dialogLayout.findViewById<EditText>(R.id.et_address_popup) // Sesuaikan ID jika beda
+        val etAddress = dialogLayout.findViewById<EditText>(R.id.et_address_popup)
 
         // Isi data lama ke form
         currentUserData?.let {

@@ -6,30 +6,28 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.client.ui.beranda.ProductAdapter
-import com.example.penjualan_produk_umkm.database.AppDatabase
-import com.example.penjualan_produk_umkm.uiComponent.SearchBar
-import com.google.android.material.appbar.MaterialToolbar
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import com.google.android.material.appbar.MaterialToolbar
 import java.util.Locale
-import androidx.fragment.app.viewModels
 
 class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var searchAdapter: ProductAdapter
 
-    // Gunakan ViewModel yang sudah dimigrasi (Diasumsikan sudah tidak butuh DAO)
-    private val viewModel: ProdukViewModel by viewModels()
+    // Gunakan ViewModel Firebase (Factory Kosong)
+    private val viewModel: ProdukViewModel by viewModels {
+        ViewModelFactory()
+    }
 
     private var categoryFilterQuery: String? = null
     private var currentQuery: String = ""
@@ -51,7 +49,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         val composeSearchBar = view.findViewById<ComposeView>(R.id.compose_search_bar_full)
         composeSearchBar.setContent {
             SearchBar(onSearch = { query ->
-                currentQuery = query // Simpan query terbaru
+                currentQuery = query
                 applyFilters()
             })
         }
@@ -61,12 +59,12 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         val etHargaMax = view.findViewById<EditText>(R.id.et_harga_max)
         val btnApplyFilter = view.findViewById<Button>(R.id.btn_apply_filter)
 
-        // RecyclerView
+        // RecyclerView setup
         recyclerView = view.findViewById(R.id.recycler_search_results)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // FIX: Adapter sekarang menerima String ID
         searchAdapter = ProductAdapter(emptyList()) { productId ->
+            // Navigasi ke detail produk (Kirim ID String)
             val bundle = Bundle().apply { putString("productId", productId) }
             findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
         }
@@ -75,33 +73,36 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         btnApplyFilter.setOnClickListener {
             minPrice = etHargaMin.text.toString().toDoubleOrNull() ?: 0.0
             maxPrice = etHargaMax.text.toString().toDoubleOrNull() ?: Double.MAX_VALUE
-            applyFilters() // Panggil filter saat tombol diklik
+            applyFilters()
         }
 
-        // Amati data produk dari ViewModel (setelah query dijalankan)
+        // Observasi data dari Firestore
         viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
-            // Update adapter dengan data yang sudah difilter
-            // Note: Data yang datang dari ViewModel harusnya sudah di-filter di sana
+            // Setiap kali data dari Firebase masuk/berubah, filter ulang
             applyFilters(produkList)
         }
 
-        // Muat produk awal
+        // Trigger load data (meskipun init block di VM sudah memanggilnya, aman dipanggil lagi)
         viewModel.getAllProduk()
     }
 
-    // Fungsi ini sekarang hanya menangani filter UI lokal (setelah data diambil)
-    private fun applyFilters(allProduk: List<Produk>? = null) {
-        val listToFilter = allProduk ?: viewModel.allProduk.value ?: emptyList()
+    // Fungsi filter lokal
+    private fun applyFilters(listData: List<Produk>? = null) {
+        // Gunakan list yang dikirim, atau ambil dari value terakhir LiveData
+        val sourceList = listData ?: viewModel.allProduk.value ?: emptyList()
+        val lowerCaseQuery = currentQuery.lowercase(Locale.getDefault())
 
-        val filteredList = listToFilter.filter { produk ->
-            val matchesQuery = produk.nama.lowercase(Locale.getDefault()).contains(currentQuery.lowercase(Locale.getDefault())) ||
-                    produk.deskripsi.lowercase(Locale.getDefault()).contains(currentQuery.lowercase(Locale.getDefault()))
+        val filteredList = sourceList.filter { produk ->
+            // Filter Nama/Deskripsi
+            val matchesQuery = produk.nama.lowercase(Locale.getDefault()).contains(lowerCaseQuery) ||
+                    produk.deskripsi.lowercase(Locale.getDefault()).contains(lowerCaseQuery)
 
+            // Filter Harga
             val matchesPrice = produk.harga in minPrice..maxPrice
+
+            // Filter Kategori (jika ada argumen dari navigasi sebelumnya)
             val matchesInitialCategory = categoryFilterQuery == null ||
                     produk.kategori.equals(categoryFilterQuery, true)
-
-            // Kita asumsikan currentCategory diabaikan untuk simplifikasi
 
             matchesQuery && matchesPrice && matchesInitialCategory
         }

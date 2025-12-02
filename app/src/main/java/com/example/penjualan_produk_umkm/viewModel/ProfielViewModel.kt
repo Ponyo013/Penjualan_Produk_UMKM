@@ -3,7 +3,7 @@ package com.example.penjualan_produk_umkm.viewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.penjualan_produk_umkm.database.model.User
+import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -28,13 +28,14 @@ class ProfileViewModel : ViewModel() {
                     try {
                         // Mapping manual agar aman
                         val user = User(
-                            id = 0, // Dummy ID untuk lokal
+                            id = userId, // FIX: ID diisi String userId dari Auth (bukan angka 0)
                             nama = document.getString("nama") ?: "",
                             email = document.getString("email") ?: "",
-                            password = "",
+                            password = "", // Password tidak diambil demi keamanan
                             role = document.getString("role") ?: "user",
                             noTelepon = document.getString("noTelepon") ?: "",
                             alamat = document.getString("alamat") ?: ""
+                            // tanggal akan otomatis terisi default Timestamp.now() dari model
                         )
                         _user.value = user
                     } catch (e: Exception) {
@@ -62,7 +63,7 @@ class ProfileViewModel : ViewModel() {
             .update(updates)
             .addOnSuccessListener {
                 _updateStatus.value = "Profil berhasil diperbarui"
-                loadUserProfile() // Refresh data di UI
+                loadUserProfile() // Refresh data di UI agar langsung berubah
             }
             .addOnFailureListener {
                 _updateStatus.value = "Gagal memperbarui profil: ${it.message}"

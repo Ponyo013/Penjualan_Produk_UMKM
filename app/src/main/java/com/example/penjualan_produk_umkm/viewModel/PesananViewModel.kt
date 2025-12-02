@@ -3,18 +3,20 @@ package com.example.penjualan_produk_umkm.viewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
+// Hapus parameter constructor (db, userId, dao) karena kita ambil dari Firebase langsung
 class PesananViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
-    private val userId: String = FirebaseAuth.getInstance().currentUser?.uid
-        ?: throw IllegalStateException("User belum login")
+    private val userId: String = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
+    // Ganti tipe data dari PesananWithItems (Room) ke Pesanan (Firestore)
     private val _pesananDiproses = MutableLiveData<List<Pesanan>>()
     val pesananDiproses: LiveData<List<Pesanan>> get() = _pesananDiproses
 
@@ -27,51 +29,52 @@ class PesananViewModel : ViewModel() {
     private val _pesananDibatalkan = MutableLiveData<List<Pesanan>>()
     val pesananDibatalkan: LiveData<List<Pesanan>> get() = _pesananDibatalkan
 
-    private var listeners: MutableList<ListenerRegistration> = mutableListOf()
+    // Untuk menyimpan listener agar bisa dihapus saat ViewModel mati (mencegah memory leak)
+    private val listeners = mutableListOf<ListenerRegistration>()
 
     init {
-        observePesananByStatus(StatusPesanan.DIPROSES)
-        observePesananByStatus(StatusPesanan.DIKIRIM)
-        observePesananByStatus(StatusPesanan.SELESAI)
-        observePesananByStatus(StatusPesanan.DIBATALKAN)
+        if (userId.isNotEmpty()) {
+            observePesananByStatus(StatusPesanan.DIPROSES, _pesananDiproses)
+            observePesananByStatus(StatusPesanan.DIKIRIM, _pesananDikirim)
+            observePesananByStatus(StatusPesanan.SELESAI, _pesananSelesai)
+            observePesananByStatus(StatusPesanan.DIBATALKAN, _pesananDibatalkan)
+        }
     }
 
-    private fun observePesananByStatus(status: StatusPesanan) {
+    // Fungsi generik untuk mendengarkan perubahan data realtime
+    private fun observePesananByStatus(status: StatusPesanan, liveData: MutableLiveData<List<Pesanan>>) {
         val listener = db.collection("pesanan")
             .whereEqualTo("userId", userId)
-            .whereEqualTo("status", status.name)
+            .whereEqualTo("status", status.name) // Bandingkan String (Enum.name)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
+
                 val list = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
-                when (status) {
-                    StatusPesanan.DIPROSES -> _pesananDiproses.value = list
-                    StatusPesanan.DIKIRIM -> _pesananDikirim.value = list
-                    StatusPesanan.SELESAI -> _pesananSelesai.value = list
-                    StatusPesanan.DIBATALKAN -> _pesananDibatalkan.value = list
-                }
+                liveData.value = list
             }
         listeners.add(listener)
     }
 
-    // Optional: Refresh pesanan secara manual
-    fun refreshPesanan(status: StatusPesanan) {
-        db.collection("pesanan")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("status", status.name)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val list = snapshot.toObjects(Pesanan::class.java)
-                when (status) {
-                    StatusPesanan.DIPROSES -> _pesananDiproses.value = list
-                    StatusPesanan.DIKIRIM -> _pesananDikirim.value = list
-                    StatusPesanan.SELESAI -> _pesananSelesai.value = list
-                    StatusPesanan.DIBATALKAN -> _pesananDibatalkan.value = list
+    // Mengambil item produk untuk satu pesanan tertentu (Dipakai di Adapter untuk Nested RecyclerView)
+    // Mengembalikan List<ItemPesanan> (Model Firestore), bukan ItemPesananWithProduk (Room)
+    fun getItemsForPesanan(pesananId: String): LiveData<List<ItemPesanan>> {
+        val result = MutableLiveData<List<ItemPesanan>>()
+
+        db.collection("itemPesanan")
+            .whereEqualTo("pesananId", pesananId)
+            .addSnapshotListener { snapshot, error ->
+                if (error == null) {
+                    val items = snapshot?.toObjects(ItemPesanan::class.java) ?: emptyList()
+                    result.value = items
                 }
             }
+
+        return result
     }
 
     override fun onCleared() {
         super.onCleared()
+        // Hapus semua listener saat ViewModel dihancurkan
         listeners.forEach { it.remove() }
     }
 }

@@ -5,16 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
-import com.example.penjualan_produk_umkm.database.model.StatusPesanan
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.databinding.FragmentPesananListBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import com.example.penjualan_produk_umkm.viewModel.PesananViewModel
 
 class PesananListFragment : Fragment() {
 
@@ -24,17 +20,22 @@ class PesananListFragment : Fragment() {
     private lateinit var pesananAdapter: PesananAdapter
     private var status: StatusPesanan? = null
 
-    private val db = FirebaseFirestore.getInstance()
-    private val userId: String = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-
-    // StateFlow untuk pesanan
-    private val _pesananFlow = MutableStateFlow<List<Pesanan>>(emptyList())
-    private val pesananFlow: StateFlow<List<Pesanan>> get() = _pesananFlow
+    // FIX: Gunakan 'by viewModels' dengan Factory kosong
+    // ViewModel akan handle auth dan database sendiri
+    private val viewModel: PesananViewModel by viewModels {
+        ViewModelFactory()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            status = StatusPesanan.valueOf(it.getString(ARG_STATUS) ?: "DIPROSES")
+            // Ambil status dari argument string
+            val statusName = it.getString(ARG_STATUS) ?: "DIPROSES"
+            status = try {
+                StatusPesanan.valueOf(statusName)
+            } catch (e: Exception) {
+                StatusPesanan.DIPROSES
+            }
         }
     }
 
@@ -48,40 +49,35 @@ class PesananListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupRecyclerView()
-        observePesanan()
+
+        // Observe LiveData sesuai status pesanan
+        when (status) {
+            StatusPesanan.DIPROSES -> viewModel.pesananDiproses.observe(viewLifecycleOwner) { list ->
+                pesananAdapter.submitList(list)
+            }
+            StatusPesanan.DIKIRIM -> viewModel.pesananDikirim.observe(viewLifecycleOwner) { list ->
+                pesananAdapter.submitList(list)
+            }
+            StatusPesanan.SELESAI -> viewModel.pesananSelesai.observe(viewLifecycleOwner) { list ->
+                pesananAdapter.submitList(list)
+            }
+            StatusPesanan.DIBATALKAN -> viewModel.pesananDibatalkan.observe(viewLifecycleOwner) { list ->
+                pesananAdapter.submitList(list)
+            }
+            else -> { /* Status lain (misal Keranjang) tidak ditampilkan di sini */ }
+        }
     }
 
     private fun setupRecyclerView() {
-        pesananAdapter = PesananAdapter(viewLifecycleOwner)
+        // Kirim viewModel dan lifecycleOwner ke adapter (untuk observasi sub-item)
+        pesananAdapter = PesananAdapter(viewModel, viewLifecycleOwner)
+
         binding.rvPesananList.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = pesananAdapter
         }
-    }
-
-    private fun observePesanan() {
-        db.collection("pesanan")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("status", status?.name)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
-                val pesananList = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
-                // Untuk setiap pesanan, ambil itemPesanan
-                lifecycleScope.launch {
-                    val itemsMap = mutableMapOf<String, List<com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan>>()
-                    pesananList.forEach { pesanan ->
-                        val itemsSnapshot = db.collection("itemPesanan")
-                            .whereEqualTo("pesananId", pesanan.id)
-                            .get()
-                            .addOnSuccessListener { query ->
-                                val items = query.toObjects(com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan::class.java)
-                                itemsMap[pesanan.id] = items
-                                pesananAdapter.submitList(pesananList, itemsMap)
-                            }
-                    }
-                }
-            }
     }
 
     override fun onDestroyView() {

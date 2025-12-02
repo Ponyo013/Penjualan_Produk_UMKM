@@ -13,23 +13,21 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.MainActivity
 import com.example.penjualan_produk_umkm.OwnerActivity
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.viewModel.LoginViewModel
+import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.databinding.FragmentLoginBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 
 class LoginFragment : Fragment() {
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var auth: FirebaseAuth
-    private lateinit var firestore: FirebaseFirestore
+    private lateinit var viewModel: LoginViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,9 +40,14 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        auth = FirebaseAuth.getInstance()
-        firestore = FirebaseFirestore.getInstance()
+        // --- [PERBAIKAN DI SINI] ---
+        // Hapus kode AppDatabase dan UserDao yang lama.
+        // Gunakan Factory kosong karena ViewModel sudah init Firebase sendiri.
+        val viewModelFactory = ViewModelFactory()
+        viewModel = ViewModelProvider(this, viewModelFactory)[LoginViewModel::class.java]
+        // ---------------------------
 
+        setupObservers()
         setupClickListeners()
     }
 
@@ -54,7 +57,7 @@ class LoginFragment : Fragment() {
             val password = binding.editTextPassword.text.toString().trim()
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
-                loginFirebase(email, password)
+                viewModel.login(email, password)
             } else {
                 showToast("Email dan password tidak boleh kosong.")
             }
@@ -63,49 +66,51 @@ class LoginFragment : Fragment() {
         makeRegisterClick()
     }
 
-    private fun loginFirebase(email: String, password: String) {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.loginButton.isEnabled = false
+    private fun setupObservers() {
+        viewModel.loginState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is LoginViewModel.LoginState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.loginButton.isEnabled = false
+                }
 
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnSuccessListener { authResult ->
-                val userId = authResult.user?.uid
-                if (userId != null) {
-                    // Ambil data user dari Firestore
-                    firestore.collection("users").document(userId).get()
-                        .addOnSuccessListener { document ->
-                            binding.progressBar.visibility = View.GONE
-                            binding.loginButton.isEnabled = true
-                            if (document.exists()) {
-                                val role = document.getString("role") ?: "user"
-                                val userPreferences = UserPreferences(requireContext())
-                                userPreferences.saveUser(
-                                    id = userId,
-                                    email = email,
-                                    role = role
-                                )
-                                showToast("Login berhasil!")
-                                navigateToNextScreen(role)
-                            } else {
-                                showToast("Data user tidak ditemukan di Firestore.")
-                            }
-                        }
-                        .addOnFailureListener { e ->
-                            binding.progressBar.visibility = View.GONE
-                            binding.loginButton.isEnabled = true
-                            showToast("Gagal mengambil data user: ${e.message}")
-                        }
+                is LoginViewModel.LoginState.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.loginButton.isEnabled = true
+
+                    showToast("Login berhasil!")
+
+                    // Menyimpan user state yang telah login
+                    val userPreferences = UserPreferences(requireContext())
+
+                    userPreferences.saveUser(
+                        id = state.user.id, // Pastikan saveUser menerima String (karena ID Firebase itu String)
+                        email = state.user.email,
+                        role = state.user.role.ifEmpty { "user" }
+                    )
+
+                    val role = state.user.role.ifEmpty { "user" }
+                    navigateToNextScreen(role)
+                }
+
+                is LoginViewModel.LoginState.Error -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.loginButton.isEnabled = true
+                    showToast(state.message)
+                }
+
+                else -> {
+                    // Optional safeguard
+                    binding.progressBar.visibility = View.GONE
+                    binding.loginButton.isEnabled = true
                 }
             }
-            .addOnFailureListener { e ->
-                binding.progressBar.visibility = View.GONE
-                binding.loginButton.isEnabled = true
-                showToast("Login gagal: ${e.message}")
-            }
+        }
     }
 
     private fun navigateToNextScreen(role: String?) {
         val context = requireContext()
+
         val intent = when (role) {
             "owner" -> Intent(context, OwnerActivity::class.java)
             else -> Intent(context, MainActivity::class.java)
@@ -113,6 +118,7 @@ class LoginFragment : Fragment() {
         startActivity(intent)
         requireActivity().finish()
     }
+
 
     private fun makeRegisterClick() {
         val fullText = getString(R.string.login_hyperlink)

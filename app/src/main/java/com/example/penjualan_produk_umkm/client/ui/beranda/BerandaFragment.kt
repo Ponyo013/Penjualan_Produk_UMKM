@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.LinearLayout
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 
 class BerandaFragment : Fragment(R.layout.fragment_beranda) {
@@ -21,15 +22,15 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductAdapter
 
-    private val viewModel: ProdukViewModel by viewModels()
+    private val viewModel: ProdukViewModel by viewModels {
+        ViewModelFactory()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_beranda, container, false)
-
-        // RecyclerView setup
         recyclerView = view.findViewById(R.id.recycler_popular_products)
         recyclerView.layoutManager = GridLayoutManager(context, 2)
         adapter = ProductAdapter(emptyList()) { productId ->

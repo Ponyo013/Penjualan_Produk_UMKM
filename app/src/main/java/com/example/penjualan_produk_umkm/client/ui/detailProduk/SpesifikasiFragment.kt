@@ -8,19 +8,25 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 
 private const val ARG_PRODUK_ID = "produkId"
 
 class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
 
+    // FIX: ID Produk sekarang String
     private var produkId: String? = null
-    private val viewModel: ProdukViewModel by viewModels()
+
+    // FIX: Gunakan Factory kosong
+    private val viewModel: ProdukViewModel by viewModels {
+        ViewModelFactory()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
+            // FIX: Ambil String
             produkId = it.getString(ARG_PRODUK_ID)
         }
     }
@@ -32,6 +38,7 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
         val container = view.findViewById<LinearLayout>(R.id.spesifikasi_container)
 
         produkId?.let { id ->
+            // Ambil data spesifik dari Firestore
             viewModel.getProdukById(id) { produk ->
                 produk?.let { p ->
                     headingTextView.text = "Detail Spesifikasi Produk"
@@ -60,6 +67,7 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
                 val labelView = rowView.findViewById<TextView>(R.id.spec_label)
                 val valueView = rowView.findViewById<TextView>(R.id.spec_value)
 
+                // Tambahkan titik dua agar rapi
                 labelView.text = "$label :"
                 valueView.text = value
 
@@ -70,10 +78,10 @@ class SpesifikasiFragment : Fragment(R.layout.fragment_spesifikasi) {
 
     companion object {
         @JvmStatic
-        fun newInstance(produkId: String) =
+        fun newInstance(produkId: String) = // FIX: Parameter String
             SpesifikasiFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PRODUK_ID, produkId)
+                    putString(ARG_PRODUK_ID, produkId) // FIX: putString
                 }
             }
     }

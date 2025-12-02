@@ -1,26 +1,39 @@
 package com.example.penjualan_produk_umkm.viewModel
 
-import androidx.lifecycle.*
-import com.example.penjualan_produk_umkm.database.dao.ProdukDao
-import com.example.penjualan_produk_umkm.database.model.Produk
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk // Pastikan pakai model Firestore
+import com.google.firebase.firestore.FirebaseFirestore
 
-class CategoryListViewModel(
-    private val produkDao: ProdukDao,
-    private val categoryName: String?
-) : ViewModel() {
+class CategoryListViewModel : ViewModel() {
 
-    private val _allProduk = MutableLiveData<List<Produk>>()
-    val allProduk: LiveData<List<Produk>> = _allProduk
+    private val db = FirebaseFirestore.getInstance()
 
-    init {
-        loadProduk()
-    }
+    private val _products = MutableLiveData<List<Produk>>()
+    val products: LiveData<List<Produk>> = _products
 
-    private fun loadProduk() {
-        produkDao.getAllProduk().observeForever { produkList ->
-            _allProduk.value = produkList.filter {
-                categoryName == null || it.kategori.equals(categoryName, ignoreCase = true)
+    // Kita panggil fungsi ini dari Fragment untuk memuat data
+    fun loadProdukByCategory(categoryName: String?) {
+        // Ambil semua produk dari Firestore (Realtime)
+        db.collection("produk").addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+
+            // Konversi dokumen ke objek Produk
+            val allData = snapshot?.documents?.mapNotNull { doc ->
+                val p = doc.toObject(Produk::class.java)
+                p?.id = doc.id // Set ID dokumen
+                p
+            } ?: emptyList()
+
+            // Lakukan Filter di sini
+            val filteredList = if (categoryName != null) {
+                allData.filter { it.kategori.equals(categoryName, ignoreCase = true) }
+            } else {
+                allData
             }
+
+            _products.value = filteredList
         }
     }
 }

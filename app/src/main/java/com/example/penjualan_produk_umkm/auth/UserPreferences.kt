@@ -9,10 +9,10 @@ class UserPreferences(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
-    // userId sekarang String karena Firebase UID
+    // PERUBAHAN UTAMA: id sekarang bertipe String (bukan Int)
     fun saveUser(id: String, email: String, role: String) {
         prefs.edit().apply {
-            putString("user_id", id)
+            putString("user_id", id) // Gunakan putString, bukan putInt
             putString("user_email", email)
             putString("user_role", role)
             putBoolean("is_logged_in", true)
@@ -20,9 +20,13 @@ class UserPreferences(context: Context) {
         }
     }
 
+    // Return String? (Nullable), default null jika belum login
     fun getUserId(): String? = prefs.getString("user_id", null)
+
     fun getUserEmail(): String? = prefs.getString("user_email", null)
+
     fun getUserRole(): String? = prefs.getString("user_role", "user")
+
     fun isLoggedIn(): Boolean = prefs.getBoolean("is_logged_in", false)
 
     fun clear() {

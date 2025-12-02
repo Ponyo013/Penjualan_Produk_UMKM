@@ -21,10 +21,9 @@ import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material.icons.outlined.NotificationAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector // PENTING: Ini yang tadi error
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,13 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.penjualan_produk_umkm.AuthActivity
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.auth.UserPreferences
-// 2. HAPUS IMPORT DATABASE LAMA
-// import com.example.penjualan_produk_umkm.database.AppDatabase
 import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.style.UMKMTheme
@@ -51,14 +47,13 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// 3. PERBAIKI INISIALISASI VIEWMODEL (Hapus parameter db)
-fun DashboardScreen(navController: NavController, dashboardViewModel: DashboardViewModel = viewModel(
-    factory = ViewModelFactory() // Tidak perlu db = ... lagi karena sudah pakai Firestore
-)) {
+fun DashboardScreen(
+    navController: NavController,
+    dashboardViewModel: DashboardViewModel = viewModel(factory = ViewModelFactory())
+) {
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    // 4. GUNAKAN collectAsState UNTUK STATEFLOW
     val allPesanan by dashboardViewModel.allPesanan.collectAsState(initial = emptyList())
 
     UMKMTheme {
@@ -148,7 +143,7 @@ fun DashboardScreen(navController: NavController, dashboardViewModel: DashboardV
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // 5. FILTER TANGGAL YANG AMAN
+                // Filter Pesanan Bulan Ini
                 val pesananBulanIni = allPesanan.filter {
                     val timestamp = it.tanggal
                     if (timestamp != null) {
@@ -209,7 +204,6 @@ fun DashboardScreen(navController: NavController, dashboardViewModel: DashboardV
     }
 }
 
-// ... (Kode Tanggal, Buttons, OptButton TETAP SAMA, tidak perlu diubah) ...
 @Composable
 private fun Tanggal() {
     val calendar = Calendar.getInstance()
@@ -217,7 +211,7 @@ private fun Tanggal() {
     val formattedDate = dateFormat.format(calendar.time)
 
     Text(
-        text = "$formattedDate",
+        text = formattedDate,
         style = MaterialTheme.typography.bodyMedium.copy(
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
         )
@@ -233,17 +227,8 @@ fun Buttons(navController: NavHostController){
         "Expedisi" to Icons.Outlined.LocalShipping
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             buttonKategori.forEach { (label, ikon) ->
                 OptButton(label, ikon) {
                     when (label) {
@@ -261,38 +246,17 @@ fun Buttons(navController: NavHostController){
 @Composable
 fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
     Column(
-        modifier = Modifier
-            .clickable { onClick() }
-            .wrapContentWidth()
-            .padding(16.dp),
+        modifier = Modifier.clickable { onClick() }.wrapContentWidth().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
-            modifier = Modifier.wrapContentWidth()
-                .background(
-                    MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(8.dp),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier.background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp)).padding(8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = ikon,
-                contentDescription = label,
-                tint = MaterialTheme.colorScheme.surface,
-                modifier = Modifier
-                    .size(28.dp)
-            )
+            Icon(imageVector = ikon, contentDescription = label, tint = MaterialTheme.colorScheme.surface, modifier = Modifier.size(28.dp))
         }
-
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.secondary,
-                fontWeight = FontWeight.Medium
-            )
-        )
+        Text(text = label, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
     }
 }
 
@@ -301,7 +265,6 @@ fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
 fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
     val totalOmset = pesananList
         .filter {
-            // Pastikan membandingkan String dengan String
             it.status != StatusPesanan.DIBATALKAN.name &&
                     it.status != "KERANJANG"
         }
@@ -316,11 +279,27 @@ fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = "Omset", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-            Text(text = formattedOmset, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold))
+            Text(
+                text = "Omset",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+
+            Text(
+                text = formattedOmset,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            )
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Tanggal()
-                Text(text = "$jumlahPesanan pesanan", style = MaterialTheme.typography.bodyMedium.copy(alpha = 0.7f))
+
+                // --- [BAGIAN YANG DIPERBAIKI] ---
+                Text(
+                    text = "$jumlahPesanan pesanan",
+                    style = MaterialTheme.typography.bodyMedium, // Hapus .copy(alpha...) dari sini
+                    // Pasang alpha pada warnanya di sini:
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+                // -------------------------------
             }
         }
     }
@@ -348,10 +327,4 @@ fun StatusItem(icon: ImageVector, label: String, count: Int) {
         Icon(imageVector = icon, contentDescription = label, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
         Text(text = "$label: $count", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
     }
-}
-
-@Preview
-@Composable
-fun DashboardScreenPreview() {
-    // Preview requires mock viewmodel, skipping for now
 }

@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -80,14 +79,13 @@ fun ListPesanan(navController: NavController, viewModel: OwnerPesananViewModel) 
 @Composable
 fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
-    var selectedStatus by remember { mutableStateOf(pesananLengkap.pesanan.status) }
-
-    // Konversi String status dari Firebase ke Enum
-    val currentStatus = try {
+    // Convert String status dari Firestore ke Enum agar aman untuk UI Logic
+    val currentStatusEnum = try {
         StatusPesanan.valueOf(pesananLengkap.pesanan.status)
     } catch (e: Exception) {
         StatusPesanan.DIPROSES
     }
+    var selectedStatus by remember { mutableStateOf(currentStatusEnum) }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -112,7 +110,7 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                     )
                 }
 
-                val (icon, bgColor) = when (currentStatus) {
+                val (icon, bgColor) = when (currentStatusEnum) {
                     StatusPesanan.DIPROSES -> Icons.Filled.AccessTime to Color.Blue
                     StatusPesanan.DIKIRIM -> Icons.Outlined.LocalShipping to Color(0xFFFFA500)
                     StatusPesanan.SELESAI -> Icons.Filled.CheckCircle to Color(0xFF9DC183)
@@ -130,23 +128,24 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                         imageVector = icon,
                         tint = bgColor,
                         modifier = Modifier.size(20.dp),
-                        contentDescription = currentStatus.name
+                        contentDescription = currentStatusEnum.name
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // List Item Produk (Langsung dari PesananLengkap)
+            // List Item Produk (Ambil dari PesananLengkap, tidak perlu query lagi)
             pesananLengkap.items.forEach { item ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Gambar dari URL Firestore (Pake AsyncImage Coil)
+                    // Gunakan AsyncImage (Coil) untuk URL, atau Placeholder jika kosong
+                    // ItemPesanan tidak simpan URL gambar, jadi kita pakai placeholder default
                     AsyncImage(
-                        model = "", // TODO: ItemPesanan perlu simpan gambarUrl agar bisa tampil di sini
+                        model = com.example.penjualan_produk_umkm.R.drawable.ic_error_image,
                         contentDescription = item.produkNama,
                         modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
@@ -162,6 +161,14 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                 text = "Alamat: ${pesananLengkap.user?.alamat ?: "-"}",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            // Ekspedisi mungkin null jika data belum lengkap, handle safely
+            Text(
+                text = "Ekspedisi: -", // Placeholder karena data ekspedisi tidak di-join di ViewModel saat ini
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -188,7 +195,7 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                                     onClick = { expanded = true },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(selectedStatus)
+                                    Text(selectedStatus.name)
                                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                                 }
                                 DropdownMenu(
@@ -199,7 +206,7 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                                         DropdownMenuItem(
                                             text = { Text(status.name) },
                                             onClick = {
-                                                selectedStatus = status.name
+                                                selectedStatus = status
                                                 expanded = false
                                             }
                                         )
@@ -210,7 +217,7 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                     },
                     confirmButton = {
                         TextButton(onClick = {
-                            onStatusChange(StatusPesanan.valueOf(selectedStatus))
+                            onStatusChange(selectedStatus)
                             showDialog = false
                         }) { Text("Simpan") }
                     },

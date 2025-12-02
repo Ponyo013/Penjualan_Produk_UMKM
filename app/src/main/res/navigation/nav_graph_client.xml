@@ -66,8 +66,7 @@
 
         <argument
             android:name="productId"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            app:argType="string" />
 
         <action
             android:id="@+id/action_detailProdukFragment_to_CartFragment"
@@ -106,9 +105,10 @@
             android:name="showBottomNav"
             app:argType="boolean"
             android:defaultValue="false" />
+
         <argument
-            android:name="cartItems"
-            app:argType="com.example.penjualan_produk_umkm.database.model.ItemPesanan[]"
+            android:name="selectedItemIds"
+            app:argType="string[]"
             app:nullable="true"
             android:defaultValue="@null"/>
     </fragment>

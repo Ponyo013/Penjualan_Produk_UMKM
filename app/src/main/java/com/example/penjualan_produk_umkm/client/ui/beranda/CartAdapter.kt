@@ -8,19 +8,28 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import java.text.NumberFormat
 import java.util.Locale
 
 class CartAdapter(
+    // Ubah tipe data List menjadi ItemPesanan (bukan ItemPesananWithProduk)
     private val cartItems: MutableList<ItemPesanan>,
     private val onIncrease: (ItemPesanan) -> Unit,
     private val onDecrease: (ItemPesanan) -> Unit,
     private val onItemSelectChanged: (ItemPesanan) -> Unit,
     private val onItemClick: (ItemPesanan) -> Unit
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
+
+    // Secondary constructor untuk checkout mode (read-only)
+    constructor(cartItems: List<ItemPesanan>, isCheckout: Boolean) : this(
+        cartItems.toMutableList(),
+        onIncrease = {},
+        onDecrease = {},
+        onItemSelectChanged = {},
+        onItemClick = {}
+    )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -50,28 +59,44 @@ class CartAdapter(
         private val increaseButton: ImageButton = itemView.findViewById(R.id.btn_increase_quantity)
 
         fun bind(item: ItemPesanan) {
-            // Checkbox
+            // Di Firebase, ItemPesanan berdiri sendiri (flat data)
+
+            // 1. Checkbox
             selectCheckBox.isChecked = item.isSelected
 
-            // Nama dan harga: sementara kita pakai produkId sebagai nama, harga default
-            productName.text = "Produk ID: ${item.produkId}"
-            productPrice.text = NumberFormat
-                .getCurrencyInstance(Locale("id", "ID"))
-                .format(item.produkHarga) // Tambahkan properti produkHarga di ItemPesanan jika ingin tampil
+            // 2. Nama Produk (Diambil dari snapshot di ItemPesanan)
+            productName.text = item.produkNama
 
-            // Jumlah
+            // 3. Harga
+            val numberFormat = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+            numberFormat.maximumFractionDigits = 0
+            productPrice.text = numberFormat.format(item.produkHarga)
+
+            // 4. Jumlah
             quantity.text = item.jumlah.toString()
 
-            // Gambar: bisa di-load pakai URL jika ada, atau placeholder
+            // 5. Gambar
+            // Catatan: Saat ini ItemPesanan di Firebase belum menyimpan URL gambar.
+            // Jadi kita gunakan placeholder default agar tidak error/kosong.
             productImage.setImageResource(R.drawable.ic_error_image)
 
-            // Aksi tombol dan checkbox
+            // Jika nanti Anda menambahkan field 'gambarUrl' di ItemPesanan, gunakan kode ini:
+            /*
+            if (item.gambarUrl.isNotEmpty()) {
+                productImage.load(item.gambarUrl) { ... }
+            }
+            */
+
+            // 6. Aksi Tombol
             increaseButton.setOnClickListener { onIncrease(item) }
             decreaseButton.setOnClickListener { onDecrease(item) }
+
             selectCheckBox.setOnClickListener {
+                // Update status checkbox, kirim objek baru ke listener
                 val updatedItem = item.copy(isSelected = selectCheckBox.isChecked)
                 onItemSelectChanged(updatedItem)
             }
+
             itemView.setOnClickListener { onItemClick(item) }
         }
     }

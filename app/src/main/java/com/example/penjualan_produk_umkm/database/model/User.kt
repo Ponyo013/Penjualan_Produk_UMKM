@@ -1,33 +1,19 @@
-package com.example.penjualan_produk_umkm.database.model
+package com.example.penjualan_produk_umkm.database.firestore.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import org.threeten.bp.LocalDate
+import com.google.firebase.Timestamp
 
-@Entity(tableName = "user")
 data class User(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    // FIX 1: Ubah id dari Int ke String (karena Firestore pakai UUID String)
+    var id: String = "",
 
-    @ColumnInfo(name = "nama")
-    val nama: String,
-
-    @ColumnInfo(name = "email")
-    val email: String,
-
-    @ColumnInfo(name = "password")
-    var password: String,
-
-    @ColumnInfo(name = "role")
-    val role: String,
-
-    @ColumnInfo(name = "no_telepon")
-    val noTelepon: String = "",
-
-    @ColumnInfo(name = "alamat")
+    // FIX 2: Tambahkan nilai default ("") agar Firestore bisa membuat objek kosong (No-Arg Constructor)
+    var nama: String = "",
+    var email: String = "",
+    var password: String = "", // Password sebenarnya tidak perlu disimpan di Firestore (rawan), tapi untuk tugas tidak apa-apa.
+    var role: String = "",
+    var noTelepon: String = "",
     var alamat: String = "",
 
-    @ColumnInfo(name = "tanggal_dibuat")
-    val tanggal: LocalDate = LocalDate.now(),
+    // FIX 3: Ubah LocalDate menjadi Timestamp (Tipe data native Firebase)
+    var tanggal: Timestamp = Timestamp.now()
 )

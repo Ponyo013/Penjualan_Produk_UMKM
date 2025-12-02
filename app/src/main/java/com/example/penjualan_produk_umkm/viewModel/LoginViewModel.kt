@@ -3,12 +3,12 @@ package com.example.penjualan_produk_umkm.viewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.penjualan_produk_umkm.database.model.User
+// PENTING: Gunakan Import Firestore Model
+import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import org.threeten.bp.LocalDate
 
-class LoginViewModel : ViewModel() { // Hapus parameter UserDao
+class LoginViewModel : ViewModel() {
 
     sealed class LoginState {
         object Loading : LoginState()
@@ -32,14 +32,13 @@ class LoginViewModel : ViewModel() { // Hapus parameter UserDao
                 val userId = authResult.user?.uid
 
                 if (userId != null) {
-                    // 2. Ambil detail user (Role, Nama, dll) dari Firestore
+                    // 2. Ambil detail user dari Firestore
                     fetchUserDetails(userId)
                 } else {
                     _loginState.value = LoginState.Error("Gagal mendapatkan ID User")
                 }
             }
             .addOnFailureListener { e ->
-                // Handle error (Password salah / User tidak ditemukan)
                 _loginState.value = LoginState.Error("Login Gagal: ${e.message}")
             }
     }
@@ -49,31 +48,20 @@ class LoginViewModel : ViewModel() { // Hapus parameter UserDao
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     try {
-                        // Mapping manual dari Firestore ke Object User Lokal
-                        // Catatan: ID di Firebase itu String (UID), tapi di Room local kita Int.
-                        // Untuk sementara kita pakai hashCode() agar bisa masuk ke objek User,
-                        // tapi idealnya nanti semua diganti String.
+                        // CARA BERSIH: Convert langsung dokumen ke Object User
+                        // Pastikan class User di folder firestore.model sudah benar (var id: String)
+                        val user = document.toObject(User::class.java)
 
-                        val role = document.getString("role") ?: "user"
-                        val nama = document.getString("nama") ?: "User"
-                        val email = document.getString("email") ?: ""
-                        val noTelepon = document.getString("noTelepon") ?: ""
-                        val alamat = document.getString("alamat") ?: ""
+                        if (user != null) {
+                            // Pastikan ID terisi dengan UID dari Auth
+                            user.id = uid
+                            _loginState.value = LoginState.Success(user)
+                        } else {
+                            _loginState.value = LoginState.Error("Gagal memparsing data user")
+                        }
 
-                        val user = User(
-                            id = uid.hashCode(),
-                            nama = nama,
-                            email = email,
-                            password = "",
-                            role = role,
-                            noTelepon = noTelepon,
-                            alamat = alamat,
-                            tanggal = LocalDate.now()
-                        )
-
-                        _loginState.value = LoginState.Success(user)
                     } catch (e: Exception) {
-                        _loginState.value = LoginState.Error("Error parsing data: ${e.message}")
+                        _loginState.value = LoginState.Error("Error: ${e.message}")
                     }
                 } else {
                     _loginState.value = LoginState.Error("Data user tidak ditemukan di database")

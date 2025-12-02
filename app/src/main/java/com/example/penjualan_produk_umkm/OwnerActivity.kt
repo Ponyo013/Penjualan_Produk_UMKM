@@ -21,6 +21,9 @@ import com.example.penjualan_produk_umkm.owner.dashboard.*
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.viewModel.EkspedisiViewModel
+import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
+import com.example.penjualan_produk_umkm.viewModel.UlasanViewModel
 
 class OwnerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,35 +35,86 @@ class OwnerActivity : AppCompatActivity() {
         setContent {
             UMKMTheme {
                 val navController = rememberNavController()
-
-                val produkViewModel: ProdukViewModel = viewModel()
+                // Factory Kosong untuk ViewModel Firebase
+                val factory = ViewModelFactory()
+                val produkViewModel: ProdukViewModel = viewModel(
+                    factory = ViewModelFactory()
+                )
+                val ulasanViewModel: UlasanViewModel = viewModel(
+                    factory = ViewModelFactory()
+                )
+                val ownerProdukViewModel: OwnerPesananViewModel = viewModel(
+                    factory = ViewModelFactory()
+                )
+                val expedisiViewModel: EkspedisiViewModel = viewModel(
+                    factory = ViewModelFactory()
+                )
 
                 Surface(modifier = Modifier.fillMaxSize()) {
                     NavHost(navController = navController, startDestination = "dashboard") {
-                        // Masing Masing page
+
+                        // --- HALAMAN UTAMA ---
                         composable("dashboard") { DashboardScreen(navController) }
+
                         composable("produkManage") {
                             ProdukManage(navController, produkViewModel)
                         }
 
-                        // CRUD Produk
+                        composable("keuangan") {
+                            Keuangan(navController, ownerProdukViewModel)
+                        }
+
+                        composable("listpesanan") {
+                            ListPesanan(navController, ownerProdukViewModel)
+                        }
+
+                        composable("kirimNotifikasi") {
+                            KirimNotifikasiScreen(navController)
+                        }
+
+                        composable("expedisi") {
+                            ExpedisiScreen(navController, expedisiViewModel)
+                        }
+
+                        // --- HALAMAN CRUD & DETAIL ---
+
+                        // Halaman Ulasan (ID String)
+                        composable("ulasan/{produkId}") { backStackEntry ->
+                            // FIX: Ambil sebagai String, bukan Int
+                            val produkId = backStackEntry.arguments?.getString("produkId") ?: ""
+
+                            UlasanScreen(
+                                produkId = produkId,
+                                navController = navController,
+                                ulasanViewModel = ulasanViewModel
+                            )
+                        }
+
+                        // Halaman Tambah Produk
                         composable("addProduk") {
                             AddProdukScreen(navController, produkViewModel)
                         }
 
+                        // Halaman Edit Produk (ID String + Async Fetch)
                         composable("edit_produk/{produkId}") { backStackEntry ->
+                            // 1. Ambil ID sebagai String
                             val produkId = backStackEntry.arguments?.getString("produkId") ?: ""
 
+                            // 2. State lokal untuk menampung data produk (Tipe: Produk Firestore)
                             var produk by remember { mutableStateOf<Produk?>(null) }
 
-                            // Panggil Firestore sekali saat screen dibuka
+                            // 3. Ambil data dari Firebase
                             LaunchedEffect(produkId) {
-                                produkViewModel.getProdukById(produkId) { result ->
-                                    produk = result
+                                if (produkId.isNotEmpty()) {
+                                    // Panggil fungsi di ViewModel
+                                    produkViewModel.getProdukById(produkId) { result ->
+                                        // result bertipe Produk?
+                                        produk = result
+                                    }
                                 }
                             }
 
-                            // Jika produk sudah berhasil di-load, tampilkan screen edit
+                            // 4. Tampilkan layar edit
                             produk?.let { nonNullProduk ->
                                 EditProdukScreen(
                                     produk = nonNullProduk,

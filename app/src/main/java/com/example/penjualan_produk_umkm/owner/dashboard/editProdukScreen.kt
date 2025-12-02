@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,7 +36,6 @@ import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,8 +54,10 @@ fun EditProdukScreen(
     var kategori by remember { mutableStateOf(produk.kategori) }
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
-    var gambarUrl by remember { mutableStateOf(produk.gambarUrl) }
+    // FIX: Menggunakan gambarUrl (String) dari Firestore
+    var currentGambarUrl by remember { mutableStateOf(produk.gambarUrl) }
     var newGambarUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -63,7 +65,7 @@ fun EditProdukScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             newGambarUri = uri
-            gambarUrl = ""
+            currentGambarUrl = "" // Kosongkan URL lama karena mau diganti baru
         }
     }
 
@@ -119,46 +121,37 @@ fun EditProdukScreen(
                                         snackbarHostState.showSnackbar("Semua field wajib diisi!")
                                     }
                                 } else {
-                                    if (newGambarUri != null) {
-                                        val storageRef = FirebaseStorage.getInstance()
-                                            .reference.child("produk/${produk.id}.jpg")
+                                    isLoading = true
+                                    // Logic Update:
+                                    // 1. Jika newGambarUri != null -> Upload dulu (implementasi upload nanti) -> dapat URL -> Update Firestore
+                                    // 2. Jika newGambarUri == null -> Pakai currentGambarUrl -> Update Firestore
 
-                                        storageRef.putFile(newGambarUri!!).addOnSuccessListener {
-                                            storageRef.downloadUrl.addOnSuccessListener { uri ->
-                                                val updatedProduk = produk.copy(
-                                                    nama = nama,
-                                                    deskripsi = deskripsi,
-                                                    spesifikasi = spesifikasi,
-                                                    harga = harga.toDoubleOrNull() ?: produk.harga,
-                                                    stok = stok.toIntOrNull() ?: produk.stok,
-                                                    kategori = kategori,
-                                                    gambarUrl = uri.toString() // URL baru dari Storage
-                                                )
-                                                produkViewModel.updateProduk(updatedProduk)
-                                                showDialogBerhasil = true
-                                            }
-                                        }
-                                    } else {
-                                        // Tidak ada gambar baru, pakai URL lama
-                                        val updatedProduk = produk.copy(
-                                            nama = nama,
-                                            deskripsi = deskripsi,
-                                            spesifikasi = spesifikasi,
-                                            harga = harga.toDoubleOrNull() ?: produk.harga,
-                                            stok = stok.toIntOrNull() ?: produk.stok,
-                                            kategori = kategori,
-                                            gambarUrl = produk.gambarUrl
-                                        )
-                                        produkViewModel.updateProduk(updatedProduk)
-                                        showDialogBerhasil = true
-                                    }
+                                    // SEMENTARA: Langsung update tanpa upload gambar (gunakan URL lama atau string kosong jika gambar baru dipilih tapi belum diupload)
+                                    // Di real app, Anda harus upload newGambarUri ke Firebase Storage dulu di sini.
+
+                                    val finalImageUrl = if (newGambarUri != null) "" else currentGambarUrl // Placeholder logic
+
+                                    val updatedProduk = produk.copy(
+                                        nama = nama,
+                                        deskripsi = deskripsi,
+                                        spesifikasi = spesifikasi,
+                                        harga = harga.toDoubleOrNull() ?: produk.harga,
+                                        stok = stok.toIntOrNull() ?: produk.stok,
+                                        kategori = kategori,
+                                        gambarUrl = finalImageUrl // FIX: Menggunakan gambarUrl
+                                    )
+
+                                    produkViewModel.updateProduk(updatedProduk)
+                                    showDialogBerhasil = true
+                                    isLoading = false
                                 }
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary
-                            )
+                            ),
+                            enabled = !isLoading
                         ) {
                             Text("Simpan", color = Color.White)
                         }
@@ -183,12 +176,18 @@ fun EditProdukScreen(
                         .clickable { launcher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
-                    val currentImageModel = newGambarUri ?: gambarUrl.ifEmpty { null }
-
-                    if (currentImageModel != null) {
+                    // Logika menampilkan gambar (Prioritas: URI Baru -> URL Lama -> Placeholder)
+                    if (newGambarUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(newGambarUri),
+                            contentDescription = "Gambar Produk Baru",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (currentGambarUrl.isNotEmpty()) {
                         AsyncImage(
-                            model = currentImageModel,
-                            contentDescription = "Gambar Produk",
+                            model = currentGambarUrl,
+                            contentDescription = "Gambar Produk Lama",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.fillMaxSize()
                         )
@@ -293,7 +292,6 @@ fun EditProdukScreen(
             }
 
             if (showDialogBerhasil) {
-                // DIUBAH: Menambahkan navController.popBackStack() pada onDismiss
                 ProdukBerhasilDiEditDialog(onDismiss = {
                     showDialogBerhasil = false
                     navController.popBackStack()

@@ -2,9 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    id("kotlin-kapt")
+//    id("kotlin-kapt")
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp")
+//    id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
 
 }
@@ -55,15 +55,14 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage")
-
+    implementation("com.google.firebase:firebase-storage-ktx")
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.ui.test)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.dataconnect)
-    ksp(libs.room.compiler)
+//    ksp(libs.room.compiler)
 
 
     implementation("com.google.code.gson:gson:2.10.1")

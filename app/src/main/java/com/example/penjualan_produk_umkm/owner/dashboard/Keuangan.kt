@@ -2,64 +2,37 @@ package com.example.penjualan_produk_umkm.owner.dashboard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import java.util.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
-import com.example.penjualan_produk_umkm.database.model.StatusPesanan
+import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
+import com.example.penjualan_produk_umkm.viewModel.PesananLengkap
 import org.threeten.bp.LocalDate
 import org.threeten.bp.Month
 import org.threeten.bp.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel){
+
+    // Load semua pesanan (realtime dari Firestore)
+    val pesananList by viewModel.pesananList.collectAsState(initial = emptyList())
 
     UMKMTheme {
         Scaffold(
@@ -85,7 +58,7 @@ fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel){
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Laporan berdasarkan tanggal
-                    LaporanDenganKalender(viewModel)
+                    LaporanDenganKalender(pesananList)
                 }
             }
         }
@@ -93,12 +66,10 @@ fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel){
 }
 
 @Composable
-fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
+fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
     var pickedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf<String?>(null) }
-    val pesananList by viewModel.pesananList.collectAsState()
-    val itemList by viewModel.getAllItems().observeAsState(emptyList())
 
     // Tombol Tab: Bulanan / Tahunan
     Row(
@@ -157,15 +128,31 @@ fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
     }
 
     // Filter pesanan
-    val filteredPesanan = when (selectedTab) {
-        null -> pesananList.filter { it.pesanan.tanggal == pickedDate }
-        "Bulanan" -> pesananList.filter { it.pesanan.tanggal.year == pickedDate.year } // ambil semua bulan di tahun yang sama
-        "Tahunan" -> pesananList // tampilkan semua tahun
-        else -> emptyList()
-    }.filter {
-        it.pesanan.status == StatusPesanan.DIKIRIM || it.pesanan.status == StatusPesanan.SELESAI
-    }
+    // Kita perlu konversi tanggal Firestore (Timestamp) ke LocalDate untuk dibandingkan
+    val filteredPesanan = pesananList.filter { pesananLengkap ->
+        val status = pesananLengkap.pesanan.status
+        // Filter Status: Hanya DIKIRIM atau SELESAI
+        val isValidStatus = status == StatusPesanan.DIKIRIM.name || status == StatusPesanan.SELESAI.name
 
+        if (!isValidStatus) return@filter false
+
+        // Konversi Tanggal
+        val date = try {
+            val timestamp = pesananLengkap.pesanan.tanggal.toDate()
+            val cal = Calendar.getInstance()
+            cal.time = timestamp
+            LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+        } catch (e: Exception) {
+            LocalDate.now() // Fallback
+        }
+
+        when (selectedTab) {
+            null -> date == pickedDate
+            "Bulanan" -> date.year == pickedDate.year && date.month == pickedDate.month
+            "Tahunan" -> date.year == pickedDate.year
+            else -> false
+        }
+    }
 
     if (filteredPesanan.isEmpty()) {
         Text(
@@ -178,10 +165,23 @@ fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
             modifier = Modifier.padding(16.dp)
         )
     } else {
-        // Group data jika Bulanan atau Tahunan
+        // Grouping Logic
+        // Kita perlu ambil tanggal lagi untuk grouping
         val groupedPesanan = when (selectedTab) {
-            "Bulanan" -> filteredPesanan.groupBy { it.pesanan.tanggal.monthValue  } // group per bulan
-            "Tahunan" -> filteredPesanan.groupBy { it.pesanan.tanggal.year } // group per tahun
+            "Bulanan" -> filteredPesanan.groupBy {
+                // Group by Month Value
+                val timestamp = it.pesanan.tanggal.toDate()
+                val cal = Calendar.getInstance()
+                cal.time = timestamp
+                cal.get(Calendar.MONTH) + 1
+            }
+            "Tahunan" -> filteredPesanan.groupBy {
+                // Group by Year
+                val timestamp = it.pesanan.tanggal.toDate()
+                val cal = Calendar.getInstance()
+                cal.time = timestamp
+                cal.get(Calendar.YEAR)
+            }
             else -> mapOf(null to filteredPesanan)
         }
 
@@ -189,12 +189,11 @@ fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            groupedPesanan.forEach { (group, pesananList) ->
+            groupedPesanan.forEach { (group, list) ->
                 item {
                     if (group != null) {
                         Text(
                             text = when (selectedTab) {
-
                                 "Bulanan" -> {
                                     val month = Month.of(group)
                                     month.name.lowercase()
@@ -214,9 +213,8 @@ fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
                     }
                 }
 
-
-                items(pesananList) { pesanan ->
-                    LaporanPenjualanCard(pesanan, viewModel)
+                items(list) { pesananLengkap ->
+                    LaporanPenjualanCard(pesananLengkap)
                 }
             }
         }
@@ -224,8 +222,10 @@ fun LaporanDenganKalender(viewModel: OwnerPesananViewModel) {
 }
 
 @Composable
-fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewModel) {
-    val itemsForPesanan by viewModel.getItemsForPesanan(pesanan.pesanan.id).observeAsState(initial = emptyList())
+fun LaporanPenjualanCard(pesananLengkap: PesananLengkap) {
+    // Data Items sudah ada di PesananLengkap, tidak perlu observe lagi dari ViewModel
+    val itemsForPesanan = pesananLengkap.items
+    val pesanan = pesananLengkap.pesanan
 
     Card(
         modifier = Modifier
@@ -240,7 +240,7 @@ fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewMod
 
             // Header: ID
             Text(
-                text = "Pesanan #${pesanan.pesanan.id}",
+                text = "Pesanan #${pesanan.id.takeLast(8).uppercase()}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -250,12 +250,16 @@ fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewMod
             Spacer(modifier = Modifier.height(8.dp))
 
             // Info user, tanggal & metode pembayaran
+            val formatter = java.text.SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
+            val dateString = formatter.format(pesanan.tanggal.toDate())
+
             Column(modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text( text = "Customer: ${pesanan.user?.nama ?: "Tidak diketahui"}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Tanggal: ${pesanan.pesanan.tanggal}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Ekspedisi: ${pesanan.ekspedisi?.nama ?: "-"}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Pembayaran: ${pesanan.pesanan.metodePembayaran.name}", style = MaterialTheme.typography.bodyMedium)
+                Text( text = "Customer: ${pesananLengkap.user?.nama ?: "Tidak diketahui"}", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Tanggal: $dateString", style = MaterialTheme.typography.bodyMedium)
+                // Ekspedisi (Nama) belum disimpan di Pesanan Model, jadi sementara hide atau placeholder
+                Text(text = "Ekspedisi: -", style = MaterialTheme.typography.bodyMedium)
+                Text(text = "Pembayaran: ${pesanan.metodePembayaran.name}", style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -272,11 +276,11 @@ fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewMod
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${item.produk.nama} (x${item.itemPesanan.jumlah})",
+                            text = "${item.produkNama} (x${item.jumlah})",
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            text = "Rp ${item.produk.harga * item.itemPesanan.jumlah}",
+                            text = "Rp ${String.format("%,.0f", item.produkHarga * item.jumlah)}",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -288,8 +292,8 @@ fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewMod
             Spacer(modifier = Modifier.height(8.dp))
 
             // Total harga & jumlah item
-            val totalHarga = itemsForPesanan.sumOf { it.produk.harga * it.itemPesanan.jumlah }
-            val totalItem = itemsForPesanan.sumOf { it.itemPesanan.jumlah }
+            val totalHarga = itemsForPesanan.sumOf { it.produkHarga * it.jumlah }
+            val totalItem = itemsForPesanan.sumOf { it.jumlah }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -300,7 +304,7 @@ fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewMod
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "Total: Rp $totalHarga",
+                    text = "Total: Rp ${String.format("%,.0f", totalHarga)}",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -309,6 +313,7 @@ fun LaporanPenjualanCard(pesanan: PesananLengkap, viewModel: OwnerPesananViewMod
     }
 }
 
+// ... (Bagian DatePickerDialog tetap sama seperti sebelumnya, copy dari kode lama Anda jika belum ada) ...
 @Composable
 fun DatePickerDialog(
     onDismissRequest: () -> Unit,

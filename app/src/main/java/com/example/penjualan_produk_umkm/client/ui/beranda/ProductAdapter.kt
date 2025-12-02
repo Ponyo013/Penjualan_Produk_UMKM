@@ -15,7 +15,7 @@ import java.util.*
 
 class ProductAdapter(
     private var products: List<Produk>,
-    private val onItemClick: (String) -> Unit // Firestore ID string
+    private val onItemClick: (String) -> Unit // FIX: ID is now String
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -43,7 +43,8 @@ class ProductAdapter(
             // Jumlah terjual
             productSoldCount.text = "Terjual ${produk.terjual}"
 
-            // Gambar produk (dari Firestore URL)
+            // FIX: Load Image from URL (Firestore)
+            // We use R.drawable.ic_error_image as placeholder if URL is empty
             if (produk.gambarUrl.isNotEmpty()) {
                 productImage.load(produk.gambarUrl) {
                     placeholder(R.color.grey)
@@ -51,7 +52,9 @@ class ProductAdapter(
                     crossfade(true)
                 }
             } else {
-                productImage.setImageResource(R.drawable.ic_empty_star)
+                // If you want to support legacy local images for testing, you might need logic here,
+                // but for pure Firestore migration, use placeholder.
+                productImage.setImageResource(R.drawable.ic_error_image)
             }
 
             // Klik item

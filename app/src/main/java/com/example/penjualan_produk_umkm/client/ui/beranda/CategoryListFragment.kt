@@ -1,3 +1,5 @@
+// File: com/example/penjualan_produk_umkm/client/ui/beranda/CategoryListFragment.kt
+
 package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.os.Bundle
@@ -9,12 +11,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
-import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
-import com.example.penjualan_produk_umkm.client.ui.beranda.ProductAdapter
-import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk // Pastikan Import Model Firestore
+import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.uiComponent.ProductFilterControls
 import com.example.penjualan_produk_umkm.uiComponent.ProductSortOption
-import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.google.android.material.appbar.MaterialToolbar
 
 private const val ARG_PARENT_CATEGORY = "parentCategoryName"
@@ -32,8 +34,10 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
     // List produk lengkap yang sudah difilter berdasarkan kategori
     private var baseCategoryProducts: List<Produk> = emptyList()
 
-    // Firestore ViewModel
-    private val viewModel: ProdukViewModel by viewModels()
+    // FIX 1: Hapus AppDatabase, gunakan ViewModelFactory kosong
+    private val viewModel: ProdukViewModel by viewModels {
+        ViewModelFactory()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,18 +53,24 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
         recyclerView = view.findViewById(R.id.popular_products_in_category)
         val filterSortContainer = view.findViewById<ComposeView>(R.id.filter_sort_container)
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar_category)
+
         toolbar.title = categoryTitle
         toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
 
         // Setup RecyclerView
         recyclerView.layoutManager = GridLayoutManager(context, 2)
         productAdapter = ProductAdapter(emptyList()) { productId ->
-            val bundle = Bundle().apply { putString("productId", productId) } // Firestore ID = String
+            // FIX 2: ID Produk sekarang String
+            val bundle = Bundle().apply { putString("productId", productId) }
             findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
         }
         recyclerView.adapter = productAdapter
 
-        // Amati data produk dari Firestore
+        // FIX 3: Amati data produk dari ViewModel (Firestore)
+        // Tidak perlu panggil viewModel.getAllProduk() manual jika di blok init ViewModel sudah dipanggil
+        // Tapi untuk memastikan data terupdate jika belum:
+        // viewModel.getAllProduk() // Opsional, tergantung implementasi VM Anda
+
         viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
 
             // --- FILTER KATEGORI ---
@@ -73,7 +83,7 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
             baseCategoryProducts = filteredList
             applyFiltersAndSort()
 
-            // --- UPDATE COMPOSE UI (Dalam Observer) ---
+            // --- UPDATE COMPOSE UI ---
             filterSortContainer.setContent {
                 UMKMTheme {
                     ProductFilterControls(
@@ -90,7 +100,7 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
                     )
                 }
             }
-        } // Tutup Observer
+        }
     }
 
     /**
@@ -106,7 +116,10 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
         // B. SORTING
         resultList = when (currentSort) {
-            ProductSortOption.TERBARU -> resultList.sortedByDescending { it.id } // Firestore ID String, descending lex
+            // FIX 4: Firestore ID adalah String, sortedByDescending id mungkin kurang efektif untuk "Terbaru"
+            // jika ID-nya random string. Idealnya ada field 'tanggalUpload' di Firestore.
+            // Tapi untuk sekarang biarkan sortedByDescending { it.id } atau { it.nama }
+            ProductSortOption.TERBARU -> resultList // Sementara tampilkan apa adanya atau sort by name
             ProductSortOption.TERLARIS -> resultList.sortedByDescending { it.terjual }
             ProductSortOption.HARGA_MAHAL -> resultList.sortedByDescending { it.harga }
             ProductSortOption.HARGA_MURAH -> resultList.sortedBy { it.harga }

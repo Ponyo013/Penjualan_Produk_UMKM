@@ -9,16 +9,19 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.UlasanViewModel
-import org.threeten.bp.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,11 +30,13 @@ fun UlasanScreen(
     navController: NavController,
     ulasanViewModel: UlasanViewModel
 ) {
-    val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    // FIX 1: Panggil fungsi load data di dalam LaunchedEffect
+    LaunchedEffect(produkId) {
+        ulasanViewModel.getUlasanByProdukId(produkId)
+    }
 
-    val ulasanList by ulasanViewModel
-        .getUlasanByProdukId(produkId)
-        .observeAsState(emptyList())
+    // FIX 2: Observasi LiveData secara terpisah
+    val ulasanList by ulasanViewModel.ulasanList.observeAsState(emptyList())
 
     UMKMTheme {
         Scaffold(
@@ -82,8 +87,12 @@ fun UlasanScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))
+
+                                    // Tampilkan nama user jika ada, atau ID sebagian
+                                    val displayName = ulasan.userName ?: "User ${ulasan.userId.take(4)}..."
+
                                     Text(
-                                        text = "oleh User ${ulasan.userId}",
+                                        text = displayName,
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -94,10 +103,20 @@ fun UlasanScreen(
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
+
+                                // FIX 3: Format Tanggal Firebase Timestamp
+                                val dateString = try {
+                                    val date = ulasan.tanggal.toDate()
+                                    val formatter = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
+                                    formatter.format(date)
+                                } catch (e: Exception) {
+                                    "-"
+                                }
+
                                 Text(
-                                    text = ulasan.tanggal.format(formatter),
+                                    text = dateString,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    color = Color.Gray // Ganti MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f) agar lebih simpel atau sesuaikan
                                 )
                             }
                         }
