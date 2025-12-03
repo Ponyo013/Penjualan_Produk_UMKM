@@ -228,7 +228,8 @@ fun ProdukList(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             // Gambar di kiri (FIX: Gunakan gambarUrl String)
-                            val imageModel = if (produk.gambarUrl.isNotEmpty()) produk.gambarUrl else com.example.penjualan_produk_umkm.R.drawable.ic_error_image // Fallback ke drawable
+                            val imageModel =
+                                produk.gambarUrl.ifEmpty { com.example.penjualan_produk_umkm.R.drawable.ic_error_image } // Fallback ke drawable
 
                             AsyncImage(
                                 model = imageModel,

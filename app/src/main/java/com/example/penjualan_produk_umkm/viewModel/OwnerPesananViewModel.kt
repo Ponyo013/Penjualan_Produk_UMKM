@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.penjualan_produk_umkm.database.firestore.model.Ekspedisi
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
@@ -19,7 +20,8 @@ import kotlinx.coroutines.tasks.await
 data class PesananLengkap(
     val pesanan: Pesanan,
     val user: User? = null,
-    val items: List<ItemPesanan> = emptyList()
+    val items: List<ItemPesanan> = emptyList(),
+    val ekspedisi: Ekspedisi? = null
 )
 
 class OwnerPesananViewModel : ViewModel() {
@@ -39,8 +41,9 @@ class OwnerPesananViewModel : ViewModel() {
         db.collection("pesanan")
             .orderBy("tanggal", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, _ ->
-                val rawList = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
-                // Ambil detail user & item secara manual
+                val rawList = snapshot?.toObjects(Pesanan::class.java)
+                    ?.filter { it.status != "KERANJANG" }
+                    ?: emptyList()
                 fetchDetailsForPesanan(rawList)
             }
     }
@@ -48,12 +51,27 @@ class OwnerPesananViewModel : ViewModel() {
     // 2. Load Berdasarkan Status
     fun loadByStatus(status: StatusPesanan) {
         db.collection("pesanan")
-            .whereEqualTo("status", status.name) // Filter berdasarkan String Name
+            .whereEqualTo("status", status.name)
             .addSnapshotListener { snapshot, _ ->
-                val rawList = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
+                val now = System.currentTimeMillis()
+                val duaJamDalamMillis = 2 * 60 * 60 * 1000L // 2 jam
+
+                val rawList = snapshot?.toObjects(Pesanan::class.java)
+                    ?.filter { it.status != "KERANJANG" }
+                    ?.filter { pesanan ->
+                        val createdAtMillis = pesanan.tanggal.toDate().time
+                        when (status) {
+                            StatusPesanan.DIPROSES -> {
+                                now - createdAtMillis > duaJamDalamMillis
+                            }
+                            else -> true
+                        }
+                    }
+                    ?: emptyList()
                 fetchDetailsForPesanan(rawList)
             }
     }
+
 
     // 3. Fungsi Manual untuk Menggabungkan Data (Pesanan + User + Items)
     private fun fetchDetailsForPesanan(pesananList: List<Pesanan>) {
@@ -82,7 +100,16 @@ class OwnerPesananViewModel : ViewModel() {
                     e.printStackTrace()
                 }
 
-                resultList.add(PesananLengkap(pesanan, user, items))
+                //Ambil ekpedisi
+                var ekspedisi: Ekspedisi? = null
+                try {
+                    val ekspedisiDoc = db.collection("ekspedisi").document(pesanan.ekspedisiId ?: "").get().await()
+                    ekspedisi = ekspedisiDoc.toObject(Ekspedisi::class.java)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                resultList.add(PesananLengkap(pesanan, user, items, ekspedisi))
             }
 
             // Update UI setelah semua data terkumpul

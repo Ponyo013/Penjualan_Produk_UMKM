@@ -1,7 +1,10 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,19 +27,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
-import java.util.UUID
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,18 +50,16 @@ fun AddProdukScreen(
     var kategori by remember { mutableStateOf("") }
     var expandedKategori by remember { mutableStateOf(false) }
     val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
+    var gambarUri by remember { mutableStateOf<Uri?>(null) }
 
     var showDialogBerhasil by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    var gambarUri by remember { mutableStateOf<Uri?>(null) }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            gambarUri = uri
-        }
-    }
+    val pickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri: Uri? -> gambarUri = uri }
+    )
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -93,26 +90,20 @@ fun AddProdukScreen(
                             ) {
                                 isLoading = true
 
-                                // 1. Jika ada gambar, upload dulu ke Firebase Storage
-                                if (gambarUri != null) {
-                                    uploadImageToFirebase(gambarUri!!) { imageUrl ->
-                                        if (imageUrl != null) {
-                                            saveProduct(
-                                                nama, deskripsi, spesifikasi, harga, stok, kategori, imageUrl,
-                                                produkViewModel, { showDialogBerhasil = true }, { isLoading = false }
-                                            )
-                                        } else {
-                                            isLoading = false
-                                            scope.launch { snackbarHostState.showSnackbar("Gagal upload gambar") }
-                                        }
-                                    }
-                                } else {
-                                    // 2. Jika tidak ada gambar, simpan dengan URL kosong/placeholder
-                                    saveProduct(
-                                        nama, deskripsi, spesifikasi, harga, stok, kategori, "",
-                                        produkViewModel, { showDialogBerhasil = true }, { isLoading = false }
-                                    )
-                                }
+                                // Simpan produk, handling upload di ViewModel
+                                saveProduct(
+                                    nama = nama,
+                                    deskripsi = deskripsi,
+                                    spesifikasi = spesifikasi,
+                                    harga = harga,
+                                    stok = stok,
+                                    kategori = kategori,
+                                    gambarUri = gambarUri, // Bisa null
+                                    viewModel = produkViewModel,
+                                    context = context,
+                                    onSuccess = { showDialogBerhasil = true },
+                                    onComplete = { isLoading = false }
+                                )
                             } else {
                                 scope.launch { snackbarHostState.showSnackbar("Semua field harus diisi") }
                             }
@@ -151,7 +142,12 @@ fun AddProdukScreen(
                             .size(150.dp)
                             .align(Alignment.CenterHorizontally)
                             .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                            .clickable { launcher.launch("image/*") },
+                            .clickable {
+                                pickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
+                        ,
                         contentAlignment = Alignment.Center
                     ) {
                         if (gambarUri != null) {
@@ -278,42 +274,43 @@ fun AddProdukScreen(
 
 // Fungsi Helper untuk menyimpan data ke Firestore
 fun saveProduct(
-    nama: String, deskripsi: String, spesifikasi: String, harga: String, stok: String, kategori: String, gambarUrl: String,
-    viewModel: ProdukViewModel, onSuccess: () -> Unit, onComplete: () -> Unit
+    nama: String,
+    deskripsi: String,
+    spesifikasi: String,
+    harga: String,
+    stok: String,
+    kategori: String,
+    gambarUri: Uri?, // Bisa kosong kalau sudah ada imageKitResult
+    viewModel: ProdukViewModel,
+    context: Context,
+    onSuccess: () -> Unit,
+    onComplete: () -> Unit
 ) {
     val produk = Produk(
-        id = "", // ID akan di-generate di ViewModel
+        id = "",
         nama = nama,
         deskripsi = deskripsi,
         spesifikasi = spesifikasi,
         harga = harga.toDoubleOrNull() ?: 0.0,
         stok = stok.toIntOrNull() ?: 0,
         kategori = kategori,
-        gambarUrl = gambarUrl, // String URL (bukan Int)
+        gambarUrl = "",
+        imageKitFileId = "",
         rating = 0f,
         terjual = 0
     )
-    viewModel.insertProduk(produk)
-    onSuccess()
-    onComplete()
+
+    viewModel.insertProduk(produk, gambarUri, context) { success, errorMsg ->
+        if (success) onSuccess()
+        else Log.e("SAVE_PRODUCT", errorMsg ?: "Unknown error")
+        onComplete()
+    }
 }
+
+
 
 // Fungsi Helper untuk Upload Gambar ke Firebase Storage
-fun uploadImageToFirebase(uri: Uri, onResult: (String?) -> Unit) {
-    val storageRef = FirebaseStorage.getInstance().reference
-    val fileName = "produk_images/${UUID.randomUUID()}.jpg"
-    val imageRef = storageRef.child(fileName)
 
-    imageRef.putFile(uri)
-        .addOnSuccessListener {
-            imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                onResult(downloadUri.toString())
-            }
-        }
-        .addOnFailureListener {
-            onResult(null)
-        }
-}
 
 @Composable
 fun ProdukBerhasilDialog(onDismiss: () -> Unit) {

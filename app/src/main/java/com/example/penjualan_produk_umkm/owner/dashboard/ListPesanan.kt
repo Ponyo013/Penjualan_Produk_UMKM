@@ -61,12 +61,37 @@ fun ListPesanan(navController: NavController, viewModel: OwnerPesananViewModel) 
             Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
                 TabPesanan(selectedTab) { selectedTab = it }
 
+                // Filter Tab baru (< 2 jam) dan proses (> 2 jam)
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(pesananList) { pesananLengkap ->
+                    val duaJamDalamMillis = 2 * 60 * 60 * 1000L
+                    val now = System.currentTimeMillis()
+
+                    val filteredPesananList = when(selectedTab) {
+                        "Baru" -> pesananList.filter {
+                            val createdAtMillis = it.pesanan.tanggal.toDate().time
+                            now - createdAtMillis <= duaJamDalamMillis
+                        }
+                        "Diproses" -> pesananList.filter {
+                            val createdAtMillis = it.pesanan.tanggal.toDate().time
+                            now - createdAtMillis > duaJamDalamMillis
+                        }
+                        else -> pesananList
+                    }
+
+                    items(filteredPesananList) { pesananLengkap ->
                         CardPesanan(
                             pesananLengkap = pesananLengkap,
                             onStatusChange = { newStatus ->
                                 viewModel.updateStatus(pesananLengkap.pesanan.id, newStatus)
+
+                                // pindah tab otomatis ke status baru
+                                selectedTab = when (newStatus) {
+                                    StatusPesanan.DIPROSES -> "Diproses"
+                                    StatusPesanan.DIKIRIM -> "Dikirim"
+                                    StatusPesanan.SELESAI -> "Selesai"
+                                    StatusPesanan.DIBATALKAN -> "Batal"
+                                    else -> "Baru"
+                                }
                             }
                         )
                     }
@@ -166,7 +191,7 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
             Spacer(modifier = Modifier.height(8.dp))
             // Ekspedisi mungkin null jika data belum lengkap, handle safely
             Text(
-                text = "Ekspedisi: -", // Placeholder karena data ekspedisi tidak di-join di ViewModel saat ini
+                text = "Ekspedisi: - ${pesananLengkap.ekspedisi?.nama ?: "-"}", // Placeholder karena data ekspedisi tidak di-join di ViewModel saat ini
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
@@ -202,15 +227,17 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
                                     expanded = expanded,
                                     onDismissRequest = { expanded = false }
                                 ) {
-                                    StatusPesanan.values().forEach { status ->
-                                        DropdownMenuItem(
-                                            text = { Text(status.name) },
-                                            onClick = {
-                                                selectedStatus = status
-                                                expanded = false
-                                            }
-                                        )
-                                    }
+                                    StatusPesanan.values()
+                                        .filter { it.name != "KERANJANG" }
+                                        .forEach { status ->
+                                            DropdownMenuItem(
+                                                text = { Text(status.name) },
+                                                onClick = {
+                                                    selectedStatus = status
+                                                    expanded = false
+                                                }
+                                            )
+                                        }
                                 }
                             }
                         }

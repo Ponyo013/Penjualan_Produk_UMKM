@@ -2,6 +2,7 @@ package com.example.penjualan_produk_umkm.owner.dashboard
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -25,14 +26,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
@@ -52,22 +49,24 @@ fun EditProdukScreen(
     var harga by remember { mutableStateOf(produk.harga.toString()) }
     var stok by remember { mutableStateOf(produk.stok.toString()) }
     var kategori by remember { mutableStateOf(produk.kategori) }
-
-    var showDialogBerhasil by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-
-    // FIX: Menggunakan gambarUrl (String) dari Firestore
     var currentGambarUrl by remember { mutableStateOf(produk.gambarUrl) }
     var newGambarUri by remember { mutableStateOf<Uri?>(null) }
 
+    var showDialogBerhasil by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // FIX: Menggunakan gambarUrl (String) dari Firestore
+
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            newGambarUri = uri
-            currentGambarUrl = "" // Kosongkan URL lama karena mau diganti baru
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri: Uri? ->
+            if(uri != null){
+                newGambarUri = uri
+                currentGambarUrl = "" // Kosongkan URL lama karena mau diganti baru
+            }
         }
-    }
+    )
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -122,14 +121,6 @@ fun EditProdukScreen(
                                     }
                                 } else {
                                     isLoading = true
-                                    // Logic Update:
-                                    // 1. Jika newGambarUri != null -> Upload dulu (implementasi upload nanti) -> dapat URL -> Update Firestore
-                                    // 2. Jika newGambarUri == null -> Pakai currentGambarUrl -> Update Firestore
-
-                                    // SEMENTARA: Langsung update tanpa upload gambar (gunakan URL lama atau string kosong jika gambar baru dipilih tapi belum diupload)
-                                    // Di real app, Anda harus upload newGambarUri ke Firebase Storage dulu di sini.
-
-                                    val finalImageUrl = if (newGambarUri != null) "" else currentGambarUrl // Placeholder logic
 
                                     val updatedProduk = produk.copy(
                                         nama = nama,
@@ -137,13 +128,20 @@ fun EditProdukScreen(
                                         spesifikasi = spesifikasi,
                                         harga = harga.toDoubleOrNull() ?: produk.harga,
                                         stok = stok.toIntOrNull() ?: produk.stok,
-                                        kategori = kategori,
-                                        gambarUrl = finalImageUrl // FIX: Menggunakan gambarUrl
+                                        kategori = kategori
                                     )
 
-                                    produkViewModel.updateProduk(updatedProduk)
-                                    showDialogBerhasil = true
-                                    isLoading = false
+                                    produkViewModel.updateProduk(
+                                        produk = updatedProduk,
+                                        newGambarUri = newGambarUri,
+                                        context = context
+                                    ) { success, errorMsg ->
+                                        isLoading = false
+                                        if (success) showDialogBerhasil = true
+                                        else scope.launch {
+                                            snackbarHostState.showSnackbar(errorMsg ?: "Gagal update produk")
+                                        }
+                                    }
                                 }
                             },
                             modifier = Modifier.weight(1f),
@@ -173,7 +171,11 @@ fun EditProdukScreen(
                         .size(150.dp)
                         .align(Alignment.CenterHorizontally)
                         .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                        .clickable { launcher.launch("image/*") },
+                        .clickable {
+                            launcher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     // Logika menampilkan gambar (Prioritas: URI Baru -> URL Lama -> Placeholder)

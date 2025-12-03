@@ -9,7 +9,8 @@ data class Produk(
     val harga: Double = 0.0,
     val stok: Int = 0,
     val kategori: String = "",
-    val gambarUrl: String = "",
+    var gambarUrl: String = "",         // URL publik untuk UI
+    var imageKitFileId: String = "",    // FileId untuk delete
     val rating: Float = 0f,
     val terjual: Int = 0
 )
