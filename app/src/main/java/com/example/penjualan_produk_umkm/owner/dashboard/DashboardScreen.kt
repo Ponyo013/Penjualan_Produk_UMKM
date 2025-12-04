@@ -143,6 +143,7 @@ fun DashboardScreen(
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                //SentimentAnalyzerScreen(navController = navController)
                 // Filter Pesanan Bulan Ini
                 val pesananBulanIni = allPesanan.filter {
                     val timestamp = it.tanggal
@@ -328,3 +329,4 @@ fun StatusItem(icon: ImageVector, label: String, count: Int) {
         Text(text = "$label: $count", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
     }
 }
+

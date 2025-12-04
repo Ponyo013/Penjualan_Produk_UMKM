@@ -13,6 +13,17 @@ android {
     namespace = "com.example.penjualan_produk_umkm"
     compileSdk = 36
 
+    // Enable ML Model Binding
+    buildFeatures {
+        mlModelBinding = true
+    }
+
+    // Prevent compression of model files
+    aaptOptions {
+        noCompress("tflite")
+        noCompress("json")
+    }
+
     defaultConfig {
         applicationId = "com.example.penjualan_produk_umkm"
         minSdk = 24
@@ -49,7 +60,11 @@ android {
 }
 
 dependencies {
-    implementation("androidx.fragment:fragment-ktx:1.8.5")
+    // TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.17.0")
+
+    // JSON parsing (if not already included)
+    implementation("org.json:json:20230227")
     // Database
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics")
@@ -63,7 +78,6 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.dataconnect)
 //    ksp(libs.room.compiler)
-
     //OkHttp untuk Image
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
