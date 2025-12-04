@@ -73,8 +73,8 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
     private fun setupObservers() {
         viewModel.allProduk.observe(viewLifecycleOwner, Observer { produkList ->
-            // filter produk terlaris (>20 terjual)
-            val popularProducts = produkList.filter { it.terjual > 20 }
+            // filter produk terlaris (>= 0 terjual)
+            val popularProducts = produkList.filter { it.terjual >= 0 }
             adapter.updateProducts(popularProducts)
         })
     }
