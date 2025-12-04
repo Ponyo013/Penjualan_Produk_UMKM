@@ -17,7 +17,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,7 +38,6 @@ import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import kotlinx.coroutines.launch
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProdukScreen(
@@ -44,7 +45,7 @@ fun AddProdukScreen(
 ) {
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
-    var spesifikasi by remember { mutableStateOf("") }
+    var spesifikasi by remember { mutableStateOf(listOf(Pair("", ""))) }
     var harga by remember { mutableStateOf("") }
     var stok by remember { mutableStateOf("") }
     var kategori by remember { mutableStateOf("") }
@@ -85,16 +86,28 @@ fun AddProdukScreen(
                 ) {
                     Button(
                         onClick = {
-                            if (nama.isNotBlank() && deskripsi.isNotBlank() && spesifikasi.isNotBlank()
+                            // Filter out completely empty pairs first.
+                            val specs = spesifikasi.filter { it.first.isNotBlank() || it.second.isNotBlank() }
+                            // For the remaining pairs, the property (first) must be filled.
+                            val isSpesifikasiValid = specs.all { it.first.isNotBlank() }
+
+                            if (nama.isNotBlank() && deskripsi.isNotBlank() && isSpesifikasiValid
                                 && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()
                             ) {
                                 isLoading = true
+                                val spesifikasiString = specs.joinToString(",") { pair ->
+                                    if (pair.second.isNotBlank()) {
+                                        "${pair.first}:${pair.second}"
+                                    } else {
+                                        pair.first
+                                    }
+                                }
 
                                 // Simpan produk, handling upload di ViewModel
                                 saveProduct(
                                     nama = nama,
                                     deskripsi = deskripsi,
-                                    spesifikasi = spesifikasi,
+                                    spesifikasi = spesifikasiString,
                                     harga = harga,
                                     stok = stok,
                                     kategori = kategori,
@@ -105,7 +118,16 @@ fun AddProdukScreen(
                                     onComplete = { isLoading = false }
                                 )
                             } else {
-                                scope.launch { snackbarHostState.showSnackbar("Semua field harus diisi") }
+                                val errorMessage = when {
+                                    nama.isBlank() -> "Nama produk harus diisi"
+                                    deskripsi.isBlank() -> "Deskripsi produk harus diisi"
+                                    !isSpesifikasiValid -> "Properti pada spesifikasi tidak boleh kosong"
+                                    harga.isBlank() -> "Harga harus diisi"
+                                    stok.isBlank() -> "Stok harus diisi"
+                                    kategori.isBlank() -> "Kategori harus diisi"
+                                    else -> "Semua field harus diisi"
+                                }
+                                scope.launch { snackbarHostState.showSnackbar(errorMessage) }
                             }
                         },
                         enabled = !isLoading, // Disable tombol saat loading
@@ -188,16 +210,49 @@ fun AddProdukScreen(
                         minLines = 3,
                     )
 
-                    OutlinedTextField(
-                        value = spesifikasi,
-                        onValueChange = { spesifikasi = it },
-                        label = { Text("Spesifikasi Produk") },
-                        placeholder = { Text("Contoh: Rangka Carbon, Suspensi 100mm") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        maxLines = Int.MAX_VALUE,
-                        minLines = 3,
-                    )
+                    // Spesifikasi Produk Dinamis
+                    Text("Spesifikasi Produk", style = MaterialTheme.typography.titleMedium)
+                    spesifikasi.forEachIndexed { index, pair ->
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = pair.first,
+                                onValueChange = {
+                                    val newList = spesifikasi.toMutableList()
+                                    newList[index] = pair.copy(first = it)
+                                    spesifikasi = newList
+                                },
+                                label = { Text("Properti") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            OutlinedTextField(
+                                value = pair.second,
+                                onValueChange = {
+                                    val newList = spesifikasi.toMutableList()
+                                    newList[index] = pair.copy(second = it)
+                                    spesifikasi = newList
+                                },
+                                label = { Text("Value") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            IconButton(onClick = {
+                                if (spesifikasi.size > 1) {
+                                    val newList = spesifikasi.toMutableList()
+                                    newList.removeAt(index)
+                                    spesifikasi = newList
+                                }
+                            }) {
+                                Icon(Icons.Default.Remove, contentDescription = "Hapus Spesifikasi")
+                            }
+                        }
+                    }
+                    Button(onClick = { spesifikasi = spesifikasi + Pair("", "") }) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Tambah Spesifikasi")
+                    }
+
 
                     // Row inputan Harga & Stok
                     Row(
