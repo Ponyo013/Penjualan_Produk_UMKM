@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.room.Update
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
@@ -63,7 +64,7 @@ fun EditProdukScreen(
     }
 
     var harga by remember { mutableStateOf(String.format(Locale("in", "ID"), "%,.0f", produk.harga)) }
-    var hargaNumber by remember { mutableDoubleStateOf(0.0) }
+    var hargaNumber by remember { mutableDoubleStateOf(produk.harga) }
 
     var stok by remember { mutableStateOf(produk.stok.toString()) }
     var kategori by remember { mutableStateOf(produk.kategori) }
@@ -164,19 +165,29 @@ fun EditProdukScreen(
                                             }
                                         }
 
-                                    saveProduct(
+                                    val updatedProduk = produk.copy(
                                         nama = nama,
                                         deskripsi = deskripsi,
                                         spesifikasi = spesifikasiString,
                                         harga = hargaNumber,
-                                        stok = stok,
-                                        kategori = kategori,
-                                        gambarUri = newGambarUri,
-                                        viewModel = produkViewModel,
-                                        context = context,
-                                        onSuccess = { showDialogBerhasil = true },
-                                        onComplete = { isLoading = false }
+                                        stok = stok.toIntOrNull() ?: 0,
+                                        kategori = kategori
                                     )
+
+                                    produkViewModel.updateProduk(
+                                        produk = updatedProduk,
+                                        newGambarUri = newGambarUri,
+                                        context = context
+                                    ) { success, errorMsg ->
+                                        isLoading = false
+                                        if (success) {
+                                            showDialogBerhasil = true
+                                        } else {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(errorMsg ?: "Gagal mengupdate produk")
+                                            }
+                                        }
+                                    }
                                 } else {
                                     val errorMessage = when {
                                         nama.isBlank() -> "Nama produk harus diisi"
