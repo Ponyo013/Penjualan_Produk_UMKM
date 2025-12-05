@@ -36,7 +36,7 @@ import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import kotlinx.coroutines.launch
-
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +46,10 @@ fun AddProdukScreen(
     var nama by remember { mutableStateOf("") }
     var deskripsi by remember { mutableStateOf("") }
     var spesifikasi by remember { mutableStateOf(listOf(Pair("", ""))) }
+
     var harga by remember { mutableStateOf("") }
+    var hargaNumber by remember { mutableDoubleStateOf(0.0) }
+
     var stok by remember { mutableStateOf("") }
     var kategori by remember { mutableStateOf("") }
     var expandedKategori by remember { mutableStateOf(false) }
@@ -86,33 +89,45 @@ fun AddProdukScreen(
                 ) {
                     Button(
                         onClick = {
-                            // Filter out completely empty pairs first.
-                            val specs = spesifikasi.filter { it.first.isNotBlank() || it.second.isNotBlank() }
+                            val filteredSpecs = spesifikasi.filter { it.first.isNotBlank() || it.second.isNotBlank() }
+                            val isAllSpecsEmpty = filteredSpecs.isEmpty()
+                            val isAnyLabelEmpty = filteredSpecs.any { it.first.isBlank() }
+                            val isAnyValue = filteredSpecs.any {it.second.isBlank() }
 
-                            // For the remaining pairs, the property (first) must be filled.
-                            val isSpesifikasiValid = specs.all { it.first.isNotBlank() }
-
-                            if (nama.isNotBlank() && deskripsi.isNotBlank() && isSpesifikasiValid
-                                && harga.isNotBlank() && stok.isNotBlank() && kategori.isNotBlank()
+                            // Validasi
+                            if (nama.isNotBlank() &&
+                                deskripsi.isNotBlank() &&
+                                harga.isNotBlank() &&
+                                stok.isNotBlank() &&
+                                kategori.isNotBlank()
                             ) {
-                                isLoading = true
-                                val spesifikasiString = specs.joinToString(",") { pair ->
-                                    if (pair.second.isNotBlank()) {
-                                        "${pair.first}:${pair.second}"
-                                    } else {
-                                        pair.first
-                                    }
+                                // Jika ada value tetapi label kosong → error
+                                if (isAnyLabelEmpty || isAnyValue) {
+                                    scope.launch { snackbarHostState.showSnackbar("properti/value spesifikasi tidak boleh kosong") }
+                                    return@Button
                                 }
 
-                                // Simpan produk, handling upload di ViewModel
+                                isLoading = true
+
+                                // Format spesifikasi
+                                val spesifikasiString =
+                                    if (isAllSpecsEmpty) {
+                                        "Tidak ada spesifikasi"
+                                    } else {
+                                        filteredSpecs.joinToString(",") { pair ->
+                                            if (pair.second.isNotBlank()) "${pair.first}:${pair.second}"
+                                            else pair.first
+                                        }
+                                    }
+
                                 saveProduct(
                                     nama = nama,
                                     deskripsi = deskripsi,
                                     spesifikasi = spesifikasiString,
-                                    harga = harga,
+                                    harga = hargaNumber,
                                     stok = stok,
                                     kategori = kategori,
-                                    gambarUri = gambarUri, // Bisa null
+                                    gambarUri = gambarUri,
                                     viewModel = produkViewModel,
                                     context = context,
                                     onSuccess = { showDialogBerhasil = true },
@@ -122,7 +137,6 @@ fun AddProdukScreen(
                                 val errorMessage = when {
                                     nama.isBlank() -> "Nama produk harus diisi"
                                     deskripsi.isBlank() -> "Deskripsi produk harus diisi"
-                                    !isSpesifikasiValid -> "Properti pada spesifikasi tidak boleh kosong"
                                     harga.isBlank() -> "Harga harus diisi"
                                     stok.isBlank() -> "Stok harus diisi"
                                     kategori.isBlank() -> "Kategori harus diisi"
@@ -152,14 +166,11 @@ fun AddProdukScreen(
                     .padding(padding)
                     .padding(16.dp),
             ) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(28.dp),
-
                     ) {
-
                     // Card Pilih Gambar
                     Box(
                         modifier = Modifier
@@ -297,8 +308,20 @@ fun AddProdukScreen(
                             // Inputan Harga
                             OutlinedTextField(
                                 value = harga,
-                                onValueChange = { harga = it.filter { c -> c.isDigit() } },
-                                placeholder = { Text("100000") },
+                                onValueChange = { newValue ->
+                                    val digits = newValue.filter { it.isDigit() }
+                                    val number = digits.toDoubleOrNull() ?: 0.0
+
+                                    hargaNumber = number
+
+                                    harga = if (digits.isNotEmpty()) {
+                                        String.format(Locale("in", "ID"), "%,.0f", number)
+                                    } else {
+                                        ""
+                                    }
+                                },
+                                prefix = { Text("Rp ") },
+                                placeholder = { Text("0") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 shape = RoundedCornerShape(12.dp),
@@ -427,7 +450,7 @@ fun saveProduct(
     nama: String,
     deskripsi: String,
     spesifikasi: String,
-    harga: String,
+    harga: Double,
     stok: String,
     kategori: String,
     gambarUri: Uri?, // Bisa kosong kalau sudah ada imageKitResult
@@ -441,7 +464,7 @@ fun saveProduct(
         nama = nama,
         deskripsi = deskripsi,
         spesifikasi = spesifikasi,
-        harga = harga.toDoubleOrNull() ?: 0.0,
+        harga = harga,
         stok = stok.toIntOrNull() ?: 0,
         kategori = kategori,
         gambarUrl = "",

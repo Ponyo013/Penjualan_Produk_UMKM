@@ -45,7 +45,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -252,8 +255,33 @@ fun ProdukInfo(produk: Produk?) {
                         style = MaterialTheme.typography.titleLarge
                     )
 
+                    val spesifikasiAnnotated = buildAnnotatedString {
+
+                        val raw = produk.spesifikasi.trim()
+
+                        // Jika tidak ada spesifikasi → tampilkan normal
+                        if (raw.equals("Tidak ada spesifikasi", ignoreCase = true)) {
+                            append(raw)
+                            return@buildAnnotatedString
+                        }
+
+                        // Jika ada spesifikasi → format label & value
+                        raw.split(",").forEach { item ->
+                            val parts = item.split(":")
+                            val label = parts.getOrNull(0) ?: ""
+                            val value = parts.getOrNull(1) ?: ""
+
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                append("$label: ")
+                            }
+                            append(value)
+                            append("\n")
+                        }
+                    }
+
+
                     Text(
-                        text = produk.spesifikasi,
+                        text = spesifikasiAnnotated,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -300,13 +328,13 @@ fun ImageBox(produk: Produk?, navController: NavHostController) {
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f)
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                         )
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
