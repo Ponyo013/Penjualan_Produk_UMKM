@@ -1,4 +1,4 @@
-package com.example.penjualan_produk_umkm.owner.dashboard
+package com.example.penjualan_produk_umkm.owner.dashboard.penjualan
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -24,6 +24,7 @@ import com.example.penjualan_produk_umkm.viewModel.PesananLengkap
 import org.threeten.bp.LocalDate
 import org.threeten.bp.Month
 import org.threeten.bp.format.DateTimeFormatter
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -250,7 +251,7 @@ fun LaporanPenjualanCard(pesananLengkap: PesananLengkap) {
             Spacer(modifier = Modifier.height(8.dp))
 
             // Info user, tanggal & metode pembayaran
-            val formatter = java.text.SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
+            val formatter = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
             val dateString = formatter.format(pesanan.tanggal.toDate())
 
             Column(modifier = Modifier.fillMaxWidth(),

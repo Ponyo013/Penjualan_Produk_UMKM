@@ -26,6 +26,8 @@ import com.example.penjualan_produk_umkm.owner.dashboard.*
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.owner.dashboard.penjualan.Keuangan
+import com.example.penjualan_produk_umkm.owner.dashboard.penjualan.Penjualan
 import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.AddProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.EditProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.ProdukDetailSc
@@ -70,6 +72,11 @@ class OwnerActivity : AppCompatActivity() {
                             ProdukManage(navController, produkViewModel)
                         }
 
+                        // Package Penjualan
+                        composable("penjualan"){
+                            Penjualan(navController, ownerProdukViewModel)
+                        }
+
                         composable("keuangan") {
                             Keuangan(navController, ownerProdukViewModel)
                         }
@@ -89,6 +96,7 @@ class OwnerActivity : AppCompatActivity() {
                         composable("SentimentDetailScreen") {
                             SentimentDetailScreen(navController)
                         }
+
 
                         // --- HALAMAN CRUD & DETAIL ---
 

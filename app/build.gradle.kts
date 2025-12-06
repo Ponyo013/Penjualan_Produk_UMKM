@@ -60,6 +60,9 @@ android {
 }
 
 dependencies {
+    // Charts
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
     // TensorFlow Lite
     implementation("org.tensorflow:tensorflow-lite:2.17.0")
 
@@ -109,6 +112,7 @@ dependencies {
     implementation(libs.androidx.foundation.layout)
     implementation(libs.material3)
     implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.runtime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
