@@ -9,10 +9,6 @@ data class ItemPesanan(
     var produkHarga: Double = 0.0,
     var gambarUrl: String = "",
 
-    // --- TAMBAHKAN BARIS INI ---
-    var gambarUrl: String = "",
-    // ----------------------------
-
     var jumlah: Int = 0,
 
     @field:JvmField
