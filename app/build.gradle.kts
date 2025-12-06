@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.androidx.ui.text)
     implementation(libs.androidx.runtime)
+    implementation(libs.androidx.animation)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

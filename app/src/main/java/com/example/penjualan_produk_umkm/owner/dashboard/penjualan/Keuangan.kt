@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm.owner.dashboard.penjualan
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,15 +9,22 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
@@ -24,13 +32,12 @@ import com.example.penjualan_produk_umkm.viewModel.PesananLengkap
 import org.threeten.bp.LocalDate
 import org.threeten.bp.Month
 import org.threeten.bp.format.DateTimeFormatter
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel){
+fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel) {
 
     // Load semua pesanan (realtime dari Firestore)
     val pesananList by viewModel.pesananList.collectAsState(initial = emptyList())
@@ -38,7 +45,7 @@ fun Keuangan(navController: NavController, viewModel: OwnerPesananViewModel){
     UMKMTheme {
         Scaffold(
             topBar = {
-                TopAppBar(title = { Text("Laporan Keuangan") }, navigationIcon = {
+                TopAppBar(title = { Text("Detail Transaksi") }, navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -104,7 +111,7 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                 }
             } else {
                 OutlinedButton(
-                    onClick = {selectedTab = tab  },
+                    onClick = { selectedTab = tab },
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary
                     ),
@@ -133,7 +140,8 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
     val filteredPesanan = pesananList.filter { pesananLengkap ->
         val status = pesananLengkap.pesanan.status
         // Filter Status: Hanya DIKIRIM atau SELESAI
-        val isValidStatus = status == StatusPesanan.DIKIRIM.name || status == StatusPesanan.SELESAI.name
+        val isValidStatus =
+            status == StatusPesanan.DIKIRIM.name || status == StatusPesanan.SELESAI.name
 
         if (!isValidStatus) return@filter false
 
@@ -142,7 +150,11 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
             val timestamp = pesananLengkap.pesanan.tanggal.toDate()
             val cal = Calendar.getInstance()
             cal.time = timestamp
-            LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+            LocalDate.of(
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.DAY_OF_MONTH)
+            )
         } catch (e: Exception) {
             LocalDate.now() // Fallback
         }
@@ -176,6 +188,7 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                 cal.time = timestamp
                 cal.get(Calendar.MONTH) + 1
             }
+
             "Tahunan" -> filteredPesanan.groupBy {
                 // Group by Year
                 val timestamp = it.pesanan.tanggal.toDate()
@@ -183,6 +196,7 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                 cal.time = timestamp
                 cal.get(Calendar.YEAR)
             }
+
             else -> mapOf(null to filteredPesanan)
         }
 
@@ -202,6 +216,7 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                                             if (it.isLowerCase()) it.titlecase(Locale("id")) else it.toString()
                                         }
                                 }
+
                                 "Tahunan" -> group.toString()
                                 else -> ""
                             },
@@ -215,106 +230,13 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                 }
 
                 items(list) { pesananLengkap ->
-                    LaporanPenjualanCard(pesananLengkap)
+                    LaporanPenjualanCardExpandable(pesananLengkap)
                 }
             }
         }
     }
 }
 
-@Composable
-fun LaporanPenjualanCard(pesananLengkap: PesananLengkap) {
-    // Data Items sudah ada di PesananLengkap, tidak perlu observe lagi dari ViewModel
-    val itemsForPesanan = pesananLengkap.items
-    val pesanan = pesananLengkap.pesanan
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            // Header: ID
-            Text(
-                text = "Pesanan #${pesanan.id.takeLast(8).uppercase()}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Info user, tanggal & metode pembayaran
-            val formatter = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
-            val dateString = formatter.format(pesanan.tanggal.toDate())
-
-            Column(modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text( text = "Customer: ${pesananLengkap.user?.nama ?: "Tidak diketahui"}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Tanggal: $dateString", style = MaterialTheme.typography.bodyMedium)
-                // Ekspedisi (Nama) belum disimpan di Pesanan Model, jadi sementara hide atau placeholder
-                Text(text = "Ekspedisi: -", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Pembayaran: ${pesanan.metodePembayaran.name}", style = MaterialTheme.typography.bodyMedium)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // List item
-            Column(modifier = Modifier.fillMaxWidth()) {
-                itemsForPesanan.forEach { item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "${item.produkNama} (x${item.jumlah})",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "Rp ${String.format("%,.0f", item.produkHarga * item.jumlah)}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Total harga & jumlah item
-            val totalHarga = itemsForPesanan.sumOf { it.produkHarga * it.jumlah }
-            val totalItem = itemsForPesanan.sumOf { it.jumlah }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Total Item: $totalItem",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "Total: Rp ${String.format("%,.0f", totalHarga)}",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-// ... (Bagian DatePickerDialog tetap sama seperti sebelumnya, copy dari kode lama Anda jika belum ada) ...
 @Composable
 fun DatePickerDialog(
     onDismissRequest: () -> Unit,
@@ -324,7 +246,8 @@ fun DatePickerDialog(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = today.toEpochDay() * 24 * 60 * 60 * 1000
     )
-    Dialog(onDismissRequest = onDismissRequest,
+    Dialog(
+        onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Box(
@@ -353,7 +276,7 @@ fun DatePickerDialog(
                     headline = {
                         Text(
                             datePickerState.selectedDateMillis?.let {
-                                val selectedDate = LocalDate.ofEpochDay(it / (24*60*60*1000))
+                                val selectedDate = LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
                                 selectedDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
                             } ?: "",
                             style = MaterialTheme.typography.headlineSmall,
@@ -383,12 +306,178 @@ fun DatePickerDialog(
                     }
                     TextButton(onClick = {
                         datePickerState.selectedDateMillis?.let {
-                            val selectedDate = LocalDate.ofEpochDay(it / (24*60*60*1000))
+                            val selectedDate = LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000))
                             onDateChange(selectedDate)
                             onDismissRequest()
                         }
                     }) {
                         Text("OK", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LaporanPenjualanCardExpandable(pesananLengkap: PesananLengkap) {
+    val pesanan = pesananLengkap.pesanan
+    var expanded by remember { mutableStateOf(false) }
+    val itemsForPesanan = pesananLengkap.items
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .animateContentSize(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        shape = RoundedCornerShape(8.dp),
+        onClick = { expanded = !expanded }
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val imageModel = itemsForPesanan.firstOrNull()?.gambarUrl ?: ""
+                AsyncImage(
+                    model = imageModel.ifEmpty { R.drawable.ic_error_image },
+                    contentDescription = "Gambar Produk",
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "#${pesanan.id.take(5).uppercase()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Customer: ${pesananLengkap.user?.nama ?: "-"}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "${itemsForPesanan.size} item",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = "Expand",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+
+            // Detail (hanya muncul jika expanded = true)
+            if (expanded) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 12.dp)
+                ) {
+                    itemsForPesanan.forEach { item ->
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = "Metode Pembayaran: ${pesanan.metodePembayaran}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Expedisi: ${pesananLengkap.ekspedisi?.nama ?: "-"}",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                text = "Alamat: ${pesananLengkap.user?.alamat ?: "-"}",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+
+                        Text(
+                            text = "Detail Pesanan",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Nama produk
+                            Text(
+                                modifier = Modifier.weight(2f),
+                                text = "${item.produkNama}\n(Rp ${
+                                    String.format(
+                                        "%,.0f",
+                                        item.produkHarga
+                                    )
+                                })",
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 3,
+                            )
+
+                            // Jumlah
+                            Text(
+                                modifier = Modifier.weight(0.3f),
+                                text = "X${item.jumlah}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+
+                            // Harga total
+                            Text(
+                                modifier = Modifier.weight(1f),
+                                text = "Rp ${
+                                    String.format(
+                                        "%,.0f",
+                                        item.produkHarga * item.jumlah
+                                    )
+                                }",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    val totalHarga = itemsForPesanan.sumOf { it.produkHarga * it.jumlah }
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
+                        thickness = 1.dp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Rp ${String.format("%,.0f", totalHarga)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

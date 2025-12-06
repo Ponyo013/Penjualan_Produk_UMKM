@@ -7,6 +7,7 @@ data class ItemPesanan(
 
     var produkNama: String = "",
     var produkHarga: Double = 0.0,
+    var gambarUrl: String = "",
 
     // --- TAMBAHKAN BARIS INI ---
     var gambarUrl: String = "",
