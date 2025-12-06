@@ -134,6 +134,7 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
                     produkId = produk.id,
                     produkNama = produk.nama,
                     produkHarga = produk.harga,
+                    gambarUrl = produk.gambarUrl,
                     jumlah = 1,
                     isSelected = true
                 )

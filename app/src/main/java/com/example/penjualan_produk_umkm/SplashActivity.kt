@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.penjualan_produk_umkm.utils.DataSeeder
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
@@ -34,6 +35,9 @@ class SplashActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }, 2500)
+        val prefs = getSharedPreferences("seeder_prefs", MODE_PRIVATE)
+        prefs.edit().clear().apply() // <--- INI MENGHAPUS SEMUA STATUS SEEDING
+        DataSeeder.seedProducts(this)
     }
 
 

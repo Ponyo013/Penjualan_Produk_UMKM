@@ -3,7 +3,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph_client"
     app:startDestination="@id/BerandaFragment">
+    <fragment
+        android:id="@+id/articleDetailFragment"
+        android:name="com.example.penjualan_produk_umkm.client.ui.detailProduk.ArticleDetailFragment"
+        android:label="Artikel"
+        tools:layout="@layout/fragment_article_detail">
 
+        <argument
+            android:name="ARG_ID"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="ARG_TITLE"
+            app:argType="string"
+            android:defaultValue="Artikel" />
+        <argument
+            android:name="ARG_IMAGE"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
     <fragment
         android:id="@+id/BerandaFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.BerandaFragment"
@@ -14,7 +32,9 @@
             android:name="showBottomNav"
             app:argType="boolean"
             android:defaultValue="true" />
-
+        <action
+            android:id="@+id/action_BerandaFragment_to_articleDetailFragment"
+            app:destination="@id/articleDetailFragment" />
         <action
             android:id="@+id/action_berandaFragment_to_notificationFragment"
             app:destination="@id/NotificationFragment" />

@@ -6,30 +6,30 @@
     android:layout_height="match_parent"
     tools:context=".client.ui.beranda.BerandaFragment">
 
-    <!-- Header (Fixed at the top) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/default_margin_x"
+        android:paddingStart="@dimen/default_margin_x"
+        android:paddingEnd="@dimen/default_margin_x"
         android:paddingVertical="16dp"
-        android:background="?android:attr/windowBackground" 
+        android:background="?android:attr/windowBackground"
+        android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Logo on the left -->
         <ImageView
             android:id="@+id/logo_icon"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="30dp"
+            android:adjustViewBounds="true"
             android:src="@drawable/logo"
             android:contentDescription="@null"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Notification Icon -->
         <FrameLayout
             android:id="@+id/notification_icon"
             android:layout_width="41dp"
@@ -48,7 +48,6 @@
                 android:contentDescription="@string/desc_notification_icon" />
         </FrameLayout>
 
-        <!-- Cart Icon -->
         <FrameLayout
             android:id="@+id/cart_icon"
             android:layout_width="41dp"
@@ -67,7 +66,6 @@
         </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -79,104 +77,104 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="@dimen/default_margin_x"
             android:paddingBottom="65dp">
 
-            <!-- Banner Produk -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/banner_product"
-                android:layout_width="match_parent"
-                android:layout_marginTop="8dp"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="230dp"
-                    android:scaleType="centerCrop"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/banner_produk"
-                    app:shapeAppearanceOverlay="@style/RoundedImageView"
-                    tools:ignore="MissingConstraints" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Search -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/search"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                app:layout_constraintTop_toBottomOf="@id/banner_product">
+                android:layout_marginTop="16dp"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="@dimen/default_margin_x"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
                 <androidx.compose.ui.platform.ComposeView
                     android:id="@+id/compose_search_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:ignore="MissingConstraints" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Category-->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/category"
-                android:layout_marginTop="18dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/search">
-
-                <!-- Container Horizontal -->
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:scrollbars="none"
-                    android:overScrollMode="never">
-
-                    <!-- Container Horizontal -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <LinearLayout android:id="@+id/cat_sparepart" style="@style/CategoryItemStyle">
-                            <ImageView android:src="@drawable/ic_part" style="@style/CategoryIconStyle" />
-                            <TextView android:text="Spare Parts" style="@style/CategoryTextStyle" />
-                        </LinearLayout>
-
-                        <LinearLayout android:id="@+id/cat_aksesoris" style="@style/CategoryItemStyle">
-                            <ImageView android:src="@drawable/aksesoris" style="@style/CategoryIconStyle" />
-                            <TextView android:text="Aksesoris" style="@style/CategoryTextStyle" />
-                        </LinearLayout>
-
-                        <LinearLayout android:id="@+id/cat_sepeda_induk" style="@style/CategoryItemStyle">
-                            <ImageView android:src="@drawable/ic_mtb" style="@style/CategoryIconStyle" />
-                            <TextView android:text="Sepeda" style="@style/CategoryTextStyle" />
-                        </LinearLayout>
-
-                    </LinearLayout>
-                </HorizontalScrollView>
+                    app:layout_constraintStart_toStartOf="parent"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- List Product Sementara-->
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/list_product"
-                android:layout_marginTop="24dp"
+                android:id="@+id/section_articles"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/category">
+                android:layout_marginTop="16dp"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="@dimen/default_margin_x"
+                app:layout_constraintTop_toBottomOf="@id/search"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_popular_products"
+                    android:id="@+id/rv_articles"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:listitem="@layout/item_product"
-                    tools:spanCount="2" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    tools:itemCount="3"
+                    tools:listitem="@layout/item_artikel"
+                    tools:spanCount="2"
+                    tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/tv_rekomendasi_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rekomendasi Produk"
+                android:fontFamily="@font/montserrat_bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:layout_marginStart="@dimen/default_margin_x"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@id/section_articles"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_recommendation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="@dimen/default_margin_x"
+                android:clipToPadding="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/tv_rekomendasi_title"
+                tools:listitem="@layout/item_recommendation"/>
+
+            <TextView
+                android:id="@+id/tv_terlaris_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Produk Terlaris"
+                android:fontFamily="@font/montserrat_bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:layout_marginStart="@dimen/default_margin_x"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@id/rv_recommendation"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_popular_products"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="@dimen/default_margin_x"
+                android:nestedScrollingEnabled="false"
+                app:layout_constraintTop_toBottomOf="@id/tv_terlaris_title"
+                tools:listitem="@layout/item_product"
+                tools:spanCount="2" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

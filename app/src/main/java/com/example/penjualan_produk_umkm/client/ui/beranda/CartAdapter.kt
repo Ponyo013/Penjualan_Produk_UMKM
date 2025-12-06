@@ -8,6 +8,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import java.text.NumberFormat
@@ -76,16 +77,15 @@ class CartAdapter(
             quantity.text = item.jumlah.toString()
 
             // 5. Gambar
-            // Catatan: Saat ini ItemPesanan di Firebase belum menyimpan URL gambar.
-            // Jadi kita gunakan placeholder default agar tidak error/kosong.
-            productImage.setImageResource(R.drawable.ic_error_image)
-
-            // Jika nanti Anda menambahkan field 'gambarUrl' di ItemPesanan, gunakan kode ini:
-            /*
             if (item.gambarUrl.isNotEmpty()) {
-                productImage.load(item.gambarUrl) { ... }
+                productImage.load(item.gambarUrl) {
+                    crossfade(true)
+                    placeholder(R.color.grey)
+                    error(R.drawable.ic_error_image)
+                }
+            } else {
+                productImage.setImageResource(R.drawable.ic_error_image)
             }
-            */
 
             // 6. Aksi Tombol
             increaseButton.setOnClickListener { onIncrease(item) }

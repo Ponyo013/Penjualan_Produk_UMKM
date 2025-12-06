@@ -61,6 +61,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Harga Tertinggi" />
+
         </com.google.android.material.chip.ChipGroup>
 
         <View style="@style/DividerStyle" />
@@ -74,6 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:singleSelection="true">
+
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_cat_all"
                 style="@style/CustomChipStyle"
@@ -102,6 +104,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Aksesoris" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_cat_perawatan"
+                style="@style/CustomChipStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Perawatan" />
+
         </com.google.android.material.chip.ChipGroup>
 
         <View style="@style/DividerStyle" />

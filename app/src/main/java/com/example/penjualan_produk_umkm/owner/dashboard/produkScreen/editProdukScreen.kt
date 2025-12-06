@@ -88,7 +88,7 @@ fun EditProdukScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
+    val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda", "Perawatan")
     var expandedKategori by remember { mutableStateOf(false) }
 
     UMKMTheme {

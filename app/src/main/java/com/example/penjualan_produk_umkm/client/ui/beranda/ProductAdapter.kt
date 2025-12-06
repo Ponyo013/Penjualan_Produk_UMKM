@@ -15,7 +15,8 @@ import java.util.*
 
 class ProductAdapter(
     private var products: List<Produk>,
-    private val onItemClick: (String) -> Unit // FIX: ID is now String
+    private val onItemClick: (String) -> Unit
+    // Callback onAddToCartClick DIHAPUS
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -24,27 +25,19 @@ class ProductAdapter(
         private val productPrice: TextView = itemView.findViewById(R.id.product_price)
         private val productRating: TextView = itemView.findViewById(R.id.product_rating)
         private val productSoldCount: TextView = itemView.findViewById(R.id.product_sold_count)
+        // private val btnQuickAdd DIHAPUS
 
         @SuppressLint("SetTextI18n")
         fun bind(produk: Produk) {
-            // Nama produk
             productName.text = produk.nama
-
-            // Rating produk
             productRating.text = String.format(Locale.US, "%.1f", produk.rating)
+            productSoldCount.text = "Terjual ${produk.terjual}"
 
-            // Harga (format Rupiah)
             val formatRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID")).apply {
                 maximumFractionDigits = 0
             }
-            val formattedPrice = formatRupiah.format(produk.harga).replace("Rp", "Rp ").trim()
-            productPrice.text = formattedPrice
+            productPrice.text = formatRupiah.format(produk.harga).replace("Rp", "Rp ").trim()
 
-            // Jumlah terjual
-            productSoldCount.text = "Terjual ${produk.terjual}"
-
-            // FIX: Load Image from URL (Firestore)
-            // We use R.drawable.ic_error_image as placeholder if URL is empty
             if (produk.gambarUrl.isNotEmpty()) {
                 productImage.load(produk.gambarUrl) {
                     placeholder(R.color.grey)
@@ -52,16 +45,15 @@ class ProductAdapter(
                     crossfade(true)
                 }
             } else {
-                // If you want to support legacy local images for testing, you might need logic here,
-                // but for pure Firestore migration, use placeholder.
                 productImage.setImageResource(R.drawable.ic_error_image)
             }
 
-            // Klik item
             itemView.setOnClickListener { onItemClick(produk.id) }
+            // Listener btnQuickAdd DIHAPUS
         }
     }
 
+    // ... onCreateViewHolder, onBindViewHolder, getItemCount, updateProducts TETAP SAMA ...
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_product, parent, false)

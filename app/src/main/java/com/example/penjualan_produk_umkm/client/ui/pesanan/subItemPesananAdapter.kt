@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import coil.load // Pastikan import coil ada
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan // Gunakan Model Firestore
 import com.example.penjualan_produk_umkm.databinding.SubItemProdukPesananBinding
@@ -52,11 +53,16 @@ class SubItemPesananAdapter(private val items: List<ItemPesanan>) :
             val subtotal = item.produkHarga * item.jumlah
             val subtotalFormatted = numberFormat.format(subtotal)
             binding.tvProductSubtotal.text = subtotalFormatted.replace("Rp", "Rp ")
-
-            // Gambar produk
-            // Karena ItemPesanan tidak menyimpan URL gambar, kita pakai placeholder default
-            // Jika ingin tampil, Anda harus menambah field 'gambarUrl' di model ItemPesanan & logic checkout
-            binding.ivProductImage.setImageResource(R.drawable.shape_image_placeholder)
+            if (item.gambarUrl.isNotEmpty()) {
+                binding.ivProductImage.load(item.gambarUrl) {
+                    crossfade(true)
+                    placeholder(R.color.grey) // Warna abu-abu saat loading
+                    error(R.drawable.ic_error_image) // Gambar default jika error
+                }
+            } else {
+                // Fallback jika URL kosong
+                binding.ivProductImage.setImageResource(R.drawable.ic_error_image)
+            }
         }
     }
 }

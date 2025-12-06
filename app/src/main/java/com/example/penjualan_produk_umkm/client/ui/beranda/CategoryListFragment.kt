@@ -1,9 +1,8 @@
-// File: com/example/penjualan_produk_umkm/client/ui/beranda/CategoryListFragment.kt
-
 package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -12,10 +11,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
-import com.example.penjualan_produk_umkm.database.firestore.model.Produk // Pastikan Import Model Firestore
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.uiComponent.ProductFilterControls
 import com.example.penjualan_produk_umkm.uiComponent.ProductSortOption
+import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.google.android.material.appbar.MaterialToolbar
 
@@ -30,14 +31,12 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
     // State Filter & Sort
     private var currentSort: ProductSortOption = ProductSortOption.TERBARU
     private var isReadyStockFilter: Boolean = false
-
-    // List produk lengkap yang sudah difilter berdasarkan kategori
     private var baseCategoryProducts: List<Produk> = emptyList()
 
-    // FIX 1: Hapus AppDatabase, gunakan ViewModelFactory kosong
-    private val viewModel: ProdukViewModel by viewModels {
-        ViewModelFactory()
-    }
+    private val viewModel: ProdukViewModel by viewModels { ViewModelFactory() }
+
+    // TAMBAHAN: CartViewModel untuk fitur add to cart
+    private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,31 +58,27 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
 
         // Setup RecyclerView
         recyclerView.layoutManager = GridLayoutManager(context, 2)
-        productAdapter = ProductAdapter(emptyList()) { productId ->
-            // FIX 2: ID Produk sekarang String
-            val bundle = Bundle().apply { putString("productId", productId) }
-            findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
-        }
+
+        // FIX: Inisialisasi Adapter dengan 3 Parameter
+        productAdapter = ProductAdapter(
+            products = emptyList(),
+            onItemClick = { productId ->
+                val bundle = Bundle().apply { putString("productId", productId) }
+                findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
+            },
+
+        )
         recyclerView.adapter = productAdapter
 
-        // FIX 3: Amati data produk dari ViewModel (Firestore)
-        // Tidak perlu panggil viewModel.getAllProduk() manual jika di blok init ViewModel sudah dipanggil
-        // Tapi untuk memastikan data terupdate jika belum:
-        // viewModel.getAllProduk() // Opsional, tergantung implementasi VM Anda
-
         viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
-
-            // --- FILTER KATEGORI ---
             val filteredList = if (parentCategoryName != null) {
                 produkList.filter { it.kategori.equals(parentCategoryName, ignoreCase = true) }
             } else {
                 produkList
             }
-
             baseCategoryProducts = filteredList
             applyFiltersAndSort()
 
-            // --- UPDATE COMPOSE UI ---
             filterSortContainer.setContent {
                 UMKMTheme {
                     ProductFilterControls(
@@ -103,30 +98,37 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
         }
     }
 
-    /**
-     * Fungsi utama untuk menerapkan filter dan sorting pada daftar produk.
-     */
     private fun applyFiltersAndSort() {
         var resultList = baseCategoryProducts
-
-        // A. FILTER READY STOCK
         if (isReadyStockFilter) {
             resultList = resultList.filter { it.stok > 0 }
         }
-
-        // B. SORTING
         resultList = when (currentSort) {
-            // FIX 4: Firestore ID adalah String, sortedByDescending id mungkin kurang efektif untuk "Terbaru"
-            // jika ID-nya random string. Idealnya ada field 'tanggalUpload' di Firestore.
-            // Tapi untuk sekarang biarkan sortedByDescending { it.id } atau { it.nama }
-            ProductSortOption.TERBARU -> resultList // Sementara tampilkan apa adanya atau sort by name
+            ProductSortOption.TERBARU -> resultList
             ProductSortOption.TERLARIS -> resultList.sortedByDescending { it.terjual }
             ProductSortOption.HARGA_MAHAL -> resultList.sortedByDescending { it.harga }
             ProductSortOption.HARGA_MURAH -> resultList.sortedBy { it.harga }
         }
-
-        // C. Update UI
         productAdapter.updateProducts(resultList)
+    }
+
+    // Fungsi Helper Add to Cart
+    private fun addToCart(produk: Produk) {
+        if (produk.stok <= 0) {
+            Toast.makeText(context, "Stok habis!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val item = ItemPesanan(
+            id = "",
+            produkId = produk.id,
+            produkNama = produk.nama,
+            produkHarga = produk.harga,
+            gambarUrl = produk.gambarUrl,
+            jumlah = 1,
+            isSelected = true
+        )
+        cartViewModel.insertItem(item)
+        Toast.makeText(context, "Masuk Keranjang", Toast.LENGTH_SHORT).show()
     }
 
     companion object {

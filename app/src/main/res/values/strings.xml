@@ -102,4 +102,35 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+
+    <string name="article_title_maintenance">Cara Mudah Merawat Sepeda agar Awet &amp; Performa Maksimal</string>
+    <string name="article_date">Diterbitkan oleh Tim Dwi Usaha • 5 Menit Baca</string>
+
+    <string name="article_intro">
+        Merawat sepeda sebenarnya tidak sulit, tapi perlu konsistensi supaya performanya tetap optimal dan umur komponen lebih panjang.
+        \n\nSebagai toko sepeda yang peduli dengan gowesan Anda, Dwi Usaha merangkum panduan praktis untuk Anda.
+    </string>
+
+    <string name="article_section_1_title">1. Ketahui Frekuensi Perawatan</string>
+    <string name="article_section_1_body">
+        Frekuensi perawatan tergantung pada intensitas pemakaian. Berikut panduan singkatnya:
+    </string>
+
+    <string name="article_tips_daily_title">Harian (Komuter)</string>
+    <string name="article_tips_daily_desc">Cek tekanan ban, fungsi rem, dan baut longgar setiap selesai gowes.</string>
+
+    <string name="article_tips_weekly_title">2–3 Kali Seminggu</string>
+    <string name="article_tips_weekly_desc">Bersihkan rantai dan lap frame setiap 1-2 minggu sekali.</string>
+
+    <string name="article_tips_monthly_title">Gowes Akhir Pekan</string>
+    <string name="article_tips_monthly_desc">Periksa kampas rem dan kabel shifting setiap 1 bulan sekali.</string>
+
+    <string name="article_tips_mud_title">Setelah Hujan/Lumpur</string>
+    <string name="article_tips_mud_desc">Wajib langsung cuci drivetrain dan lumasi rantai untuk hindari karat!</string>
+
+    <string name="article_section_2_title">2. Inspeksi Frame &amp; Kerusakan</string>
+    <string name="article_section_2_body">
+        Luangkan 15 menit per minggu. Periksa frame untuk mendeteksi retak halus atau cat terkelupas. Jika ragu, jangan perbaiki sendiri.
+        \n\n<b>Bawa ke Bengkel Dwi Usaha:</b> Mekanik kami siap membantu mengatasi keluhan sepeda Anda agar kembali prima.
+    </string>
 </resources>

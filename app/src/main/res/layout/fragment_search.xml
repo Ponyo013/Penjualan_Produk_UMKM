@@ -35,9 +35,8 @@
             <androidx.compose.ui.platform.ComposeView
                 android:id="@+id/compose_search_bar_full"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_weight="1" />
-
             <FrameLayout
                 android:id="@+id/btn_filter"
                 android:layout_width="48dp"
@@ -57,7 +56,6 @@
             </FrameLayout>
         </LinearLayout>
     </LinearLayout>
-
     <androidx.core.widget.NestedScrollView
         android:id="@+id/layout_idle_state"
         android:layout_width="match_parent"

@@ -53,7 +53,7 @@ fun AddProdukScreen(
     var stok by remember { mutableStateOf("") }
     var kategori by remember { mutableStateOf("") }
     var expandedKategori by remember { mutableStateOf(false) }
-    val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda")
+    val kategoriOptions = listOf("Aksesoris", "Spare Parts", "Sepeda", "Perawatan")
     var gambarUri by remember { mutableStateOf<Uri?>(null) }
 
     var showDialogBerhasil by remember { mutableStateOf(false) }

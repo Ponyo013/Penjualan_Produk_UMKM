@@ -12,10 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.client.ui.beranda.ProductAdapter
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.databinding.FragmentSearchBinding
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.utils.SearchDataManager
+import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import java.util.Locale
 
@@ -25,14 +27,15 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private val binding get() = _binding!!
 
     private val viewModel: ProdukViewModel by viewModels { ViewModelFactory() }
+    // TAMBAHAN: CartViewModel
+    private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
+
     private lateinit var dataManager: SearchDataManager
 
-    // Adapters
     private lateinit var searchResultAdapter: ProductAdapter
     private lateinit var recentSearchAdapter: RecentSearchAdapter
     private lateinit var recentlyViewedAdapter: RecentlyViewedAdapter
 
-    // Filter State
     private var currentQuery: String = ""
     private var minPrice: Double = 0.0
     private var maxPrice: Double = Double.MAX_VALUE
@@ -46,48 +49,61 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
         setupUI()
         setupAdapters()
-        loadIdleData()
+        showIdleView()
 
-        // Load All Products (for filtering and recently viewed mapping)
         if (viewModel.allProduk.value.isNullOrEmpty()) {
             viewModel.getAllProduk()
         }
 
-        // Observe data changes to update views
         viewModel.allProduk.observe(viewLifecycleOwner) { list ->
-            // Update Recently Viewed (Mapping ID -> Object)
             updateRecentlyViewedList(list)
-
-            // If we are searching, update results
-            if (currentQuery.isNotEmpty()) applyFilters(list)
+            if (currentQuery.isNotEmpty() || currentCategory != "Semua") {
+                applyFilters(list)
+            }
         }
     }
 
+    // ... (setupUI, handleSearchInput, helper view tetap sama) ...
     private fun setupUI() {
         binding.btnBack.setOnClickListener { findNavController().popBackStack() }
 
         binding.composeSearchBarFull.setContent {
             SearchBar(
+                readOnly = false, // Mode mengetik
+                autoFocus = true, // KEYBOARD MUNCUL OTOMATIS
                 onQueryChange = { query ->
-                    // Ini dipanggil setiap karakter diketik (REALTIME FILTER)
                     handleSearchInput(query)
                 },
                 onSearchClicked = { query ->
-                    // Ini HANYA dipanggil saat tombol Enter/Search ditekan
                     if (query.isNotBlank()) {
-                        dataManager.saveSearchHistory(query) // Simpan History di sini!
-                        Toast.makeText(context, "Disimpan ke riwayat", Toast.LENGTH_SHORT).show() // Feedback opsional
+                        dataManager.saveSearchHistory(query)
                     }
                 }
             )
         }
+
         binding.btnFilter.setOnClickListener {
-            val bottomSheet = FilterBottomSheetFragment { sort, cat, min, max ->
+            val bottomSheet = FilterBottomSheetFragment.newInstance(
+                currentSort, currentCategory, minPrice, maxPrice
+            )
+            bottomSheet.setOnApplyListener { sort, cat, min, max ->
                 currentSort = sort
                 currentCategory = cat
                 minPrice = min
                 maxPrice = max
-                applyFilters()
+
+                val isFilterActive = (currentCategory != "Semua") || (minPrice > 0) || (maxPrice < Double.MAX_VALUE)
+
+                if (currentQuery.isNotEmpty()) {
+                    showResultView()
+                } else if (isFilterActive) {
+                    showResultView()
+                } else {
+                    showIdleView()
+                }
+
+                val listData = viewModel.allProduk.value
+                if (listData != null) applyFilters(listData) else viewModel.getAllProduk()
             }
             bottomSheet.show(parentFragmentManager, "FilterBottomSheet")
         }
@@ -101,34 +117,46 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private fun handleSearchInput(query: String) {
         currentQuery = query
         if (query.isNotEmpty()) {
-            // Mode: SEARCHING (Tampilkan hasil tapi JANGAN simpan history otomatis)
-            binding.layoutIdleState.visibility = View.GONE
-            binding.recyclerSearchResults.visibility = View.VISIBLE
-
-            applyFilters() // Filter produk realtime
+            showResultView()
+            applyFilters()
         } else {
-            // Mode: IDLE (Kosong)
-            binding.layoutIdleState.visibility = View.VISIBLE
-            binding.recyclerSearchResults.visibility = View.GONE
-            loadIdleData() // Tampilkan history
+            val isFilterActive = (currentCategory != "Semua") || (minPrice > 0) || (maxPrice < Double.MAX_VALUE)
+            if (isFilterActive) {
+                showResultView()
+                applyFilters()
+            } else {
+                showIdleView()
+            }
         }
     }
 
+    private fun showResultView() {
+        binding.layoutIdleState.visibility = View.GONE
+        binding.recyclerSearchResults.visibility = View.VISIBLE
+    }
+
+    private fun showIdleView() {
+        binding.layoutIdleState.visibility = View.VISIBLE
+        binding.recyclerSearchResults.visibility = View.GONE
+        loadIdleData()
+    }
+
     private fun setupAdapters() {
-        // 1. Search Results (Grid)
-        searchResultAdapter = ProductAdapter(emptyList()) { productId ->
-            openDetail(productId)
-        }
+        // 1. Search Results (Grid) -> FIX Parameter
+        searchResultAdapter = ProductAdapter(
+            products = emptyList(),
+            onItemClick = { productId ->
+                openDetail(productId)
+            }
+        )
         binding.recyclerSearchResults.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerSearchResults.adapter = searchResultAdapter
 
-        // 2. Recent Search (Vertical)
+        // 2. Recent Search
         recentSearchAdapter = RecentSearchAdapter(
             mutableListOf(),
             onClick = { query ->
-                // Trigger search from history
-                // Note: Idealnya update text di searchbar, tapi krn Compose, kita trigger logicnya saja
-                handleSearch(query)
+                handleSearchInput(query)
                 Toast.makeText(context, "Mencari: $query", Toast.LENGTH_SHORT).show()
             },
             onRemove = { query ->
@@ -139,7 +167,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         binding.rvRecentSearch.layoutManager = LinearLayoutManager(context)
         binding.rvRecentSearch.adapter = recentSearchAdapter
 
-        // 3. Recently Viewed (Horizontal)
+        // 3. Recently Viewed
         recentlyViewedAdapter = RecentlyViewedAdapter(emptyList()) { productId ->
             openDetail(productId)
         }
@@ -147,33 +175,31 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         binding.rvRecentlyViewed.adapter = recentlyViewedAdapter
     }
 
-    private fun handleSearch(query: String) {
-        currentQuery = query
-        if (query.isNotEmpty()) {
-            // Mode: SEARCHING
-            binding.layoutIdleState.visibility = View.GONE
-            binding.recyclerSearchResults.visibility = View.VISIBLE
-
-            // Save history only if meaningful length
-            if(query.length > 2) dataManager.saveSearchHistory(query)
-
-            applyFilters()
-        } else {
-            // Mode: IDLE
-            binding.layoutIdleState.visibility = View.VISIBLE
-            binding.recyclerSearchResults.visibility = View.GONE
-            loadIdleData()
+    // Fungsi Helper Add to Cart
+    private fun addToCart(produk: Produk) {
+        if (produk.stok <= 0) {
+            Toast.makeText(context, "Stok habis!", Toast.LENGTH_SHORT).show()
+            return
         }
+        val item = ItemPesanan(
+            id = "",
+            produkId = produk.id,
+            produkNama = produk.nama,
+            produkHarga = produk.harga,
+            gambarUrl = produk.gambarUrl,
+            jumlah = 1,
+            isSelected = true
+        )
+        cartViewModel.insertItem(item)
+        Toast.makeText(context, "Berhasil masuk keranjang!", Toast.LENGTH_SHORT).show()
     }
 
+    // ... (sisa fungsi loadIdleData, updateRecentlyViewedList, applyFilters, openDetail, onDestroyView sama seperti sebelumnya) ...
+
     private fun loadIdleData() {
-        // Load History Text
         val history = dataManager.getSearchHistory()
         recentSearchAdapter.updateData(history)
         checkHistoryEmpty()
-
-        // Load Recently Viewed (Product IDs)
-        // Kita perlu menunggu data produk dari ViewModel untuk mapping ID -> Produk Asli
         viewModel.allProduk.value?.let { updateRecentlyViewedList(it) }
     }
 
@@ -189,11 +215,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private fun updateRecentlyViewedList(allProducts: List<Produk>) {
         val viewedIds = dataManager.getRecentlyViewedIds()
-        // Map IDs to Real Product Objects
         val viewedProducts = viewedIds.mapNotNull { id ->
             allProducts.find { it.id == id }
         }
-
         if (viewedProducts.isEmpty()) {
             binding.tvNoRecentView.visibility = View.VISIBLE
             binding.rvRecentlyViewed.visibility = View.GONE
@@ -210,7 +234,8 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
         var filteredList = sourceList.filter { produk ->
             val matchesQuery = if (currentQuery.isEmpty()) true else {
-                produk.nama.lowercase().contains(lowerCaseQuery)
+                produk.nama.lowercase().contains(lowerCaseQuery) ||
+                        produk.deskripsi.lowercase().contains(lowerCaseQuery)
             }
             val matchesPrice = produk.harga in minPrice..maxPrice
             val matchesCategory = if (currentCategory == "Semua") true else {
@@ -219,21 +244,17 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             matchesQuery && matchesPrice && matchesCategory
         }
 
-        // Sorting
         filteredList = when (currentSort) {
             "TERLARIS" -> filteredList.sortedByDescending { it.terjual }
             "HARGA_MURAH" -> filteredList.sortedBy { it.harga }
             "HARGA_MAHAL" -> filteredList.sortedByDescending { it.harga }
-            else -> filteredList // Terbaru
+            else -> filteredList
         }
-
         searchResultAdapter.updateProducts(filteredList)
     }
 
     private fun openDetail(productId: String) {
-        // Simpan ke Recently Viewed sebelum pindah
         dataManager.saveRecentlyViewed(productId)
-
         val bundle = Bundle().apply { putString("productId", productId) }
         findNavController().navigate(R.id.action_global_to_detailProdukFragment, bundle)
     }
