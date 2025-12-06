@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.vector.ImageVector // PENTING: Ini yang tadi
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -223,7 +222,7 @@ private fun Tanggal() {
 fun Buttons(navController: NavHostController){
     val buttonKategori = listOf(
         "Produk" to Icons.Filled.AllInbox,
-        "Keuangan" to Icons.Outlined.MonetizationOn,
+        "penjualan" to Icons.Outlined.MonetizationOn,
         "Kirim" to Icons.Outlined.NotificationAdd,
         "Expedisi" to Icons.Outlined.LocalShipping
     )
@@ -234,7 +233,7 @@ fun Buttons(navController: NavHostController){
                 OptButton(label, ikon) {
                     when (label) {
                         "Produk" -> navController.navigate("produkManage")
-                        "Keuangan" -> navController.navigate("Keuangan")
+                        "penjualan" -> navController.navigate("penjualan")
                         "Expedisi" -> navController.navigate("expedisi")
                         "Kirim" -> navController.navigate("kirimNotifikasi")
                     }

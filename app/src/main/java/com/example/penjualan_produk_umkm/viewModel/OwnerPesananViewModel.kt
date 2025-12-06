@@ -9,6 +9,7 @@ import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.User
+import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,13 @@ data class PesananLengkap(
     val ekspedisi: Ekspedisi? = null
 )
 
+data class ProdukTerjual(
+    val nama: String,
+    val stok: Int,
+    val jumlahTerjual: Int
+)
+
+
 class OwnerPesananViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
@@ -31,6 +39,9 @@ class OwnerPesananViewModel : ViewModel() {
     // StateFlow untuk UI List Pesanan (menggunakan model baru PesananLengkap)
     private val _pesananList = MutableStateFlow<List<PesananLengkap>>(emptyList())
     val pesananList: StateFlow<List<PesananLengkap>> get() = _pesananList
+
+    private val _produkTerjualList = MutableStateFlow<List<ProdukTerjual>>(emptyList())
+    val produkTerjualList: StateFlow<List<ProdukTerjual>> get() = _produkTerjualList
 
     init {
         loadAll()
@@ -123,28 +134,223 @@ class OwnerPesananViewModel : ViewModel() {
             .update("status", newStatus.name)
     }
 
-    // 5. Helper untuk mengambil item spesifik (Dipakai di Card Laporan Penjualan)
-    // --- BAGIAN INI YANG TADI TERPOTONG ---
-    fun getItemsForPesanan(pesananId: String): LiveData<List<ItemPesanan>> {
-        val result = MutableLiveData<List<ItemPesanan>>()
-        db.collection("itemPesanan")
-            .whereEqualTo("pesananId", pesananId)
-            .addSnapshotListener { snapshot, _ ->
-                val list = snapshot?.toObjects(ItemPesanan::class.java) ?: emptyList()
-                result.value = list
+
+    // -- View untuk Penjualan --
+
+    // Untuk mengambil value pendaptan kotor
+    fun getPendapatanKotor(): LiveData<Double> {
+        val result = MutableLiveData<Double>()
+        db.collection("pesanan")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val semuaPesanan = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
+
+                var totalPendapatan = 0.0
+                semuaPesanan.forEach { pesanan ->
+                    // Ambil semua item untuk pesanan ini
+                    db.collection("itemPesanan")
+                        .whereEqualTo("pesananId", pesanan.id)
+                        .get()
+                        .addOnSuccessListener { itemSnapshot ->
+                            val items = itemSnapshot.toObjects(ItemPesanan::class.java)
+                            val subtotal = items.sumOf { it.produkHarga }
+                            totalPendapatan += subtotal
+                            result.value = totalPendapatan
+                        }
+                }
+
+                // Jika tidak ada pesanan
+                if (semuaPesanan.isEmpty()) {
+                    result.value = 0.0
+                }
+            }
+            .addOnFailureListener {
+                result.value = 0.0
             }
         return result
     }
 
-    // 6. Helper untuk Laporan Keuangan (Semua Item)
-    fun getAllItems(): LiveData<List<ItemPesanan>> {
-        val result = MutableLiveData<List<ItemPesanan>>()
-        db.collection("itemPesanan")
+    // Untuk hasil persentase pendapatan kotor
+    fun getPersentasePesananPeriode(startTime: Long, endTime: Long): LiveData<Float> {
+        val result = MutableLiveData<Float>()
+        db.collection("pesanan")
+            .whereGreaterThanOrEqualTo("tanggal", startTime)
+            .whereLessThanOrEqualTo("tanggal", endTime)
             .get()
             .addOnSuccessListener { snapshot ->
-                val list = snapshot.toObjects(ItemPesanan::class.java)
-                result.value = list
+                val semuaPesanan = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
+                val total = semuaPesanan.size
+                val selesai = semuaPesanan.count { it.status == StatusPesanan.SELESAI.name }
+                val persentase = if (total > 0) (selesai.toFloat() / total.toFloat()) * 100f else 0f
+                result.value = persentase
+            }
+            .addOnFailureListener {
+                result.value = 0f
             }
         return result
     }
+
+    // Mengambil hasil penjualan hari ini
+    fun getHasilPenjualanHariIni(): LiveData<Double> {
+        val result = MutableLiveData<Double>()
+        viewModelScope.launch {
+            try {
+                val now = System.currentTimeMillis()
+                // Hitung awal dan akhir hari ini
+                val calendar = java.util.Calendar.getInstance()
+                calendar.timeInMillis = now
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                calendar.set(java.util.Calendar.MINUTE, 0)
+                calendar.set(java.util.Calendar.SECOND, 0)
+                calendar.set(java.util.Calendar.MILLISECOND, 0)
+                val startOfDay = calendar.timeInMillis
+
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                calendar.set(java.util.Calendar.MINUTE, 59)
+                calendar.set(java.util.Calendar.SECOND, 59)
+                calendar.set(java.util.Calendar.MILLISECOND, 999)
+                val endOfDay = calendar.timeInMillis
+
+                // Ambil pesanan selesai hari ini
+                val semuaPesananHariIni = db.collection("pesanan")
+                    .whereGreaterThanOrEqualTo("tanggal", startOfDay)
+                    .whereLessThanOrEqualTo("tanggal", endOfDay)
+                    .get()
+                    .await()
+                    .toObjects(Pesanan::class.java)
+                    .filter { it.status == StatusPesanan.SELESAI.name }
+
+                // Hitung total pendapatan hari ini
+                var totalPendapatan = 0.0
+                for (pesanan in semuaPesananHariIni) {
+                    val items = db.collection("itemPesanan")
+                        .whereEqualTo("pesananId", pesanan.id)
+                        .get()
+                        .await()
+                        .toObjects(ItemPesanan::class.java)
+                    totalPendapatan += items.sumOf { it.produkHarga }
+                }
+
+                result.value = totalPendapatan
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                result.value = 0.0
+            }
+        }
+        return result
+    }
+
+    fun getHasilPenjualanHariKemarin(): LiveData<Double> {
+        val result = MutableLiveData<Double>()
+        viewModelScope.launch {
+            try {
+                val calendar = java.util.Calendar.getInstance()
+
+                // Hari kemarin
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, -1)
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                calendar.set(java.util.Calendar.MINUTE, 0)
+                calendar.set(java.util.Calendar.SECOND, 0)
+                calendar.set(java.util.Calendar.MILLISECOND, 0)
+                val startOfYesterday = calendar.timeInMillis
+
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                calendar.set(java.util.Calendar.MINUTE, 59)
+                calendar.set(java.util.Calendar.SECOND, 59)
+                calendar.set(java.util.Calendar.MILLISECOND, 999)
+                val endOfYesterday = calendar.timeInMillis
+
+                val semuaPesananKemarin = db.collection("pesanan")
+                    .whereGreaterThanOrEqualTo("tanggal", startOfYesterday)
+                    .whereLessThanOrEqualTo("tanggal", endOfYesterday)
+                    .get()
+                    .await()
+                    .toObjects(Pesanan::class.java)
+                    .filter { it.status == StatusPesanan.SELESAI.name }
+
+                var totalPendapatan = 0.0
+                for (pesanan in semuaPesananKemarin) {
+                    val items = db.collection("itemPesanan")
+                        .whereEqualTo("pesananId", pesanan.id)
+                        .get()
+                        .await()
+                        .toObjects(ItemPesanan::class.java)
+                    totalPendapatan += items.sumOf { it.produkHarga }
+                }
+
+                result.value = totalPendapatan
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                result.value = 0.0
+            }
+        }
+        return result
+    }
+
+    // Jumlah Transaksi perhari
+    fun getTransaksiPerHari(): LiveData<List<Pair<String, Int>>> {
+        val result = MutableLiveData<List<Pair<String, Int>>>()
+        viewModelScope.launch {
+            try {
+                val semuaPesanan = db.collection("pesanan")
+                    .get()
+                    .await()
+                    .toObjects(Pesanan::class.java)
+                    .filter { it.status == StatusPesanan.SELESAI.name }
+
+                val grouped = semuaPesanan.groupBy { pesanan ->
+                    val cal = java.util.Calendar.getInstance()
+                    cal.time = pesanan.tanggal.toDate()
+                    "%02d-%02d".format(
+                        cal.get(java.util.Calendar.DAY_OF_MONTH),
+                        cal.get(java.util.Calendar.MONTH) + 1
+                    )
+                }
+
+                val listHarian = grouped.map { (tanggal, listPesanan) ->
+                    tanggal to listPesanan.size
+                }.sortedBy { it.first }
+
+                result.value = listHarian
+            } catch (e: Exception) {
+                e.printStackTrace()
+                result.value = emptyList()
+            }
+        }
+        return result
+    }
+
+    // Mengambil semua produk yang terjual top 3
+    fun loadProdukTerjual() {
+        viewModelScope.launch {
+            try {
+                // Ambil semua produk
+                val semuaProduk = db.collection("produk")
+                    .get()
+                    .await()
+                    .toObjects(Produk::class.java)
+
+                // Map ke ProdukTerjual dan ambil top 3 berdasarkan terjual
+                val topProduk = semuaProduk
+                    .sortedByDescending { it.terjual }
+                    .take(3)
+                    .map { produk ->
+                        ProdukTerjual(
+                            nama = produk.nama,
+                            stok = produk.stok,
+                            jumlahTerjual = produk.terjual
+                        )
+                    }
+
+                _produkTerjualList.value = topProduk
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _produkTerjualList.value = emptyList()
+            }
+        }
+    }
+
 }
