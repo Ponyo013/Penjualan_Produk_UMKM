@@ -3,32 +3,30 @@ package com.example.penjualan_produk_umkm.owner.dashboard
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.AllInbox
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.outlined.LocalShipping
-import androidx.compose.material.icons.outlined.MonetizationOn
-import androidx.compose.material.icons.outlined.NotificationAdd
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector // PENTING: Ini yang tadi error
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -38,8 +36,16 @@ import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.auth.UserPreferences
 import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
+import com.example.penjualan_produk_umkm.ml.SentimentAnalyzer
 import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.DashboardViewModel
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import org.threeten.bp.LocalDate
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -52,9 +58,47 @@ fun DashboardScreen(
     dashboardViewModel: DashboardViewModel = viewModel(factory = ViewModelFactory())
 ) {
     val context = LocalContext.current
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val firestore = FirebaseFirestore.getInstance()
 
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val allPesanan by dashboardViewModel.allPesanan.collectAsState(initial = emptyList())
+
+    // Sentiment Analysis States
+    var analyzer: SentimentAnalyzer? by remember { mutableStateOf(null) }
+    var sentimentStats by remember { mutableStateOf(SentimentStats()) }
+    var isLoadingSentiment by remember { mutableStateOf(false) }
+    var sentimentError by remember { mutableStateOf<String?>(null) }
+
+    // Initialize Sentiment Analyzer
+    DisposableEffect(Unit) {
+        try {
+            val textPreprocessor = TextPreprocessor(context)
+            analyzer = SentimentAnalyzer(context, textPreprocessor)
+            // Load sentiment data
+            loadSentimentData(
+                firestore = firestore,
+                analyzer = analyzer,
+                onStart = { isLoadingSentiment = true },
+                onComplete = { stats ->
+                    sentimentStats = stats
+                    isLoadingSentiment = false
+                    sentimentError = null
+                },
+                onError = { e ->
+                    sentimentError = e.message
+                    isLoadingSentiment = false
+                },
+                scope = coroutineScope
+            )
+        } catch (e: Exception) {
+            sentimentError = "Error loading model: ${e.message}"
+        }
+
+        onDispose {
+            analyzer?.close()
+        }
+    }
 
     UMKMTheme {
         Scaffold(
@@ -140,10 +184,11 @@ fun DashboardScreen(
                 modifier = Modifier
                     .padding(paddingValues)
                     .padding(16.dp)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                //SentimentAnalyzerScreen(navController = navController)
+
                 // Filter Pesanan Bulan Ini
                 val pesananBulanIni = allPesanan.filter {
                     val timestamp = it.tanggal
@@ -161,8 +206,10 @@ fun DashboardScreen(
                     }
                 }
 
+                // Omset Card
                 RingkasanOmsetPesanan(pesananList = pesananBulanIni)
 
+                // Status Pesanan Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -193,6 +240,7 @@ fun DashboardScreen(
                     }
                 }
 
+                // Buttons Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -200,7 +248,339 @@ fun DashboardScreen(
                 ) {
                     Buttons(navController = navController as NavHostController)
                 }
+                // Sentiment Analysis Card
+                SentimentAnalysisCard(
+                    stats = sentimentStats,
+                    isLoading = isLoadingSentiment,
+                    error = sentimentError,
+                    onRefresh = {
+                        loadSentimentData(
+                            firestore = firestore,
+                            analyzer = analyzer,
+                            onStart = { isLoadingSentiment = true },
+                            onComplete = { stats ->
+                                sentimentStats = stats
+                                isLoadingSentiment = false
+                                sentimentError = null
+                            },
+                            onError = { e ->
+                                sentimentError = e.message
+                                isLoadingSentiment = false
+                            },
+                            scope = coroutineScope
+                        )
+                    },
+                    onDetailClick = {
+                        navController.navigate("SentimentDetailScreen")
+                    }
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun SentimentAnalysisCard(
+    stats: SentimentStats,
+    isLoading: Boolean,
+    error: String?,
+    onRefresh: () -> Unit,
+    onDetailClick: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Analisis Sentimen" ,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = onRefresh,
+                        enabled = !isLoading,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = "Refresh",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onDetailClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ChevronRight,
+                            contentDescription = "Detail",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            when {
+                isLoading -> {
+                    // Loading State
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                            Text(
+                                text = "Menganalisis ulasan...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                error != null -> {
+                    // Error State
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ErrorOutline,
+                                contentDescription = "Error",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+
+                stats.total == 0 -> {
+                    // Empty State
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Inbox,
+                                contentDescription = "Empty",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Text(
+                                text = "Belum ada ulasan",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                else -> {
+                    // Data State
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        SentimentStatItem(
+                            label = "Positif",
+                            count = stats.positif,
+                            percentage = stats.positifPercent,
+                            color = Color(0xFF4CAF50),
+                            modifier = Modifier.weight(1f).padding(end = 4.dp)
+                        )
+                        SentimentStatItem(
+                            label = "Netral",
+                            count = stats.netral,
+                            percentage = stats.netralPercent,
+                            color = Color(0xFFFF9800),
+                            modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                        )
+                        SentimentStatItem(
+                            label = "Negatif",
+                            count = stats.negatif,
+                            percentage = stats.negatifPercent,
+                            color = Color(0xFFF44336),
+                            modifier = Modifier.weight(1f).padding(start = 4.dp)
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Text(
+                            text = "${stats.total} ulasan",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SentimentStatItem(
+    label: String,
+    count: Int,
+    percentage: Float,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = color,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = count.toString(),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Text(
+                text = "%.1f%%".format(percentage),
+                fontSize = 11.sp,
+                color = color
+            )
+        }
+    }
+}
+
+// Helper function to load sentiment data
+private fun loadSentimentData(
+    firestore: FirebaseFirestore,
+    analyzer: SentimentAnalyzer?,
+    onStart: () -> Unit,
+    onComplete: (SentimentStats) -> Unit,
+    onError: (Exception) -> Unit,
+    scope: CoroutineScope
+) {
+    if (analyzer == null) {
+        onError(IllegalStateException("Model belum diinisialisasi"))
+        return
+    }
+
+    onStart()
+    scope.launch(Dispatchers.IO) {
+        try {
+            val snapshot = firestore.collection("ulasan")
+                .get()
+                .await()
+
+            val reviews = snapshot.documents.mapNotNull { doc ->
+                try {
+                    val tanggalValue = doc.get("tanggal")
+                    val timestamp = when (tanggalValue) {
+                        is Timestamp -> tanggalValue.toDate().time
+                        is String -> {
+                            try {
+                                val dateFormat = SimpleDateFormat("MMMM d, yyyy 'at' h:mm:ss a z", Locale.ENGLISH)
+                                dateFormat.parse(tanggalValue)?.time ?: 0L
+                            } catch (e: java.text.ParseException) {
+                                Log.e("DashboardScreen", "Gagal mem-parsing tanggal: $tanggalValue", e)
+                                0L
+                            }
+                        }
+                        is Long -> tanggalValue
+                        else -> 0L
+                    }
+                    Review(
+                        id = doc.id,
+                        produkId = doc.getString("produkId") ?: "",
+                        userId = doc.getString("userId") ?: "",
+                        userName = doc.getString("userName") ?: "Anonymous",
+                        rating = doc.getDouble("rating")?.toFloat() ?: 0f,
+                        komentar = doc.getString("komentar") ?: "",
+                        tanggal = timestamp
+                    )
+                } catch (e: Exception) {
+                    Log.e("DashboardScreen", "Error parsing review doc ${doc.id}", e)
+                    null
+                }
+            }
+
+            // Analyze each review
+            val analyzedReviews = reviews.map { review ->
+                if (review.komentar.isNotBlank()) {
+                    val result = analyzer.predict(review.komentar)
+                    review.copy(
+                        sentiment = result.label,
+                        sentimentConfidence = result.confidence
+                    )
+                } else {
+                    review.copy(sentiment = "Netral", sentimentConfidence = 0f)
+                }
+            }
+
+            // Calculate statistics
+            val stats = SentimentStats(
+                positif = analyzedReviews.count { it.sentiment.lowercase() == "positif" },
+                negatif = analyzedReviews.count { it.sentiment.lowercase() == "negatif" },
+                netral = analyzedReviews.count { it.sentiment.lowercase() == "netral" },
+                total = analyzedReviews.size
+            )
+
+            withContext(Dispatchers.Main) {
+                onComplete(stats)
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                onError(e)
+            }
+            e.printStackTrace()
         }
     }
 }
@@ -293,14 +673,11 @@ fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Tanggal()
 
-                // --- [BAGIAN YANG DIPERBAIKI] ---
                 Text(
                     text = "$jumlahPesanan pesanan",
-                    style = MaterialTheme.typography.bodyMedium, // Hapus .copy(alpha...) dari sini
-                    // Pasang alpha pada warnanya di sini:
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
-                // -------------------------------
             }
         }
     }
@@ -329,4 +706,3 @@ fun StatusItem(icon: ImageVector, label: String, count: Int) {
         Text(text = "$label: $count", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
     }
 }
-

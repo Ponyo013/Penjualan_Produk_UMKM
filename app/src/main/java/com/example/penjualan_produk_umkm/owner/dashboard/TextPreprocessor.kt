@@ -1,83 +1,105 @@
 package com.example.penjualan_produk_umkm.owner.dashboard
 
 import android.content.Context
-import org.json.JSONObject
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.IOException
 
-class TextPreprocessor(private val context: Context) {
+/**
+ * Handles all text preprocessing steps before feeding text to the sentiment analysis model.
+ *
+ * This includes cleaning, case folding, slang replacement, tokenization, stopword removal, and stemming.
+ * The dictionaries for slang, stopwords, and stemming are loaded from asset files.
+ *
+ * @param context The application context for accessing assets.
+ * @param slangFileName The name of the JSON file in assets containing the slang dictionary.
+ * @param stopwordsFileName The name of the text file in assets containing the stopwords.
+ * @param stemmerFileName The name of the JSON file in assets containing the stemmer dictionary.
+ */
+class TextPreprocessor(
+    private val context: Context,
+    private val slangFileName: String = "slang_indo.json",
+    private val stopwordsFileName: String = "stopwords_indo.txt",
+    private val stemmerFileName: String = "stemmer_dict.json"
+) {
 
-    private lateinit var slangDict: Map<String, String>
-    private lateinit var stopwords: Set<String>
-    private lateinit var stemmerDict: Map<String, String>
+    private val slangDict: Map<String, String>
+    private val stopwords: Set<String>
+    private val stemmerDict: Map<String, String>
 
     init {
-        loadSlangDictionary()
-        loadStopwords()
-        loadStemmerDictionary()
+        slangDict = loadJsonDictionary(slangFileName)
+        stopwords = loadStopwords(stopwordsFileName)
+        stemmerDict = loadJsonDictionary(stemmerFileName)
     }
 
-    private fun loadSlangDictionary() {
-        // Load slang dictionary from JSON
-        val json = context.assets.open("slang_indo.json").bufferedReader().use { it.readText() }
-        val jsonObject = JSONObject(json)
-        slangDict = mutableMapOf<String, String>().apply {
-            jsonObject.keys().forEach { key ->
-                put(key, jsonObject.getString(key))
-            }
-        }
+    /**
+     * The main preprocessing pipeline.
+     *
+     * @param text The raw text to preprocess.
+     * @return A list of preprocessed tokens.
+     */
+    fun preprocess(text: String): List<String> {
+        val cleanedText = cleanText(text)
+        val foldedText = caseFolding(cleanedText)
+        val slangReplacedText = replaceSlang(foldedText)
+        val tokens = tokenize(slangReplacedText)
+        val stopwordsRemovedTokens = removeStopwords(tokens)
+        return stemWords(stopwordsRemovedTokens)
     }
 
-    private fun loadStopwords() {
-        // Load stopwords from text file
-        stopwords = context.assets.open("stopwords_indo.txt")
-            .bufferedReader()
-            .readLines()
-            .filter { it.isNotBlank() }
-            .map { it.trim().toLowerCase() }
-            .toSet()
-    }
+    // --- Private Helper Functions ---
 
-    private fun loadStemmerDictionary() {
-        // Load pre-computed stemmer dictionary
-        val json = context.assets.open("stemmer_dict.json").bufferedReader().use { it.readText() }
-        val jsonObject = JSONObject(json)
-        stemmerDict = mutableMapOf<String, String>().apply {
-            jsonObject.keys().forEach { key ->
-                put(key, jsonObject.getString(key))
-            }
+    /**
+     * Loads a dictionary from a JSON asset file.
+     * @param fileName The name of the file in the assets folder.
+     * @return A map representing the dictionary.
+     */
+    private fun <T> loadJsonDictionary(fileName: String): Map<String, T> {
+        return try {
+            val json = context.assets.open(fileName).bufferedReader().use { it.readText() }
+            val type = object : TypeToken<Map<String, T>>() {}.type
+            Gson().fromJson(json, type) ?: emptyMap()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            // In a real app, you might want to log this error to a crash reporting tool
+            emptyMap()
         }
     }
 
     /**
-     * Clean text: remove special characters and numbers
+     * Loads stopwords from a text asset file.
+     * @param fileName The name of the file in the assets folder.
+     * @return A set of stopwords.
      */
+    private fun loadStopwords(fileName: String): Set<String> {
+        return try {
+            context.assets.open(fileName)
+                .bufferedReader()
+                .readLines()
+                .filter { it.isNotBlank() }
+                .map { it.trim().lowercase() }
+                .toSet()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            // In a real app, you might want to log this error to a crash reporting tool
+            emptySet()
+        }
+    }
+
     private fun cleanText(text: String): String {
         var cleaned = text
-
-        // Remove special characters
-        cleaned = cleaned.replace(Regex("[^A-Za-z0-9\\s]"), " ")
-
-        // Remove numbers
-        cleaned = cleaned.replace(Regex("[0-9]+"), " ")
-
-        // Remove multiple spaces
-        cleaned = cleaned.replace(Regex("\\s+"), " ").trim()
-
-        // Remove redundant characters (more than 2 consecutive)
-        cleaned = cleaned.replace(Regex("(.)\\1{2,}"), "$1")
-
+        cleaned = cleaned.replace(Regex("[^A-Za-z0-9\\s]"), " ") // Remove special characters
+        cleaned = cleaned.replace(Regex("[0-9]+"), " ") // Remove numbers
+        cleaned = cleaned.replace(Regex("\\s+"), " ").trim() // Remove multiple spaces
+        cleaned = cleaned.replace(Regex("(.)\\1{2,}"), "$1") // Remove redundant characters
         return cleaned
     }
 
-    /**
-     * Convert to lowercase
-     */
     private fun caseFolding(text: String): String {
-        return text.toLowerCase()
+        return text.lowercase()
     }
 
-    /**
-     * Replace slang words with formal words
-     */
     private fun replaceSlang(text: String): String {
         val words = text.split(" ")
         return words.joinToString(" ") { word ->
@@ -85,60 +107,20 @@ class TextPreprocessor(private val context: Context) {
         }
     }
 
-    /**
-     * Tokenize text
-     */
     private fun tokenize(text: String): List<String> {
         return text.split(" ").filter { it.isNotBlank() }
     }
 
-    /**
-     * Remove stopwords (except negation words)
-     */
     private fun removeStopwords(tokens: List<String>): List<String> {
-        // Keep negation words
         val negationWords = setOf("tidak", "nggak", "jangan", "belum")
         return tokens.filter { token ->
             token !in stopwords || token in negationWords
         }
     }
 
-    /**
-     * Stem words to their root form
-     */
     private fun stemWords(tokens: List<String>): List<String> {
         return tokens.map { token ->
             stemmerDict[token] ?: token
         }
     }
-
-    /**
-     * Complete preprocessing pipeline
-     */
-    fun preprocess(text: String): List<String> {
-        // Step 1: Clean text
-        var processed = cleanText(text)
-
-        // Step 2: Case folding
-        processed = caseFolding(processed)
-
-        // Step 3: Replace slang
-        processed = replaceSlang(processed)
-
-        // Step 4: Tokenize
-        var tokens = tokenize(processed)
-
-        // Step 5: Remove stopwords
-        tokens = removeStopwords(tokens)
-
-        // Step 6: Stemming
-        tokens = stemWords(tokens)
-
-        return tokens
-    }
 }
-
-/**
- * Run this Python script to create stemmer_dict.json
- * from your existing stemming results
- */
