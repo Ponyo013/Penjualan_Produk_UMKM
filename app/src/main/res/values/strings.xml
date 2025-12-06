@@ -103,34 +103,69 @@
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
 
-    <string name="article_title_maintenance">Cara Mudah Merawat Sepeda agar Awet &amp; Performa Maksimal</string>
-    <string name="article_date">Diterbitkan oleh Tim Dwi Usaha • 5 Menit Baca</string>
+    <string name="article_title_maintenance">Rahasia Sepeda Awet: Panduan Perawatan Ala Mekanik Profesional yang Bisa Anda Lakukan di Rumah</string>
+
+    <string name="article_date">Oleh Tim Redaksi Dwi Usaha • Jurnalisme Sepeda • 7 Menit Baca</string>
 
     <string name="article_intro">
-        Merawat sepeda sebenarnya tidak sulit, tapi perlu konsistensi supaya performanya tetap optimal dan umur komponen lebih panjang.
-        \n\nSebagai toko sepeda yang peduli dengan gowesan Anda, Dwi Usaha merangkum panduan praktis untuk Anda.
+        Pernahkah Anda merasakan sensasi gowesan yang mendadak berat, suara berdecit yang mengganggu ketenangan pagi, atau perpindahan gigi yang tersendat saat sedang menanjak? Itu bukan sekadar masalah teknis; itu adalah cara sepeda Anda "berbicara" meminta perhatian.\n\n
+        Banyak pesepeda pemula hingga menengah sering mengabaikan perawatan rutin, beranggapan bahwa servis hanya diperlukan saat ada kerusakan. Padahal, perawatan preventif adalah kunci umur panjang komponen sepeda yang harganya tidak murah. Di Dwi Usaha, kami percaya bahwa merawat sepeda adalah seni mencintai hobi Anda.
     </string>
 
-    <string name="article_section_1_title">1. Ketahui Frekuensi Perawatan</string>
+    <string name="article_section_1_title">Menakar "Detak Jantung" Sepeda Anda</string>
     <string name="article_section_1_body">
-        Frekuensi perawatan tergantung pada intensitas pemakaian. Berikut panduan singkatnya:
+        Layaknya tubuh manusia yang butuh *check-up*, sepeda juga memiliki jadwal biologisnya sendiri. Frekuensi perawatan tidak bisa dipukul rata, melainkan bergantung pada seberapa keras Anda "menyiksa" sepeda tersebut di jalanan.
     </string>
 
-    <string name="article_tips_daily_title">Harian (Komuter)</string>
-    <string name="article_tips_daily_desc">Cek tekanan ban, fungsi rem, dan baut longgar setiap selesai gowes.</string>
+    <string name="article_tips_daily_title">Si Komuter Harian (The Daily Warrior)</string>
+    <string name="article_tips_daily_desc">
+        Bagi Anda yang menembus aspal setiap hari, debu jalanan adalah musuh utama. Lakukan "Pre-Ride Check" 30 detik: Cek tekanan ban (pinch test) dan pastikan rem merespons cepat. Ini bukan hanya soal performa, tapi keselamatan nyawa.
+    </string>
 
-    <string name="article_tips_weekly_title">2–3 Kali Seminggu</string>
-    <string name="article_tips_weekly_desc">Bersihkan rantai dan lap frame setiap 1-2 minggu sekali.</string>
+    <string name="article_tips_weekly_title">Si Petualang Akhir Pekan (Weekend Rider)</string>
+    <string name="article_tips_weekly_desc">
+        Gowes 2-3 kali seminggu? Rantai Anda bekerja keras. Bersihkan sisa pelumas lama yang menghitam setiap akhir pekan. Rantai yang bersih mengurangi gesekan hingga 40%, membuat setiap kayuhan terasa lebih ringan.
+    </string>
 
-    <string name="article_tips_monthly_title">Gowes Akhir Pekan</string>
-    <string name="article_tips_monthly_desc">Periksa kampas rem dan kabel shifting setiap 1 bulan sekali.</string>
+    <string name="article_tips_mud_title">Si Penakluk Lumpur (The Mud Lover)</string>
+    <string name="article_tips_mud_desc">
+        Jangan biarkan lumpur mengering di drivetrain! Tanah yang mengeras bersifat abrasif seperti amplas. Segera bilas lembut (jangan semprot kencang ke bearing) setelah gowes hujan-hujanan. Keringkan, lalu lumasi ulang.
+    </string>
 
-    <string name="article_tips_mud_title">Setelah Hujan/Lumpur</string>
-    <string name="article_tips_mud_desc">Wajib langsung cuci drivetrain dan lumasi rantai untuk hindari karat!</string>
-
-    <string name="article_section_2_title">2. Inspeksi Frame &amp; Kerusakan</string>
+    <string name="article_section_2_title">Investasi Kecil, Dampak Besar</string>
     <string name="article_section_2_body">
-        Luangkan 15 menit per minggu. Periksa frame untuk mendeteksi retak halus atau cat terkelupas. Jika ragu, jangan perbaiki sendiri.
-        \n\n<b>Bawa ke Bengkel Dwi Usaha:</b> Mekanik kami siap membantu mengatasi keluhan sepeda Anda agar kembali prima.
+        Anda tidak perlu menjadi mekanik bersertifikat untuk menjaga sepeda tetap prima. Kuncinya ada pada **"Clean &amp; Lube"** (Bersihkan dan Lumasi). Menggunakan oli rantai bekas motor atau sabun colek adalah kesalahan fatal yang sering terjadi. Komponen sepeda modern membutuhkan formula khusus yang tidak merusak seal karet dan tidak menarik debu berlebih.\n\n
+        Di sinilah **Dwi Usaha** hadir. Kami telah mengurasi produk perawatan *best-value* yang digunakan oleh profesional, namun mudah diaplikasikan oleh pemula. Dari pelumas *Dry Lube* berbasis Teflon untuk cuaca panas, hingga *Degreaser* biodegradabel yang ramah lingkungan.
+        \n\n
+        Ingat, biaya merawat jauh lebih murah daripada biaya mengganti *groupset* yang aus dini. Mulailah merawat sepeda Anda hari ini, dan rasakan bedanya di gowesan esok pagi.
+    </string>
+
+    <string name="article_title_siskiu">Review Polygon Siskiu D6: Definisi "Value for Money" yang Sebenarnya untuk Penakluk Trail</string>
+    <string name="article_date_siskiu">Review oleh Dwi Usaha Tech • 8 Menit Baca</string>
+
+    <string name="article_intro_siskiu">
+        Mencari sepeda *full-suspension* yang mumpuni tanpa harus merampok tabungan seringkali menjadi dilema bagi para *rider* MTB pemula hingga menengah. Pilihannya seringkali terbatas: harga murah tapi spek "kentang", atau spek dewa tapi harga selangit.\n\n
+        Namun, Polygon memecahkan stigma tersebut dengan **Siskiu D6**. Sepeda ini hadir sebagai jawaban bagi Anda yang ingin naik kelas dari *Hardtail* ke *Full-Sus* tanpa kompromi. Apakah benar sebagus itu? Tim Dwi Usaha telah mengujinya di medan *cross-country* hingga *light trail*, dan inilah hasilnya.
+    </string>
+
+    <string name="article_body_siskiu_1">
+        <b>1. Geometri Modern &amp; Frame Tangguh</b>\n
+        Kesan pertama saat melihat D6 adalah: "Gagah". Menggunakan frame ALX Alloy yang ringan namun *bomb-proof*, sepeda ini memiliki *head tube angle* yang lebih rebah (slack), memberikan kepercayaan diri ekstra saat melibas turunan curam. Sistem suspensi *One-Piece Linkage* bekerja sangat efisien meredam getaran kecil (small bumps) namun tetap *stiff* saat diajak nanjak.
+    </string>
+
+    <string name="article_body_siskiu_2">
+        <b>2. Komponen: Shimano Deore adalah Kunci</b>\n
+        Di sinilah letak nilai jual utamanya. D6 dibekali *drivetrain* Shimano Deore 1x10 Speed. Perpindahan giginya renyah, presisi, dan rentang rasionya cukup luas untuk melahap tanjakan curam sekalipun. Ditambah rem hidrolik Shimano MT201, kontrol pengereman terasa pakem dan bisa diandalkan di kondisi basah.
+    </string>
+
+    <string name="article_body_siskiu_3">
+        <b>3. Fitur Mewah: Dropper Seatpost</b>\n
+        Jarang sekali ada sepeda di rentang harga ini yang sudah menyertakan *Dropper Seatpost* bawaan. Fitur ini mengubah permainan (game changer). Anda bisa menurunkan sadel secara instan lewat tuas di stang saat menghadapi turunan teknikal, lalu menaikkannya kembali untuk *pedaling* efisien.
+    </string>
+
+    <string name="article_conclusion_siskiu">
+        <b>Kesimpulan: Wajib Beli?</b>\n
+        Jika Anda mencari sepeda *do-it-all* yang nyaman dipakai gowes santai di CFD namun garang saat diajak "blusukan" ke hutan, Polygon Siskiu D6 adalah raja di kelasnya. Investasi ini bukan hanya tentang membeli sepeda, tapi membeli pengalaman petualangan baru yang lebih seru.\n\n
+        <b>Kabar baiknya?</b> Unit ini tersedia *Ready Stock* di Dwi Usaha dengan garansi resmi dan jaminan servis gratis. Jangan tunggu sampai kehabisan.
     </string>
 </resources>

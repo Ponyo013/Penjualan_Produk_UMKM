@@ -39,6 +39,7 @@
             app:layout_constraintStart_toEndOf="@id/btn_back_header"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -69,6 +70,7 @@
                 android:padding="24dp">
 
                 <TextView
+                    android:id="@+id/tv_article_category"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_search_input"
@@ -91,6 +93,7 @@
                     android:textSize="24sp" />
 
                 <TextView
+                    android:id="@+id/tv_article_date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -106,6 +109,7 @@
                     android:background="@color/grey" />
 
                 <TextView
+                    android:id="@+id/tv_article_intro"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/lato_regular"
@@ -115,6 +119,7 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/tv_section_1_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
@@ -123,24 +128,40 @@
                     android:textColor="@color/Secondary_1"
                     android:textSize="18sp" />
 
-                <androidx.cardview.widget.CardView
+                <TextView
+                    android:id="@+id/tv_section_1_body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#F5F9FF">
-                    <LinearLayout
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/lato_regular"
+                    android:lineSpacingMultiplier="1.4"
+                    android:text="@string/article_section_1_body"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:id="@+id/layout_tips_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:id="@+id/iv_step_1"
-                            android:layout_width="match_parent"
-                            android:layout_height="160dp"
-                            android:scaleType="centerCrop"
-                            android:src="@color/grey" />
+                        android:layout_marginTop="16dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#F5F9FF">
                         <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <ImageView
+                                android:id="@+id/iv_step_1"
+                                android:layout_width="match_parent"
+                                android:layout_height="160dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/preridecheck" /> <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -161,51 +182,53 @@
                                 android:textSize="14sp"
                                 android:layout_marginTop="4dp"/>
                         </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
 
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FFF8F0">
-                    <LinearLayout
+                    <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:id="@+id/iv_step_2"
-                            android:layout_width="match_parent"
-                            android:layout_height="160dp"
-                            android:scaleType="centerCrop"
-                            android:src="@color/grey" />
+                        android:layout_marginTop="16dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#FFF8F0">
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-                            <TextView
-                                android:layout_width="wrap_content"
+                            android:orientation="vertical">
+                            <ImageView
+                                android:id="@+id/iv_step_2"
+                                android:layout_width="match_parent"
+                                android:layout_height="160dp"
+                                android:scaleType="centerCrop"
+                                android:src="@color/grey" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/article_tips_weekly_title"
-                                android:fontFamily="@font/montserrat_bold"
-                                android:textColor="@color/black"
-                                android:textSize="16sp"/>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/article_tips_weekly_desc"
-                                android:fontFamily="@font/lato_regular"
-                                android:textColor="@color/text_description"
-                                android:textSize="14sp"
-                                android:layout_marginTop="4dp"/>
+                                android:orientation="vertical"
+                                android:padding="16dp">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/article_tips_weekly_title"
+                                    android:fontFamily="@font/montserrat_bold"
+                                    android:textColor="@color/black"
+                                    android:textSize="16sp"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/article_tips_weekly_desc"
+                                    android:fontFamily="@font/lato_regular"
+                                    android:textColor="@color/text_description"
+                                    android:textSize="14sp"
+                                    android:layout_marginTop="4dp"/>
+                            </LinearLayout>
                         </LinearLayout>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/tv_section_2_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
@@ -215,6 +238,7 @@
                     android:textSize="18sp" />
 
                 <TextView
+                    android:id="@+id/tv_section_2_body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -236,6 +260,7 @@
                 android:layout_marginTop="16dp">
 
                 <TextView
+                    android:id="@+id/tv_related_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Produk Perawatan Pilihan"

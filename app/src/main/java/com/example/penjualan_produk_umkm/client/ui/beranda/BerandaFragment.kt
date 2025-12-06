@@ -93,8 +93,8 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
             Artikel(2, "Rute Gowes Terbaik di Jakarta", "https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=1000&auto=format&fit=crop", "https://www.google.com"),
             Artikel(
                 3,
-                "Review: Polygon Siskiu D7",
-                "https://images.unsplash.com/photo-1576435728678-35d01fda117d?q=80&w=1000&auto=format&fit=crop",
+                "Review: Polygon Siskiu D6",
+                "https://ik.imagekit.io/ngj1vwwr8/produk/siskiud6.webp",
                 "https://www.polygonbikes.com"
             )
         )
