@@ -40,10 +40,16 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         recyclerView.adapter = adapter
 
         // Search Bar (Compose)
+// Search Bar (Compose)
         val composeView = view.findViewById<ComposeView>(R.id.compose_search_bar)
         composeView.setContent {
             SearchBar(
-                onSearch = {
+                // Callback 1: Saat user mengetik karakter (langsung navigasi)
+                onQueryChange = { _ ->
+                    findNavController().navigate(R.id.action_global_to_searchFragment)
+                },
+                // Callback 2: Saat user menekan enter (langsung navigasi)
+                onSearchClicked = { _ ->
                     findNavController().navigate(R.id.action_global_to_searchFragment)
                 }
             )
