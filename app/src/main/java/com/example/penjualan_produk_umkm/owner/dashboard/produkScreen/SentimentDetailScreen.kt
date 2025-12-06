@@ -175,16 +175,6 @@ fun SentimentDetailScreen(navController: NavController) {
                     StatisticsSection(stats = currentStats, period = selectedPeriod)
                 }
 
-                // Reviews Header
-                item {
-                    Text(
-                        text = "Ulasan Terbaru",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-
                 // Reviews List
                 val filteredReviews = when (selectedPeriod) {
                     "today" -> reviews.filter { isToday(it.tanggal) }
@@ -268,7 +258,6 @@ fun PeriodButton(
 @Composable
 fun StatisticsSection(stats: SentimentStats, period: String) {
     Column {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -295,13 +284,6 @@ fun StatisticsSection(stats: SentimentStats, period: String) {
                 modifier = Modifier.weight(1f).padding(start = 4.dp)
             )
         }
-
-        Text(
-            text = "Total Ulasan: ${stats.total}",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(top = 12.dp)
-        )
     }
 }
 
@@ -557,8 +539,3 @@ private fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
     return sdf.format(Date(timestamp))
 }
-
-
-
-
-

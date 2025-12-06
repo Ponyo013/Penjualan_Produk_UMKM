@@ -209,33 +209,6 @@ fun DashboardScreen(
                 // Omset Card
                 RingkasanOmsetPesanan(pesananList = pesananBulanIni)
 
-                // Sentiment Analysis Card
-                SentimentAnalysisCard(
-                    stats = sentimentStats,
-                    isLoading = isLoadingSentiment,
-                    error = sentimentError,
-                    onRefresh = {
-                        loadSentimentData(
-                            firestore = firestore,
-                            analyzer = analyzer,
-                            onStart = { isLoadingSentiment = true },
-                            onComplete = { stats ->
-                                sentimentStats = stats
-                                isLoadingSentiment = false
-                                sentimentError = null
-                            },
-                            onError = { e ->
-                                sentimentError = e.message
-                                isLoadingSentiment = false
-                            },
-                            scope = coroutineScope
-                        )
-                    },
-                    onDetailClick = {
-                        navController.navigate("SentimentDetailScreen")
-                    }
-                )
-
                 // Status Pesanan Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -275,6 +248,32 @@ fun DashboardScreen(
                 ) {
                     Buttons(navController = navController as NavHostController)
                 }
+                // Sentiment Analysis Card
+                SentimentAnalysisCard(
+                    stats = sentimentStats,
+                    isLoading = isLoadingSentiment,
+                    error = sentimentError,
+                    onRefresh = {
+                        loadSentimentData(
+                            firestore = firestore,
+                            analyzer = analyzer,
+                            onStart = { isLoadingSentiment = true },
+                            onComplete = { stats ->
+                                sentimentStats = stats
+                                isLoadingSentiment = false
+                                sentimentError = null
+                            },
+                            onError = { e ->
+                                sentimentError = e.message
+                                isLoadingSentiment = false
+                            },
+                            scope = coroutineScope
+                        )
+                    },
+                    onDetailClick = {
+                        navController.navigate("SentimentDetailScreen")
+                    }
+                )
             }
         }
     }
@@ -304,15 +303,9 @@ fun SentimentAnalysisCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.SentimentSatisfiedAlt,
-                        contentDescription = "Sentiment",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Analisis Sentimen",
+                        text = "Analisis Sentimen" ,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
@@ -449,12 +442,16 @@ fun SentimentAnalysisCard(
                         )
                     }
 
-                    Text(
-                        text = "Total ${stats.total} ulasan",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Text(
+                            text = "${stats.total} ulasan",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                        )
+                    }
                 }
             }
         }
