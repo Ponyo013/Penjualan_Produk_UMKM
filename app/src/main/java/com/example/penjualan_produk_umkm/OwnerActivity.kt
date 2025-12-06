@@ -30,6 +30,7 @@ import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.AddProdukS
 import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.EditProdukScreen
 import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.ProdukDetailSc
 import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.ProdukManage
+import com.example.penjualan_produk_umkm.owner.dashboard.produkScreen.SentimentDetailScreen
 import com.example.penjualan_produk_umkm.viewModel.EkspedisiViewModel
 import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
 import com.example.penjualan_produk_umkm.viewModel.UlasanViewModel
@@ -83,6 +84,10 @@ class OwnerActivity : AppCompatActivity() {
 
                         composable("expedisi") {
                             ExpedisiScreen(navController, expedisiViewModel)
+                        }
+
+                        composable("SentimentDetailScreen") {
+                            SentimentDetailScreen(navController)
                         }
 
                         // --- HALAMAN CRUD & DETAIL ---

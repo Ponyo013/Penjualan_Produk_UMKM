@@ -1,6 +1,5 @@
 package com.example.penjualan_produk_umkm.owner.dashboard // Adjust package as needed
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,10 +10,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.penjualan_produk_umkm.ml.SentimentAnalyzer
+import com.example.penjualan_produk_umkm.owner.dashboard.TextPreprocessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,7 +41,8 @@ fun SentimentAnalyzerScreen(navController: NavController) {
     // Initialization Logic (Runs once when the screen is composed)
     DisposableEffect(Unit) {
         try {
-            analyzer = SentimentAnalyzer(context)
+            val textPreprocessor = TextPreprocessor(context)
+            analyzer = SentimentAnalyzer(context, textPreprocessor)
             modelStatus = "Model loaded successfully! Ready to analyze."
         } catch (e: Exception) {
             modelStatus = "Error loading model: ${e.message}"
