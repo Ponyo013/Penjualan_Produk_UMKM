@@ -9,6 +9,7 @@ data class ItemPesanan(
     // jaga-jaga kalau nanti nama/harga produk asli berubah/dihapus
     var produkNama: String = "",
     var produkHarga: Double = 0.0,
+    var gambarUrl: String = "",
 
     var jumlah: Int = 0,
 

@@ -91,13 +91,9 @@ class OwnerPesananViewModel : ViewModel() {
 
             for (pesanan in pesananList) {
                 // Ambil User
-                var user: User? = null
-                try {
-                    val userDoc = db.collection("users").document(pesanan.userId).get().await()
-                    user = userDoc.toObject(User::class.java)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                val user: User? = try {
+                    db.collection("users").document(pesanan.userId).get().await().toObject(User::class.java)
+                } catch (e: Exception) { e.printStackTrace(); null }
 
                 // Ambil Item Pesanan
                 var items: List<ItemPesanan> = emptyList()
@@ -107,26 +103,33 @@ class OwnerPesananViewModel : ViewModel() {
                         .get()
                         .await()
                     items = itemsSnapshot.toObjects(ItemPesanan::class.java)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
 
-                //Ambil ekpedisi
-                var ekspedisi: Ekspedisi? = null
-                try {
-                    val ekspedisiDoc = db.collection("ekspedisi").document(pesanan.ekspedisiId ?: "").get().await()
-                    ekspedisi = ekspedisiDoc.toObject(Ekspedisi::class.java)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                    // Ambil gambar untuk tiap item dari produk
+                    items = items.map { item ->
+                        val gambarUrl = try {
+                            val produkDoc = db.collection("produk").document(item.produkId).get().await()
+                            val produk = produkDoc.toObject(Produk::class.java)
+                            produk?.gambarUrl ?: ""
+                        } catch (e: Exception) { e.printStackTrace(); "" }
+
+                        item.copy(gambarUrl = gambarUrl)
+                    }
+                } catch (e: Exception) { e.printStackTrace() }
+
+                // Ambil ekspedisi
+                val ekspedisi: Ekspedisi? = try {
+                    db.collection("ekspedisi").document(pesanan.ekspedisiId ?: "").get().await()
+                        .toObject(Ekspedisi::class.java)
+                } catch (e: Exception) { e.printStackTrace(); null }
 
                 resultList.add(PesananLengkap(pesanan, user, items, ekspedisi))
             }
 
-            // Update UI setelah semua data terkumpul
+            // Update UI
             _pesananList.value = resultList
         }
     }
+
 
     // 4. Update Status (ID String)
     fun updateStatus(id: String, newStatus: StatusPesanan) {
