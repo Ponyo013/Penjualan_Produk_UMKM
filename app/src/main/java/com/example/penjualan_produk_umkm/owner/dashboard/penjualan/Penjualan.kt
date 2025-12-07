@@ -145,7 +145,7 @@ fun Penjualan(navController: NavController, viewModel: OwnerPesananViewModel) {
                             )
 
                             // Indikator peningkatan/penurunan
-                            PeningkatanPeriode(viewModel = viewModel)
+                            PeningkatanPendapatan(viewModel = viewModel)
                         }
 
                         // Kotak Rata-rata Penjualan Harian
@@ -168,7 +168,7 @@ fun Penjualan(navController: NavController, viewModel: OwnerPesananViewModel) {
                             )
 
                             Text(
-                                text = "Pendapatan Harian",
+                                text = "Perubahan Day-over-Day",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Normal
                             )
@@ -271,29 +271,45 @@ fun PeningkatanIndikator(persen: Float) {
 }
 
 @Composable
-fun PeningkatanPeriode(viewModel: OwnerPesananViewModel) {
-    // Contoh periode: sekarang = 7 hari terakhir, sebelumnya = 7 hari sebelumnya
-    val sekarang by viewModel.getPersentasePesananPeriode(
-        startTime = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L,
+fun PeningkatanPendapatan(viewModel: OwnerPesananViewModel) {
+
+    val sekarang by viewModel.getPendapatanKotorPeriode(
+        startTime = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000,
         endTime = System.currentTimeMillis()
-    ).observeAsState(0f)
+    ).observeAsState(0.0)
 
-    val sebelumnya by viewModel.getPersentasePesananPeriode(
-        startTime = System.currentTimeMillis() - 14 * 24 * 60 * 60 * 1000L,
-        endTime = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L
-    ).observeAsState(0f)
+    val sebelumnya by viewModel.getPendapatanKotorPeriode(
+        startTime = System.currentTimeMillis() - 14L * 24 * 60 * 60 * 1000,
+        endTime = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+    ).observeAsState(0.0)
 
-    val delta = sekarang - sebelumnya
-    PeningkatanIndikator(persen = delta)
+    val growth = if (sebelumnya > 0) {
+        ((sekarang - sebelumnya) / sebelumnya) * 100.0
+    } else {
+        100.0 // Kalau sebelumnya 0, otomatis dianggap naik signifikan
+    }
+
+    PeningkatanIndikator(persen = growth.toFloat())
 }
+
 
 @Composable
 fun IndikatorPenjualanHariIni(viewModel: OwnerPesananViewModel) {
     val hariIni by viewModel.getHasilPenjualanHariIni().observeAsState(0.0)
     val kemarin by viewModel.getHasilPenjualanHariKemarin().observeAsState(0.0)
 
-    val delta = hariIni - kemarin
-    PeningkatanIndikator(persen = delta.toFloat())
+    val persen = hitungPeningkatanPersen(hariIni, kemarin)
+
+    PeningkatanIndikator(persen = persen)
+}
+
+
+fun hitungPeningkatanPersen(hariIni: Double, kemarin: Double): Float {
+    return when {
+        kemarin == 0.0 && hariIni == 0.0 -> 0f
+        kemarin == 0.0 && hariIni > 0.0 -> 100f
+        else -> (((hariIni - kemarin) / kemarin) * 100).toFloat()
+    }
 }
 
 @Composable

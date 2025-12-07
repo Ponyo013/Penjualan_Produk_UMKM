@@ -192,7 +192,7 @@ fun DashboardScreen(
                 // Filter Pesanan Bulan Ini
                 val pesananBulanIni = allPesanan.filter {
                     val timestamp = it.tanggal
-                    if (timestamp != null) {
+                    run {
                         val date = timestamp.toDate()
                         val cal = Calendar.getInstance()
                         cal.time = date
@@ -201,13 +201,11 @@ fun DashboardScreen(
 
                         val today = LocalDate.now()
                         month == today.monthValue && year == today.year
-                    } else {
-                        false
                     }
                 }
 
                 // Omset Card
-                RingkasanOmsetPesanan(pesananList = pesananBulanIni)
+                RingkasanOmsetPesanan(pesananList = pesananBulanIni, dashboardViewModel)
 
                 // Status Pesanan Card
                 Card(
@@ -588,7 +586,7 @@ private fun loadSentimentData(
 @Composable
 private fun Tanggal() {
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
+    val dateFormat = SimpleDateFormat("MMMM yyyy", Locale("id", "ID"))
     val formattedDate = dateFormat.format(calendar.time)
 
     Text(
@@ -643,13 +641,8 @@ fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun RingkasanOmsetPesanan(pesananList: List<Pesanan>) {
-    val totalOmset = pesananList
-        .filter {
-            it.status != StatusPesanan.DIBATALKAN.name &&
-                    it.status != "KERANJANG"
-        }
-        .sumOf { it.totalHarga }
+fun RingkasanOmsetPesanan(pesananList: List<Pesanan>, dashboardViewModel: DashboardViewModel) {
+    val totalOmset = dashboardViewModel.hitungOmset(pesananList)
 
     val jumlahPesanan = pesananList.size
     val formattedOmset = "Rp " + String.format(Locale("id", "ID"), "%,.0f", totalOmset).replace(',', '.')

@@ -10,12 +10,15 @@ import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.User
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.Calendar
+import java.util.Date
 
 // --- PENGGANTI PesananWithItems (ROOM) ---
 data class PesananLengkap(
@@ -144,6 +147,7 @@ class OwnerPesananViewModel : ViewModel() {
     fun getPendapatanKotor(): LiveData<Double> {
         val result = MutableLiveData<Double>()
         db.collection("pesanan")
+            .whereEqualTo("status", StatusPesanan.SELESAI.name)
             .get()
             .addOnSuccessListener { snapshot ->
                 val semuaPesanan = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
@@ -156,7 +160,7 @@ class OwnerPesananViewModel : ViewModel() {
                         .get()
                         .addOnSuccessListener { itemSnapshot ->
                             val items = itemSnapshot.toObjects(ItemPesanan::class.java)
-                            val subtotal = items.sumOf { it.produkHarga }
+                            val subtotal = items.sumOf { it.produkHarga * it.jumlah}
                             totalPendapatan += subtotal
                             result.value = totalPendapatan
                         }
@@ -173,51 +177,63 @@ class OwnerPesananViewModel : ViewModel() {
         return result
     }
 
-    // Untuk hasil persentase pendapatan kotor
-    fun getPersentasePesananPeriode(startTime: Long, endTime: Long): LiveData<Float> {
-        val result = MutableLiveData<Float>()
+    fun getPendapatanKotorPeriode(startTime: Long, endTime: Long): LiveData<Double> {
+        val result = MutableLiveData<Double>()
+
+        val start = Timestamp(Date(startTime))
+
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = endTime
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+
+        val end = Timestamp(calendar.time)
+
         db.collection("pesanan")
-            .whereGreaterThanOrEqualTo("tanggal", startTime)
-            .whereLessThanOrEqualTo("tanggal", endTime)
+            .whereGreaterThanOrEqualTo("tanggal", start)
+            .whereLessThanOrEqualTo("tanggal", end)
             .get()
             .addOnSuccessListener { snapshot ->
-                val semuaPesanan = snapshot?.toObjects(Pesanan::class.java) ?: emptyList()
-                val total = semuaPesanan.size
-                val selesai = semuaPesanan.count { it.status == StatusPesanan.SELESAI.name }
-                val persentase = if (total > 0) (selesai.toFloat() / total.toFloat()) * 100f else 0f
-                result.value = persentase
+                val pesananList = snapshot.toObjects(Pesanan::class.java)
+                    .filter { it.status == StatusPesanan.SELESAI.name }
+
+                val totalPendapatan = pesananList.sumOf { it.totalHarga ?: 0.0 }
+
+                result.value = totalPendapatan
+            }.addOnFailureListener {
+                result.value = 0.0
             }
-            .addOnFailureListener {
-                result.value = 0f
-            }
+
         return result
     }
+
+
 
     // Mengambil hasil penjualan hari ini
     fun getHasilPenjualanHariIni(): LiveData<Double> {
         val result = MutableLiveData<Double>()
         viewModelScope.launch {
             try {
-                val now = System.currentTimeMillis()
-                // Hitung awal dan akhir hari ini
-                val calendar = java.util.Calendar.getInstance()
-                calendar.timeInMillis = now
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                calendar.set(java.util.Calendar.MINUTE, 0)
-                calendar.set(java.util.Calendar.SECOND, 0)
-                calendar.set(java.util.Calendar.MILLISECOND, 0)
-                val startOfDay = calendar.timeInMillis
+                val calendar = Calendar.getInstance()
 
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 23)
-                calendar.set(java.util.Calendar.MINUTE, 59)
-                calendar.set(java.util.Calendar.SECOND, 59)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val start = Timestamp(calendar.time)
+
+                calendar.set(Calendar.HOUR_OF_DAY, 23)
+                calendar.set(Calendar.MINUTE, 59)
+                calendar.set(Calendar.SECOND, 59)
                 calendar.set(java.util.Calendar.MILLISECOND, 999)
-                val endOfDay = calendar.timeInMillis
+                val end = Timestamp(calendar.time)
 
                 // Ambil pesanan selesai hari ini
                 val semuaPesananHariIni = db.collection("pesanan")
-                    .whereGreaterThanOrEqualTo("tanggal", startOfDay)
-                    .whereLessThanOrEqualTo("tanggal", endOfDay)
+                    .whereGreaterThanOrEqualTo("tanggal", start)
+                    .whereLessThanOrEqualTo("tanggal", end)
                     .get()
                     .await()
                     .toObjects(Pesanan::class.java)
@@ -231,7 +247,7 @@ class OwnerPesananViewModel : ViewModel() {
                         .get()
                         .await()
                         .toObjects(ItemPesanan::class.java)
-                    totalPendapatan += items.sumOf { it.produkHarga }
+                    totalPendapatan += items.sumOf { it.produkHarga * it.jumlah}
                 }
 
                 result.value = totalPendapatan
@@ -248,25 +264,24 @@ class OwnerPesananViewModel : ViewModel() {
         val result = MutableLiveData<Double>()
         viewModelScope.launch {
             try {
-                val calendar = java.util.Calendar.getInstance()
+                val calendar = Calendar.getInstance()
 
-                // Hari kemarin
-                calendar.add(java.util.Calendar.DAY_OF_YEAR, -1)
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                calendar.set(java.util.Calendar.MINUTE, 0)
-                calendar.set(java.util.Calendar.SECOND, 0)
-                calendar.set(java.util.Calendar.MILLISECOND, 0)
-                val startOfYesterday = calendar.timeInMillis
+                calendar.add(Calendar.DAY_OF_YEAR, -1)
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val start = Timestamp(calendar.time)
 
-                calendar.set(java.util.Calendar.HOUR_OF_DAY, 23)
-                calendar.set(java.util.Calendar.MINUTE, 59)
-                calendar.set(java.util.Calendar.SECOND, 59)
-                calendar.set(java.util.Calendar.MILLISECOND, 999)
-                val endOfYesterday = calendar.timeInMillis
+                calendar.set(Calendar.HOUR_OF_DAY, 23)
+                calendar.set(Calendar.MINUTE, 59)
+                calendar.set(Calendar.SECOND, 59)
+                calendar.set(Calendar.MILLISECOND, 999)
+                val end = Timestamp(calendar.time)
 
                 val semuaPesananKemarin = db.collection("pesanan")
-                    .whereGreaterThanOrEqualTo("tanggal", startOfYesterday)
-                    .whereLessThanOrEqualTo("tanggal", endOfYesterday)
+                    .whereGreaterThanOrEqualTo("tanggal", start)
+                    .whereLessThanOrEqualTo("tanggal", end)
                     .get()
                     .await()
                     .toObjects(Pesanan::class.java)
@@ -279,7 +294,7 @@ class OwnerPesananViewModel : ViewModel() {
                         .get()
                         .await()
                         .toObjects(ItemPesanan::class.java)
-                    totalPendapatan += items.sumOf { it.produkHarga }
+                    totalPendapatan += items.sumOf { it.produkHarga * it.jumlah}
                 }
 
                 result.value = totalPendapatan
@@ -304,11 +319,11 @@ class OwnerPesananViewModel : ViewModel() {
                     .filter { it.status == StatusPesanan.SELESAI.name }
 
                 val grouped = semuaPesanan.groupBy { pesanan ->
-                    val cal = java.util.Calendar.getInstance()
+                    val cal = Calendar.getInstance()
                     cal.time = pesanan.tanggal.toDate()
                     "%02d-%02d".format(
-                        cal.get(java.util.Calendar.DAY_OF_MONTH),
-                        cal.get(java.util.Calendar.MONTH) + 1
+                        cal.get(Calendar.DAY_OF_MONTH),
+                        cal.get(Calendar.MONTH) + 1
                     )
                 }
 
