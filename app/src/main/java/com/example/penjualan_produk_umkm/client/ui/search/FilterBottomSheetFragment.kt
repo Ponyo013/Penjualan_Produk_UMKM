@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.databinding.BottomSheetFilterBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.chip.Chip
 
 class FilterBottomSheetFragment : BottomSheetDialogFragment() {
 

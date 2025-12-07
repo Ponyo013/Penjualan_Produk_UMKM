@@ -3,14 +3,15 @@ package com.example.penjualan_produk_umkm.utils
 import android.content.Context
 import android.widget.Toast
 import com.example.penjualan_produk_umkm.database.firestore.model.Produk
+import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
+import com.example.penjualan_produk_umkm.database.firestore.model.Ekspedisi
+import com.example.penjualan_produk_umkm.database.firestore.model.User
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.google.firebase.firestore.FirebaseFirestore
 
 object DataSeeder {
-
     private val db = FirebaseFirestore.getInstance()
 
-    // --- TEMPAT PASTE URL IMAGEKIT DI SINI ---
-    // Pastikan Anda sudah mengganti string kosong "" dengan URL gambar dari ImageKit Anda
     private const val IMG_SYNCLINE = "https://ik.imagekit.io/ngj1vwwr8/produk/503446.jpg"
     private const val IMG_RELIC = "https://ik.imagekit.io/ngj1vwwr8/produk/502661.jpg"
     private const val IMG_SISKIU_D6 = "https://ik.imagekit.io/ngj1vwwr8/produk/pa00715.jpg"
@@ -73,7 +74,7 @@ object DataSeeder {
             return // Stop jika sudah seeded versi ini
         }
 
-        Toast.makeText(context, "Mengupdate Data Produk...", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(context, "Mengupdate Data Produk...", Toast.LENGTH_SHORT).show()
 
         val batch = db.batch()
 
@@ -183,14 +184,211 @@ object DataSeeder {
 
         batch.commit()
             .addOnSuccessListener {
-                Toast.makeText(context, "Seeding Sukses! (v5)", Toast.LENGTH_LONG).show()
+//                Toast.makeText(context, "Seeding Sukses! (v5)", Toast.LENGTH_LONG).show()
                 prefs.edit().putBoolean("is_products_seeded_v5", true).apply()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Seeding Gagal: ${e.message}", Toast.LENGTH_LONG).show()
+//                Toast.makeText(context, "Seeding Gagal: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+    // ==========================================
+    // DATA DEMO VARIATIF (5 USER, 15 TRANSAKSI)
+    // ==========================================
+
+    // Daftar ID untuk memudahkan penghapusan nanti
+    private val demoUserIds = listOf("user_demo_1", "user_demo_2", "user_demo_3", "user_demo_4", "user_demo_5")
+    private val demoOrderIds = (1..15).map { "demo_order_${it.toString().padStart(3, '0')}" } // demo_order_001 s/d 015
+    private val demoEkspedisiIds = listOf("jne_reg", "jnt_ez", "sicepat_halu", "gosend_instant", "anteraja_reg")
+
+    fun seedDemoData(context: Context) {
+        val prefs = context.getSharedPreferences("seeder_prefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("is_demo_data_seeded_v2", false)) return
+
+//        Toast.makeText(context, "Membuat Data Demo Presentasi...", Toast.LENGTH_SHORT).show()
+        val batch = db.batch()
+
+        // 1. SEED EKSPEDISI
+        val ekspedisiList = listOf(
+            Ekspedisi("jne_reg", "JNE Regular", "JNE", 3, 22000.0, "Reguler", true),
+            Ekspedisi("jnt_ez", "J&T Express", "JNT", 2, 25000.0, "Express", true),
+            Ekspedisi("sicepat_halu", "SiCepat HALU", "SICEPAT", 4, 18000.0, "Ekonomis", true),
+            Ekspedisi("gosend_instant", "GoSend Instant", "GOSEND", 0, 45000.0, "Instant", true),
+            Ekspedisi("anteraja_reg", "AnterAja Regular", "ANTERAJA", 3, 20000.0, "Reguler", true)
+        )
+        ekspedisiList.forEach { batch.set(db.collection("ekspedisi").document(it.id), it) }
+
+        // 2. SEED 5 USER DUMMY
+        val users = listOf(
+            User("user_demo_1", "Budi Santoso", "budi@demo.com", "", "owner", "08123456789", "Jl. Sudirman No. 45, Jakarta", com.google.firebase.Timestamp.now()),
+            User("user_demo_2", "Siti Aminah", "siti@demo.com", "", "user", "08129876543", "Komp. Gading Serpong Blok A, Tangerang", com.google.firebase.Timestamp.now()),
+            User("user_demo_3", "Reza Rahardian", "reza@demo.com", "", "user", "08135555666", "Jl. Malioboro No. 12, Yogyakarta", com.google.firebase.Timestamp.now()),
+            User("user_demo_4", "Putri Titian", "putri@demo.com", "", "user", "08188888999", "Apartemen Taman Anggrek Lt 15, Jakarta", com.google.firebase.Timestamp.now()),
+            User("user_demo_5", "Ahmad Dhani", "ahmad@demo.com", "", "user", "085712341234", "Jl. Pinang Emas III, Jakarta Selatan", com.google.firebase.Timestamp.now())
+        )
+        users.forEach { batch.set(db.collection("users").document(it.id), it) }
+
+        // 3. SEED 15 PESANAN (Variasi Tanggal & Status)
+        val orders = mutableListOf<Pair<Pesanan, List<ItemPesanan>>>()
+        val calendar = java.util.Calendar.getInstance()
+
+        // Helper untuk geser tanggal
+        fun getDate(daysAgo: Int): com.google.firebase.Timestamp {
+            val cal = java.util.Calendar.getInstance()
+            cal.add(java.util.Calendar.DAY_OF_YEAR, -daysAgo)
+            return com.google.firebase.Timestamp(cal.time)
+        }
+
+        // --- GROUP 1: SELESAI (Untuk Grafik Keuangan) ---
+
+        // Order 1: Hari Ini (Budi beli Sepeda Mahal)
+        orders.add(createOrder("demo_order_001", "user_demo_1", 50022000.0, "SELESAI", com.google.firebase.Timestamp.now(), "jne_reg",
+            listOf(createItem("demo_order_001", "polygon_sepeda_mtb_dual_suspensi_syncline_dr8", "Polygon Syncline DR8", 50000000.0, IMG_SYNCLINE, 1))))
+
+        // Order 2: Kemarin (Siti beli Sepeda Kota)
+        orders.add(createOrder("demo_order_002", "user_demo_2", 3520000.0, "SELESAI", getDate(1), "anteraja_reg",
+            listOf(createItem("demo_order_002", "polygon_sepeda_kota_claire_24", "Polygon Claire 24", 3500000.0, IMG_CLAIRE, 1))))
+
+        // Order 3: 2 Hari Lalu (Reza beli Aksesoris banyak)
+        orders.add(createOrder("demo_order_003", "user_demo_3", 896000.0, "SELESAI", getDate(2), "jnt_ez",
+            listOf(
+                createItem("demo_order_003", "entity_helm_sepeda_mountain_mh15", "Helm Entity MH15", 548000.0, IMG_HELM_ENTITY, 1),
+                createItem("demo_order_003", "polygon_botol_minum_sepeda_cycling_500_ml", "Botol Minum 500ml", 17000.0, IMG_BOTOL_500, 2),
+                createItem("demo_order_003", "polygon_sarung_tangan_sepeda_am_areli", "Sarung Tangan Areli", 149000.0, IMG_GLOVE_ARELI, 1)
+            )))
+
+        // Order 4: 5 Hari Lalu (Putri beli Sepeda Lipat)
+        orders.add(createOrder("demo_order_004", "user_demo_4", 11045000.0, "SELESAI", getDate(5), "gosend_instant",
+            listOf(createItem("demo_order_004", "tern_sepeda_lipat_verge_p10", "Tern Verge P10", 11000000.0, IMG_TERN_VERGE, 1))))
+
+        // Order 5: Seminggu Lalu (Ahmad beli Sparepart)
+        orders.add(createOrder("demo_order_005", "user_demo_5", 4268000.0, "SELESAI", getDate(7), "jne_reg",
+            listOf(createItem("demo_order_005", "shimano_rem_hidrolik_sepeda_grx_i_rx820_d_2x12_speed", "Rem Shimano GRX", 4248000.0, IMG_GRX_BRAKE, 1))))
+
+        // --- GROUP 2: DIKIRIM (Sedang jalan) ---
+
+        // Order 6: Hari Ini (Siti beli Sepeda Anak)
+        orders.add(createOrder("demo_order_006", "user_demo_2", 2925000.0, "DIKIRIM", com.google.firebase.Timestamp.now(), "jnt_ez",
+            listOf(createItem("demo_order_006", "polygon_sepeda_mtb_junior_relic_24_2021", "Polygon Relic 24", 2900000.0, IMG_RELIC, 1))))
+
+        // Order 7: Kemarin (Budi beli Pelumas)
+        orders.add(createOrder("demo_order_007", "user_demo_1", 246000.0, "DIKIRIM", getDate(1), "sicepat_halu",
+            listOf(createItem("demo_order_007", "finish_line_pelumas_sepeda_wet_lube", "Finish Line Wet Lube", 228000.0, IMG_FL_WET_LUBE, 1))))
+
+        // Order 8: 3 Hari Lalu (Reza beli Pedal)
+        orders.add(createOrder("demo_order_008", "user_demo_3", 2518000.0, "DIKIRIM", getDate(3), "anteraja_reg",
+            listOf(createItem("demo_order_008", "shimano_pedal_sepeda_xtr_xc_ipd_m9200", "Pedal Shimano XTR", 2498000.0, IMG_PEDAL_XTR, 1))))
+
+        // --- GROUP 3: DIPROSES (Pesanan Baru Masuk) ---
+
+        // Order 9: BARU SAJA (Putri - Butuh Konfirmasi Cepat)
+        orders.add(createOrder("demo_order_009", "user_demo_4", 14545000.0, "DIPROSES", com.google.firebase.Timestamp.now(), "gosend_instant",
+            listOf(createItem("demo_order_009", "polygon_sepeda_mtb_dual_suspensi_siskiu_d6", "Polygon Siskiu D6", 14500000.0, IMG_SISKIU_D6, 1))))
+
+        // Order 10: 1 Jam Lalu (Ahmad)
+        val satuJamLalu = java.util.Calendar.getInstance().apply { add(java.util.Calendar.HOUR, -1) }
+        orders.add(createOrder("demo_order_010", "user_demo_5", 228000.0, "DIPROSES", com.google.firebase.Timestamp(satuJamLalu.time), "jne_reg",
+            listOf(createItem("demo_order_010", "shimano_bottom_bracket_sepeda_ebb_rs501_b_bsa", "Shimano BB RS501", 208000.0, IMG_BB_RS501, 1))))
+
+        // Order 11: 3 Jam Lalu (Budi)
+        val tigaJamLalu = java.util.Calendar.getInstance().apply { add(java.util.Calendar.HOUR, -3) }
+        orders.add(createOrder("demo_order_011", "user_demo_1", 668000.0, "DIPROSES", com.google.firebase.Timestamp(tigaJamLalu.time), "jnt_ez",
+            listOf(createItem("demo_order_011", "altalist_kacamata_sepeda_kaku_sp_2_photochromic", "Kacamata Altalist", 648000.0, IMG_KACAMATA_ALTALIST, 1))))
+
+        // --- GROUP 4: DIBATALKAN (History Cancel) ---
+
+        // Order 12
+        orders.add(createOrder("demo_order_012", "user_demo_2", 1720000.0, "DIBATALKAN", getDate(4), "sicepat_halu",
+            listOf(createItem("demo_order_012", "polygon_sepeda_bmx_travis", "Polygon Travis", 1700000.0, IMG_TRAVIS, 1))))
+
+        // Order 13
+        orders.add(createOrder("demo_order_013", "user_demo_3", 3520000.0, "DIBATALKAN", getDate(6), "gosend_instant",
+            listOf(createItem("demo_order_013", "polygon_sepeda_kota_claire_24", "Polygon Claire 24", 3500000.0, IMG_CLAIRE, 1))))
+
+        // --- GROUP 5: KERANJANG (Opsional - Tidak muncul di Owner tapi ada di DB) ---
+        // Tidak perlu di-seed untuk Owner Dashboard, tapi bisa ada di database.
+
+        // EKSEKUSI BATCH
+        orders.forEach { (pesanan, items) ->
+            batch.set(db.collection("pesanan").document(pesanan.id), pesanan)
+            items.forEach { item ->
+                batch.set(db.collection("itemPesanan").document(), item)
+            }
+        }
+
+        batch.commit()
+            .addOnSuccessListener {
+//                Toast.makeText(context, "Data Demo Siap! (5 User, 13 Pesanan)", Toast.LENGTH_LONG).show()
+                prefs.edit().putBoolean("is_demo_data_seeded_v2", true).apply()
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Gagal Seed: ${it.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
+    // --- FUNGSI HAPUS DATA DEMO (BERSIH-BERSIH) ---
+    fun hapusDataDemo(context: Context) {
+        val batch = db.batch()
+
+        // 1. Hapus Ekspedisi
+        demoEkspedisiIds.forEach { batch.delete(db.collection("ekspedisi").document(it)) }
+
+        // 2. Hapus User
+        demoUserIds.forEach { batch.delete(db.collection("users").document(it)) }
+
+        // 3. Hapus Pesanan
+        demoOrderIds.forEach { batch.delete(db.collection("pesanan").document(it)) }
+
+        // 4. Hapus Item Pesanan (Query dulu karena ID random)
+        db.collection("itemPesanan")
+            .whereIn("pesananId", demoOrderIds)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val deleteBatch = db.batch()
+                // Masukkan item ke batch hapus
+                for (doc in snapshot.documents) {
+                    deleteBatch.delete(doc.reference)
+                }
+
+                // Masukkan operasi hapus (User, Ekspedisi, Order) ke batch ini juga atau commit batch sebelumnya
+                // Agar aman dan urut, kita commit deleteBatch item dulu, baru batch utama
+                deleteBatch.commit().addOnSuccessListener {
+                    batch.commit().addOnSuccessListener {
+                        val prefs = context.getSharedPreferences("seeder_prefs", Context.MODE_PRIVATE)
+                        prefs.edit().remove("is_demo_data_seeded_v2").apply()
+//                        Toast.makeText(context, "Data Demo BERHASIL Dihapus!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+    }
+
+    // --- Helper Functions Private ---
+    private fun createOrder(id: String, userId: String, total: Double, status: String, date: com.google.firebase.Timestamp, ekspedisi: String, items: List<ItemPesanan>): Pair<Pesanan, List<ItemPesanan>> {
+        val pesanan = Pesanan(
+            id = id,
+            userId = userId,
+            totalHarga = total,
+            status = status,
+            tanggal = date,
+            ekspedisiId = ekspedisi,
+            metodePembayaran = com.example.penjualan_produk_umkm.database.firestore.model.MetodePembayaran.TRANSFER_BANK
+        )
+        return Pair(pesanan, items)
+    }
+
+    private fun createItem(orderId: String, prodId: String, nama: String, harga: Double, img: String, qty: Int): ItemPesanan {
+        return ItemPesanan(
+            id = java.util.UUID.randomUUID().toString(),
+            pesananId = orderId,
+            produkId = prodId,
+            produkNama = nama,
+            produkHarga = harga,
+            gambarUrl = img,
+            jumlah = qty,
+            isSelected = true
+        )
+    }
+
+//    ------------------------------------------------------------------
     private fun createProduct(
         nama: String,
         harga: Double,

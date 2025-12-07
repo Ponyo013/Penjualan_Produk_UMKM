@@ -38,6 +38,9 @@ class SplashActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("seeder_prefs", MODE_PRIVATE)
         prefs.edit().clear().apply() // <--- INI MENGHAPUS SEMUA STATUS SEEDING
         DataSeeder.seedProducts(this)
+        DataSeeder.seedDemoData(this)
+
+//        DataSeeder.hapusDataDemo(this)
     }
 
 

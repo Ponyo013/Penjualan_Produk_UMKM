@@ -35,18 +35,8 @@ class PesananAdapter(
 
         fun bind(pesanan: Pesanan, viewModel: PesananViewModel, lifecycleOwner: LifecycleOwner) {
 
-            // Order ID
-            binding.tvOrderId.text = "Order ID: #${pesanan.id.takeLast(8).uppercase()}" // Ambil 8 karakter terakhir ID
-
-            // Alamat (Perlu diambil dari User/Firestore, tapi sementara kita hardcode atau ambil dari field jika ada)
-            // Idealnya, Pesanan menyimpan "alamatSnapshot" saat checkout.
-            // Jika tidak, kita harus query User lagi (tapi di Adapter tidak disarankan).
-            // SEMENTARA: Tampilkan placeholder atau ambil dari ViewModel jika ViewModel support.
-            binding.tvOrderAddress.text = "Alamat Pengiriman"
-
-            // Ekspedisi (Perlu query atau simpan snapshot nama ekspedisi di Pesanan)
-            // SEMENTARA: Tampilkan placeholder
-            binding.tvOrderExpedition.text = "Ekspedisi (Estimasi - hari)"
+            // 1. Setup Data Dasar Pesanan
+            binding.tvOrderId.text = "Order ID: #${pesanan.id.take(8).uppercase()}"
 
             // Format Rupiah
             val numberFormat = NumberFormat.getCurrencyInstance(Locale("id", "ID")).apply {
@@ -54,31 +44,42 @@ class PesananAdapter(
                 currency = Currency.getInstance("IDR")
             }
 
-            // Ongkir & Total (Ambil langsung dari objek Pesanan jika sudah dihitung)
-            // Note: Di model Pesanan baru kita simpan totalHarga final.
+            // Tampilkan Total Harga
             val totalFormatted = numberFormat.format(pesanan.totalHarga)
             binding.tvOrderTotal.text = "Total: ${totalFormatted.replace("Rp", "Rp ")}"
 
-            // Ongkir (Jika tidak disimpan terpisah, mungkin sulit ditampilkan, sementara hide atau 0)
-            binding.tvOrderOngkir.text = "Ongkir: -"
-
-            // Tanggal (Konversi dari Timestamp Firebase)
+            // Tanggal
             try {
                 val date = pesanan.tanggal.toDate()
-                val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+                val formatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
                 binding.tvOrderDate.text = formatter.format(date)
             } catch (e: Exception) {
                 binding.tvOrderDate.text = "-"
             }
 
-            // Sub-item RecyclerView (Ambil dari ViewModel Firebase)
+            // Placeholder awal sebelum data item dimuat
+            binding.tvOrderOngkir.text = "Memuat..."
+
+            // 2. Observasi Item untuk Menghitung Subtotal & Ongkir
             viewModel.getItemsForPesanan(pesanan.id).observe(lifecycleOwner) { items ->
+                // Setup RecyclerView untuk item produk
                 val subItemAdapter = SubItemPesananAdapter(items)
                 binding.rvOrderedItems.apply {
                     layoutManager = LinearLayoutManager(itemView.context)
                     adapter = subItemAdapter
                     setHasFixedSize(true)
                 }
+
+                // --- [LOGIKA FIX ONGKIR] ---
+                // Hitung subtotal harga barang (Harga x Jumlah)
+                val subtotalBarang = items.sumOf { it.produkHarga * it.jumlah }
+
+                // Hitung Ongkir = Total Bayar - Subtotal Barang
+                // (Gunakan max(0.0) untuk mencegah minus karena floating point error)
+                val ongkir = (pesanan.totalHarga - subtotalBarang).coerceAtLeast(0.0)
+
+                // Update UI Ongkir
+                binding.tvOrderOngkir.text = "Ongkir: ${numberFormat.format(ongkir).replace("Rp", "Rp ")}"
             }
         }
     }
