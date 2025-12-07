@@ -11,6 +11,9 @@ import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -19,11 +22,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.client.ui.beranda.CartAdapter
-import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan // Model Firestore
+import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.MetodePembayaran
 import com.example.penjualan_produk_umkm.viewModel.CheckoutViewModel
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
+import java.util.concurrent.Executor
 
 class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
@@ -35,12 +40,16 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
     private lateinit var tvUserPhone: TextView
     private lateinit var tvUserAddress: TextView
 
-    // FIX: Gunakan Factory kosong (ViewModel akan handle DB & User Auth sendiri)
     private val viewModel: CheckoutViewModel by viewModels {
         ViewModelFactory()
     }
 
     private var cartItems: List<ItemPesanan> = emptyList()
+
+    // Biometric components
+    private lateinit var executor: Executor
+    private lateinit var biometricPrompt: BiometricPrompt
+    private lateinit var promptInfo: BiometricPrompt.PromptInfo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -52,6 +61,9 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         tvUserPhone = view.findViewById(R.id.tv_user_phone)
         tvUserAddress = view.findViewById(R.id.tv_user_address)
 
+        // Setup Biometric Authentication
+        setupBiometric()
+
         // Observe user data
         viewModel.user.observe(viewLifecycleOwner) { user ->
             user?.let {
@@ -61,11 +73,18 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             }
         }
 
-        // Observe Error (Optional, tapi bagus buat debug)
+        // Observe Error
         viewModel.error.observe(viewLifecycleOwner) { errMsg ->
             if (errMsg != null) {
                 Toast.makeText(context, errMsg, Toast.LENGTH_SHORT).show()
             }
+        }
+
+        // Observe Loading State
+        viewModel.loading.observe(viewLifecycleOwner) { isLoading ->
+            val btnBayar = view.findViewById<MaterialButton>(R.id.btn_bayar)
+            btnBayar.isEnabled = !isLoading
+            btnBayar.text = if (isLoading) "Memproses..." else "Bayar"
         }
 
         // Setup RecyclerView
@@ -77,13 +96,11 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
 
         // Shipping options
         viewModel.ekspedisiAktif.observe(viewLifecycleOwner) { ekspedisiList ->
-            // Format text spinner
             val ekspedisiItems = ekspedisiList.map { "${it.nama} (${it.estimasiHari} hari) - Rp ${String.format("%,.0f", it.biaya)}" }
             val actEkspedisi = view.findViewById<AutoCompleteTextView>(R.id.act_ekspedisi)
             val ekspedisiAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, ekspedisiItems)
             actEkspedisi.setAdapter(ekspedisiAdapter)
 
-            // Set default jika list tidak kosong
             if (ekspedisiList.isNotEmpty()) {
                 selectedShippingCost = ekspedisiList[0].biaya
                 actEkspedisi.setText(ekspedisiItems[0], false)
@@ -102,7 +119,6 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         val paymentMethodAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, paymentMethodItems)
         actMetodePembayaran.setAdapter(paymentMethodAdapter)
 
-        // Set default payment
         actMetodePembayaran.setText(paymentMethodItems[0], false)
 
         actMetodePembayaran.setOnItemClickListener { _, _, position, _ ->
@@ -110,15 +126,58 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         }
 
         view.findViewById<MaterialButton>(R.id.btn_bayar).setOnClickListener {
-            checkout(view)
+            validateAndProceedToCheckout(view)
         }
+    }
+
+    private fun setupBiometric() {
+        executor = ContextCompat.getMainExecutor(requireContext())
+
+        biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(
+                        requireContext(),
+                        "Autentikasi dibatalkan: $errString",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    Toast.makeText(
+                        requireContext(),
+                        "Autentikasi berhasil! Memproses pembayaran...",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    // Proses pembayaran setelah autentikasi berhasil
+                    view?.let { processPembayaran(it) }
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    Toast.makeText(
+                        requireContext(),
+                        "Autentikasi gagal. Silakan coba lagi.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+
+        promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Verifikasi Pembayaran")
+            .setSubtitle("Konfirmasi pembayaran Anda")
+            .setDescription("Gunakan biometrik untuk menyelesaikan transaksi pembayaran")
+            .setNegativeButtonText("Batal")
+            .setConfirmationRequired(true)
+            .build()
     }
 
     private fun setupRecyclerView(view: View) {
         val rvProdukCheckout = view.findViewById<RecyclerView>(R.id.rv_produk_checkout)
 
         viewModel.itemsWithProduk.observe(viewLifecycleOwner) { itemsWithProduk ->
-            // Filter barang yang dipilih (isSelected = true)
             val selectedItems = itemsWithProduk.filter { it.isSelected }
 
             cartAdapter = CartAdapter(selectedItems, isCheckout = true)
@@ -174,8 +233,6 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
     }
 
     private fun updatePaymentDetails(view: View) {
-        // Hitung ulang hanya untuk item yang tampil (isSelected)
-        // viewModel.itemsWithProduk berisi List<ItemPesanan>
         val currentItems = viewModel.itemsWithProduk.value?.filter { it.isSelected } ?: emptyList()
 
         val subtotal = currentItems.sumOf { it.jumlah * it.produkHarga }
@@ -186,13 +243,85 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
         view.findViewById<TextView>(R.id.tv_total_pembayaran).text = "Rp ${String.format("%,.0f", total)}"
     }
 
-    private fun checkout(view: View) {
-        if (cartItems.isEmpty()) {
-            Toast.makeText(requireContext(), "Keranjang kosong atau tidak ada barang dipilih!", Toast.LENGTH_SHORT).show()
-            return
-        }
+    private fun validateAndProceedToCheckout(view: View) {
+        val user = viewModel.user.value
 
-        // Cari objek ekspedisi yang sesuai dengan biaya yang dipilih
+        when {
+            user == null -> {
+                Toast.makeText(requireContext(), "Data user tidak ditemukan", Toast.LENGTH_SHORT).show()
+            }
+            user.alamat.isNullOrBlank() -> {
+                Toast.makeText(requireContext(), "Harap lengkapi alamat pengiriman", Toast.LENGTH_SHORT).show()
+            }
+            cartItems.isEmpty() -> {
+                Toast.makeText(requireContext(), "Keranjang kosong atau tidak ada barang dipilih!", Toast.LENGTH_SHORT).show()
+            }
+            selectedShippingCost <= 0 -> {
+                Toast.makeText(requireContext(), "Mohon pilih ekspedisi", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                // Semua validasi OK, cek biometric availability
+                checkBiometricAvailability(view)
+            }
+        }
+    }
+
+    private fun checkBiometricAvailability(view: View) {
+        val biometricManager = BiometricManager.from(requireContext())
+        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)) {
+            BiometricManager.BIOMETRIC_SUCCESS -> {
+                // Biometric tersedia, tampilkan prompt
+                biometricPrompt.authenticate(promptInfo)
+            }
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
+                Toast.makeText(
+                    requireContext(),
+                    "Perangkat tidak memiliki sensor biometrik",
+                    Toast.LENGTH_SHORT
+                ).show()
+                // Fallback: tampilkan dialog konfirmasi manual
+                showManualConfirmationDialog(view)
+            }
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+                Toast.makeText(
+                    requireContext(),
+                    "Sensor biometrik tidak tersedia saat ini",
+                    Toast.LENGTH_SHORT
+                ).show()
+                showManualConfirmationDialog(view)
+            }
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                Toast.makeText(
+                    requireContext(),
+                    "Tidak ada biometrik terdaftar. Silakan atur di pengaturan perangkat.",
+                    Toast.LENGTH_LONG
+                ).show()
+                showManualConfirmationDialog(view)
+            }
+            else -> {
+                Toast.makeText(
+                    requireContext(),
+                    "Autentikasi biometrik tidak didukung",
+                    Toast.LENGTH_SHORT
+                ).show()
+                showManualConfirmationDialog(view)
+            }
+        }
+    }
+
+    private fun showManualConfirmationDialog(view: View) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Konfirmasi Pembayaran")
+            .setMessage("Biometrik tidak tersedia. Apakah Anda yakin ingin menyelesaikan pembayaran ini?")
+            .setIcon(R.drawable.ic_warning)
+            .setPositiveButton("Ya, Bayar") { _, _ ->
+                processPembayaran(view)
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun processPembayaran(view: View) {
         val selectedEkspedisiList = viewModel.ekspedisiAktif.value
         val selectedEkspedisi = selectedEkspedisiList?.find { it.biaya == selectedShippingCost }
 
@@ -207,8 +336,6 @@ class CheckoutFragment : Fragment(R.layout.fragment_checkout) {
             metodePembayaran = selectedPaymentMethod,
             onSuccess = {
                 Toast.makeText(requireContext(), "Pesanan berhasil dibuat!", Toast.LENGTH_SHORT).show()
-
-                // Navigasi balik ke Beranda dan bersihkan backstack
                 findNavController().popBackStack(R.id.BerandaFragment, false)
             },
             onError = { errorMsg ->
