@@ -62,7 +62,8 @@ android {
 dependencies {
     // TensorFlow Lite
     implementation("org.tensorflow:tensorflow-lite:2.17.0")
-
+    //Biometric Auth
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
     // JSON parsing (if not already included)
     implementation("org.json:json:20230227")
     // Database
