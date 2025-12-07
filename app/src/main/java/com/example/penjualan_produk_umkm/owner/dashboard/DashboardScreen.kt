@@ -601,7 +601,7 @@ private fun Tanggal() {
 fun Buttons(navController: NavHostController){
     val buttonKategori = listOf(
         "Produk" to Icons.Filled.AllInbox,
-        "penjualan" to Icons.Outlined.MonetizationOn,
+        "Penjualan" to Icons.Outlined.MonetizationOn,
         "Kirim" to Icons.Outlined.NotificationAdd,
         "Expedisi" to Icons.Outlined.LocalShipping
     )
@@ -618,7 +618,7 @@ fun Buttons(navController: NavHostController){
                     onClick = {
                         when (label) {
                             "Produk" -> navController.navigate("produkManage")
-                            "penjualan" -> navController.navigate("penjualan")
+                            "Penjualan" -> navController.navigate("penjualan")
                             "Expedisi" -> navController.navigate("expedisi")
                             "Kirim" -> navController.navigate("kirimNotifikasi")
                         }

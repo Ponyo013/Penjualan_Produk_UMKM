@@ -103,7 +103,7 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    modifier = Modifier.wrapContentWidth()
+                    modifier = Modifier.wrapContentWidth().weight(2f)
                 ) {
                     Text(tab)
                 }
@@ -113,7 +113,7 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.wrapContentWidth()
+                    modifier = Modifier.wrapContentWidth().weight(2f)
                 ) {
                     Text(tab)
                 }
