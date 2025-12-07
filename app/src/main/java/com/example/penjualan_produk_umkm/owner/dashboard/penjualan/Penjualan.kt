@@ -20,9 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -206,11 +206,11 @@ fun Penjualan(navController: NavController, viewModel: OwnerPesananViewModel) {
                             )
 
                             Icon(
-                                imageVector = Icons.Default.ArrowForward,
+                                imageVector = Icons.Default.ChevronRight,
                                 contentDescription = "See More",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .size(32.dp)
+                                    .size(24.dp)
                                     .clickable { navController.navigate("keuangan") })
                         }
 

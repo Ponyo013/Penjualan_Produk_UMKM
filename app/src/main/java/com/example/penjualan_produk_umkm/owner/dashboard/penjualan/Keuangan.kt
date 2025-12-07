@@ -30,10 +30,8 @@ import com.example.penjualan_produk_umkm.style.UMKMTheme
 import com.example.penjualan_produk_umkm.viewModel.OwnerPesananViewModel
 import com.example.penjualan_produk_umkm.viewModel.PesananLengkap
 import org.threeten.bp.LocalDate
-import org.threeten.bp.Month
 import org.threeten.bp.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -205,30 +203,6 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             groupedPesanan.forEach { (group, list) ->
-                item {
-                    if (group != null) {
-                        Text(
-                            text = when (selectedTab) {
-                                "Bulanan" -> {
-                                    val month = Month.of(group)
-                                    month.name.lowercase()
-                                        .replaceFirstChar {
-                                            if (it.isLowerCase()) it.titlecase(Locale("id")) else it.toString()
-                                        }
-                                }
-
-                                "Tahunan" -> group.toString()
-                                else -> ""
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp, horizontal = 12.dp)
-                        )
-                    }
-                }
-
                 items(list) { pesananLengkap ->
                     LaporanPenjualanCardExpandable(pesananLengkap)
                 }

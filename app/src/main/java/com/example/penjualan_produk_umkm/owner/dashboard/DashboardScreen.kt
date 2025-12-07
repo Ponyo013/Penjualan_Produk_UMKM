@@ -607,37 +607,69 @@ fun Buttons(navController: NavHostController){
     )
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             buttonKategori.forEach { (label, ikon) ->
-                OptButton(label, ikon) {
-                    when (label) {
-                        "Produk" -> navController.navigate("produkManage")
-                        "penjualan" -> navController.navigate("penjualan")
-                        "Expedisi" -> navController.navigate("expedisi")
-                        "Kirim" -> navController.navigate("kirimNotifikasi")
-                    }
-                }
+                OptButton(
+                    label = label,
+                    ikon = ikon,
+                    onClick = {
+                        when (label) {
+                            "Produk" -> navController.navigate("produkManage")
+                            "penjualan" -> navController.navigate("penjualan")
+                            "Expedisi" -> navController.navigate("expedisi")
+                            "Kirim" -> navController.navigate("kirimNotifikasi")
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
 }
 
 @Composable
-fun OptButton(label: String, ikon: ImageVector, onClick: () -> Unit){
+fun OptButton(
+    label: String,
+    ikon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+){
     Column(
-        modifier = Modifier.clickable { onClick() }.wrapContentWidth().padding(16.dp),
+        modifier = modifier
+            .clickable { onClick() }
+            .wrapContentWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
-            modifier = Modifier.background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp)).padding(8.dp),
+            modifier = Modifier
+                .background(
+                    MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = ikon, contentDescription = label, tint = MaterialTheme.colorScheme.surface, modifier = Modifier.size(28.dp))
+            Icon(
+                imageVector = ikon,
+                contentDescription = label,
+                tint = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.size(28.dp)
+            )
         }
-        Text(text = label, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium
+            )
+        )
     }
 }
+
 
 @SuppressLint("DefaultLocale")
 @Composable
