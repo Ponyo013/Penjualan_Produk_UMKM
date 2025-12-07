@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -20,32 +19,18 @@ class ArtikelAdapter(private val articles: List<Artikel>) :
         val img: ImageView = itemView.findViewById(R.id.iv_article_image)
         val title: TextView = itemView.findViewById(R.id.tv_article_title)
 
-        fun bind(artikel: Artikel, position: Int) {
+        fun bind(artikel: Artikel) {
             title.text = artikel.title
             img.load(artikel.imageUrl) {
                 crossfade(true)
             }
 
-            // ... Logic Span Size (Grid) tetap sama ...
-            val params = img.layoutParams as ConstraintLayout.LayoutParams
-            if (position == 0) {
-                params.dimensionRatio = "2:1"
-                title.textSize = 18f
-            } else {
-                params.dimensionRatio = "1:1"
-                title.textSize = 12f
-            }
-            img.layoutParams = params
-
-            // --- UPDATE CLICK LISTENER ---
             itemView.setOnClickListener {
                 val bundle = Bundle().apply {
                     putInt("ARG_ID", artikel.id)
                     putString("ARG_TITLE", artikel.title)
                     putString("ARG_IMAGE", artikel.imageUrl)
                 }
-
-                // Navigasi ke ArticleDetailFragment membawa Bundle
                 it.findNavController().navigate(
                     R.id.action_BerandaFragment_to_articleDetailFragment,
                     bundle
@@ -53,13 +38,15 @@ class ArtikelAdapter(private val articles: List<Artikel>) :
             }
         }
     }
-    // ... onCreateViewHolder & getItemCount tetap sama ...
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_artikel, parent, false)
         return ViewHolder(view)
     }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(articles[position], position)
+        holder.bind(articles[position])
     }
+
     override fun getItemCount() = articles.size
 }
