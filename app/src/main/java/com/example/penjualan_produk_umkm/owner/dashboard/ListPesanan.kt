@@ -34,16 +34,21 @@ fun ListPesanan(navController: NavController, viewModel: OwnerPesananViewModel) 
     var selectedTab by remember { mutableStateOf("Baru") }
     val pesananList by viewModel.pesananList.collectAsState()
 
-    LaunchedEffect(selectedTab) {
-        when (selectedTab) {
-            "Baru" -> viewModel.loadByStatus(StatusPesanan.DIPROSES)
-            "Diproses" -> viewModel.loadByStatus(StatusPesanan.DIPROSES)
-            "Dikirim" -> viewModel.loadByStatus(StatusPesanan.DIKIRIM)
-            "Selesai" -> viewModel.loadByStatus(StatusPesanan.SELESAI)
-            "Batal" -> viewModel.loadByStatus(StatusPesanan.DIBATALKAN)
-            else -> viewModel.loadAll()
+    val filteredPesananList = remember(selectedTab, pesananList) {
+        val now = System.currentTimeMillis()
+        val duaJam = 2 * 60 * 60 * 1000L
+        pesananList.filter { p ->
+            when (selectedTab) {
+                "Baru" -> now - p.pesanan.tanggal.toDate().time <= duaJam && p.pesanan.status == StatusPesanan.DIPROSES.name
+                "Diproses" -> p.pesanan.status == StatusPesanan.DIPROSES.name
+                "Dikirim" -> p.pesanan.status == StatusPesanan.DIKIRIM.name
+                "Selesai" -> p.pesanan.status == StatusPesanan.SELESAI.name
+                "Batal" -> p.pesanan.status == StatusPesanan.DIBATALKAN.name
+                else -> true
+            }
         }
     }
+
 
     UMKMTheme {
         Scaffold(
@@ -58,26 +63,13 @@ fun ListPesanan(navController: NavController, viewModel: OwnerPesananViewModel) 
                 )
             }
         ) { paddingValues ->
-            Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
+            Column(modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)) {
                 TabPesanan(selectedTab) { selectedTab = it }
 
                 // Filter Tab baru (< 2 jam) dan proses (> 2 jam)
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val duaJamDalamMillis = 2 * 60 * 60 * 1000L
-                    val now = System.currentTimeMillis()
-
-                    val filteredPesananList = when(selectedTab) {
-                        "Baru" -> pesananList.filter {
-                            val createdAtMillis = it.pesanan.tanggal.toDate().time
-                            now - createdAtMillis <= duaJamDalamMillis
-                        }
-                        "Diproses" -> pesananList.filter {
-                            val createdAtMillis = it.pesanan.tanggal.toDate().time
-                            now - createdAtMillis > duaJamDalamMillis
-                        }
-                        else -> pesananList
-                    }
-
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     items(filteredPesananList) { pesananLengkap ->
                         CardPesanan(
                             pesananLengkap = pesananLengkap,
@@ -114,12 +106,11 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
 
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -160,24 +151,40 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // List Item Produk (Ambil dari PesananLengkap, tidak perlu query lagi)
             pesananLengkap.items.forEach { item ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Gunakan AsyncImage (Coil) untuk URL, atau Placeholder jika kosong
-                    // ItemPesanan tidak simpan URL gambar, jadi kita pakai placeholder default
+                    // Gambar
                     AsyncImage(
-                        model = com.example.penjualan_produk_umkm.R.drawable.ic_error_image,
+                        model = item.gambarUrl.ifEmpty { com.example.penjualan_produk_umkm.R.drawable.ic_error_image },
                         contentDescription = item.produkNama,
-                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .weight(1f),
+                        contentScale = ContentScale.Fit,
                     )
 
-                    Text(text = item.produkNama, style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "x${item.jumlah}")
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Nama Produk
+                    Text(
+                        text = item.produkNama,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(3f)
+                    )
+
+                    // Jumlah
+                    Text(
+                        text = "x${item.jumlah}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End
+                    )
                 }
             }
 
@@ -211,7 +218,12 @@ fun CardPesanan(pesananLengkap: PesananLengkap, onStatusChange: (StatusPesanan) 
             if (showDialog) {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
-                    title = { Text("Edit Status Pesanan", style = MaterialTheme.typography.titleLarge) },
+                    title = {
+                        Text(
+                            "Edit Status Pesanan",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
                     text = {
                         var expanded by remember { mutableStateOf(false) }
                         Column {
@@ -265,7 +277,7 @@ fun TabPesanan(
     val tabs = listOf("Baru", "Diproses", "Dikirim", "Selesai", "Batal")
 
     LazyRow(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(tabs) { tab ->

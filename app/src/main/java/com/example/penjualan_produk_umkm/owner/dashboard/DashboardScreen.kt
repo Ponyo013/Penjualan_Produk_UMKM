@@ -676,7 +676,7 @@ fun OptButton(
 fun RingkasanOmsetPesanan(pesananList: List<Pesanan>, dashboardViewModel: DashboardViewModel) {
     val totalOmset = dashboardViewModel.hitungOmset(pesananList)
 
-    val jumlahPesanan = pesananList.size
+    val jumlahPesanan = dashboardViewModel.getJumlahPesanan()
     val formattedOmset = "Rp " + String.format(Locale("id", "ID"), "%,.0f", totalOmset).replace(',', '.')
 
     Card(

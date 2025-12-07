@@ -103,7 +103,9 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    modifier = Modifier.wrapContentWidth().weight(2f)
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .weight(1f)
                 ) {
                     Text(tab)
                 }
@@ -113,7 +115,9 @@ fun LaporanDenganKalender(pesananList: List<PesananLengkap>) {
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.wrapContentWidth().weight(2f)
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .weight(1f)
                 ) {
                     Text(tab)
                 }
@@ -364,58 +368,47 @@ fun LaporanPenjualanCardExpandable(pesananLengkap: PesananLengkap) {
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
+
+                    Column (
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ){
+                        Text("Metode Pembayaran: ${pesanan.metodePembayaran}")
+                        Text("Expedisi: ${pesananLengkap.ekspedisi?.nama ?: "-"}")
+                        Text("Alamat: ${pesananLengkap.user?.alamat ?: "-"}")
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        text = "Detail Pesanan",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    // --- DETAIL ITEM (ditampilkan banyak) ---
                     itemsForPesanan.forEach { item ->
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = "Metode Pembayaran: ${pesanan.metodePembayaran}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Expedisi: ${pesananLengkap.ekspedisi?.nama ?: "-"}",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Text(
-                                text = "Alamat: ${pesananLengkap.user?.alamat ?: "-"}",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-
-                        Text(
-                            text = "Detail Pesanan",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Nama produk
                             Text(
-                                modifier = Modifier.weight(2f),
+                                modifier = Modifier.weight(1.5f),
                                 text = "${item.produkNama}\n(Rp ${
                                     String.format(
                                         "%,.0f",
                                         item.produkHarga
                                     )
                                 })",
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 3,
+                                fontWeight = FontWeight.Medium,
                             )
 
-                            // Jumlah
                             Text(
-                                modifier = Modifier.weight(0.3f),
+                                modifier = Modifier.weight(0.5f),
                                 text = "X${item.jumlah}",
-                                style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center
                             )
 
-                            // Harga total
                             Text(
                                 modifier = Modifier.weight(1f),
                                 text = "Rp ${
@@ -424,32 +417,28 @@ fun LaporanPenjualanCardExpandable(pesananLengkap: PesananLengkap) {
                                         item.produkHarga * item.jumlah
                                     )
                                 }",
-                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
+
+                        Spacer(Modifier.height(8.dp))
                     }
 
-                    Spacer(modifier = Modifier.height(2.dp))
-
+                    // TOTAL
                     val totalHarga = itemsForPesanan.sumOf { it.produkHarga * it.jumlah }
+
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
-                        thickness = 1.dp
+                        thickness = 0.5.dp
                     )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        Text("Total:", fontWeight = FontWeight.Bold)
                         Text(
-                            text = "Total:",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Rp ${String.format("%,.0f", totalHarga)}",
-                            style = MaterialTheme.typography.bodyMedium,
+                            "Rp ${String.format("%,.0f", totalHarga)}",
                             fontWeight = FontWeight.Bold
                         )
                     }

@@ -13,6 +13,9 @@ import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -46,92 +49,58 @@ class OwnerPesananViewModel : ViewModel() {
     private val _produkTerjualList = MutableStateFlow<List<ProdukTerjual>>(emptyList())
     val produkTerjualList: StateFlow<List<ProdukTerjual>> get() = _produkTerjualList
 
-    init {
-        loadAll()
-    }
 
-    // 1. Load Semua Pesanan (Realtime)
-    fun loadAll() {
+    init {
         db.collection("pesanan")
             .orderBy("tanggal", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, _ ->
                 val rawList = snapshot?.toObjects(Pesanan::class.java)
-                    ?.filter { it.status != "KERANJANG" }
-                    ?: emptyList()
+                    ?.filter { it.status != "KERANJANG" } ?: emptyList()
+
                 fetchDetailsForPesanan(rawList)
             }
     }
 
-    // 2. Load Berdasarkan Status
-    fun loadByStatus(status: StatusPesanan) {
-        db.collection("pesanan")
-            .whereEqualTo("status", status.name)
-            .addSnapshotListener { snapshot, _ ->
-                val now = System.currentTimeMillis()
-                val duaJamDalamMillis = 2 * 60 * 60 * 1000L // 2 jam
-
-                val rawList = snapshot?.toObjects(Pesanan::class.java)
-                    ?.filter { it.status != "KERANJANG" }
-                    ?.filter { pesanan ->
-                        val createdAtMillis = pesanan.tanggal.toDate().time
-                        when (status) {
-                            StatusPesanan.DIPROSES -> {
-                                now - createdAtMillis > duaJamDalamMillis
-                            }
-                            else -> true
-                        }
-                    }
-                    ?: emptyList()
-                fetchDetailsForPesanan(rawList)
-            }
-    }
-
-
-    // 3. Fungsi Manual untuk Menggabungkan Data (Pesanan + User + Items)
+    // 2. Fungsi Manual untuk Menggabungkan Data (Pesanan + User + Items)
     private fun fetchDetailsForPesanan(pesananList: List<Pesanan>) {
         viewModelScope.launch {
-            val resultList = mutableListOf<PesananLengkap>()
+            val userCache = mutableMapOf<String, User>()
+            val produkCache = mutableMapOf<String, Produk>()
 
-            for (pesanan in pesananList) {
-                // Ambil User
-                val user: User? = try {
-                    db.collection("users").document(pesanan.userId).get().await().toObject(User::class.java)
-                } catch (e: Exception) { e.printStackTrace(); null }
+            val resultList = coroutineScope {
+                pesananList.map { pesanan ->
+                    async {
+                        val user = userCache[pesanan.userId] ?: run {
+                            val u = db.collection("users").document(pesanan.userId).get().await().toObject(User::class.java)
+                            if (u != null) userCache[pesanan.userId] = u
+                            u
+                        }
 
-                // Ambil Item Pesanan
-                var items: List<ItemPesanan> = emptyList()
-                try {
-                    val itemsSnapshot = db.collection("itemPesanan")
-                        .whereEqualTo("pesananId", pesanan.id)
-                        .get()
-                        .await()
-                    items = itemsSnapshot.toObjects(ItemPesanan::class.java)
+                        val items = db.collection("itemPesanan")
+                            .whereEqualTo("pesananId", pesanan.id).get().await()
+                            .toObjects(ItemPesanan::class.java)
+                            .map { item ->
+                                val produk = produkCache[item.produkId] ?: run {
+                                    val p = db.collection("produk").document(item.produkId).get().await().toObject(Produk::class.java)
+                                    if (p != null) produkCache[item.produkId] = p
+                                    p
+                                }
+                                item.copy(gambarUrl = produk?.gambarUrl ?: "")
+                            }
 
-                    // Ambil gambar untuk tiap item dari produk
-                    items = items.map { item ->
-                        val gambarUrl = try {
-                            val produkDoc = db.collection("produk").document(item.produkId).get().await()
-                            val produk = produkDoc.toObject(Produk::class.java)
-                            produk?.gambarUrl ?: ""
-                        } catch (e: Exception) { e.printStackTrace(); "" }
+                        val ekspedisi = pesanan.ekspedisiId?.let {
+                            db.collection("ekspedisi").document(it).get().await().toObject(Ekspedisi::class.java)
+                        }
 
-                        item.copy(gambarUrl = gambarUrl)
+                        PesananLengkap(pesanan, user, items, ekspedisi)
                     }
-                } catch (e: Exception) { e.printStackTrace() }
-
-                // Ambil ekspedisi
-                val ekspedisi: Ekspedisi? = try {
-                    db.collection("ekspedisi").document(pesanan.ekspedisiId ?: "").get().await()
-                        .toObject(Ekspedisi::class.java)
-                } catch (e: Exception) { e.printStackTrace(); null }
-
-                resultList.add(PesananLengkap(pesanan, user, items, ekspedisi))
+                }.awaitAll()
             }
 
-            // Update UI
             _pesananList.value = resultList
         }
     }
+
 
 
     // 4. Update Status (ID String)

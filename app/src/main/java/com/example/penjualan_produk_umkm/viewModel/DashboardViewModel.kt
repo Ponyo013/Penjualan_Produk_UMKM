@@ -38,6 +38,10 @@ class DashboardViewModel : ViewModel() {
             }
     }
 
+    fun getJumlahPesanan(): Int {
+        return _allPesanan.value.count { it.status != StatusPesanan.KERANJANG.name }
+    }
+
     private fun loadAllPesanan() {
         // Mengambil semua pesanan secara realtime
         db.collection("pesanan")
