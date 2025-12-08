@@ -28,15 +28,17 @@ import com.example.penjualan_produk_umkm.database.model.Artikel
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 
 class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
     private lateinit var rvBestSeller: RecyclerView
     private lateinit var bestSellerAdapter: ProductAdapter
-
     private lateinit var rvRecommendation: RecyclerView
     private lateinit var recommendationAdapter: RecommendationAdapter
-
     private lateinit var rvArticles: RecyclerView
     private lateinit var header: ConstraintLayout
     private lateinit var nestedScrollView: NestedScrollView
@@ -152,13 +154,31 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     private fun setupObservers() {
         viewModel.allProduk.observe(viewLifecycleOwner) { produkList ->
             val recommendations = produkList.filter {
-                it.rating > 4.5f && it.terjual >= 100
+                it.rating > 4.5f && it.terjual >= 100 && it.stok > 0
             }.sortedByDescending { it.rating }
 
-            val bestSellers = produkList.sortedByDescending { it.terjual }
+            val bestSellers = produkList
+                .filter { it.stok > 0 }
+                .sortedByDescending { it.terjual }
 
             recommendationAdapter.updateData(recommendations)
             bestSellerAdapter.updateProducts(bestSellers)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                cartViewModel.totalQuantity.collectLatest { totalQty ->
+                    val badge = view?.findViewById<android.widget.TextView>(R.id.tv_cart_badge)
+
+                    if (totalQty > 0) {
+                        badge?.visibility = View.VISIBLE
+                        // Jika lebih dari 99, tampilkan "99+" agar rapi
+                        badge?.text = if (totalQty > 99) "99+" else totalQty.toString()
+                    } else {
+                        badge?.visibility = View.GONE
+                    }
+                }
+            }
         }
     }
 

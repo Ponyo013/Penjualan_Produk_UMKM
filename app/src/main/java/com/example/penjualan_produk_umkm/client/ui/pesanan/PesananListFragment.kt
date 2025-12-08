@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.penjualan_produk_umkm.ViewModelFactory
+import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.databinding.FragmentPesananListBinding
 import com.example.penjualan_produk_umkm.viewModel.PesananViewModel
@@ -72,12 +73,38 @@ class PesananListFragment : Fragment() {
 
     private fun setupRecyclerView() {
         // Kirim viewModel dan lifecycleOwner ke adapter (untuk observasi sub-item)
-        pesananAdapter = PesananAdapter(viewModel, viewLifecycleOwner)
+        pesananAdapter = PesananAdapter(viewModel, viewLifecycleOwner, onCancelClick = { pesanan ->
+            showCancellationDialog(pesanan)
+        })
 
         binding.rvPesananList.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = pesananAdapter
         }
+    }
+
+    private fun showCancellationDialog(pesanan: Pesanan) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Batalkan Pesanan?")
+            .setMessage("Pesanan akan dibatalkan. Apakah Anda yakin?")
+            .setPositiveButton("Ya, Batalkan") { dialog, _ ->
+                // Panggil ViewModel
+                viewModel.cancelPesanan(
+                    pesanan,
+                    onSuccess = {
+                        android.widget.Toast.makeText(context, "Pesanan berhasil dibatalkan", android.widget.Toast.LENGTH_SHORT).show()
+                        // Tidak perlu refresh manual, karena pakai SnapshotListener (Realtime)
+                    },
+                    onError = { msg ->
+                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                )
+                dialog.dismiss()
+            }
+            .setNegativeButton("Tidak") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     override fun onDestroyView() {

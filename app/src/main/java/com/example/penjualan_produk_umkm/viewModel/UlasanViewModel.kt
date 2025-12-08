@@ -72,4 +72,19 @@ class UlasanViewModel : ViewModel() {
 
     }
 
+    fun deleteUlasan(ulasan: Ulasan, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (ulasan.id.isEmpty()) return
+
+        ulasanCollection.document(ulasan.id)
+            .delete()
+            .addOnSuccessListener {
+                // Setelah dihapus, update rating produk lagi agar akurat
+                updateProdukRating(ulasan.produkId)
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onError(e.message ?: "Gagal menghapus ulasan")
+            }
+    }
+
 }

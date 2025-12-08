@@ -11,6 +11,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import androidx.lifecycle.viewModelScope
 
 class CartViewModel : ViewModel() {
 
@@ -28,11 +32,17 @@ class CartViewModel : ViewModel() {
     private var cartListener: ListenerRegistration? = null
     private var pesananListener: ListenerRegistration? = null
 
+    val totalQuantity: StateFlow<Int> = _cartItems.map { list ->
+        list.sumOf { it.jumlah }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0
+    )
+
     init {
         initializeCart()
     }
-
-    // 1. Cari Pesanan Aktif (Status: KERANJANG)
     private fun initializeCart() {
         val userId = auth.currentUser?.uid ?: return
 

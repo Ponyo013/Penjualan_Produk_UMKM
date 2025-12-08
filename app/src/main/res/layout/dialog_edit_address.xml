@@ -19,20 +19,20 @@
             android:layout_marginBottom="24dp"
             android:text="Edit Alamat Pengiriman"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
             android:hint="Nama Penerima">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tv_dialog_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary_dark" />
+                android:textColor="@android:color/black" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -40,31 +40,55 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:enabled="false"
             android:hint="Nomor Telepon">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tv_dialog_phone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary_dark" />
+                android:inputType="phone"
+                android:textColor="@android:color/black" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/til_dialog_address"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Alamat Lengkap">
+            android:gravity="top"
+            android:orientation="horizontal">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_dialog_address"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_dialog_address"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="top"
-                android:lines="4" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginTop="16dp"
+                android:hint="Alamat Lengkap"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_location"
+                app:endIconContentDescription="Gunakan Lokasi Saat Ini"
+                app:endIconTint="@color/Secondary_1">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_dialog_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:maxLines="5"
+                    android:textColor="@android:color/black" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="*Klik ikon lokasi untuk isi otomatis"
+                android:textSize="10sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="4dp"
+                android:layout_marginStart="4dp"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -79,7 +103,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Batal" />
+                android:text="Batal"
+                android:textColor="@color/Secondary_1"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_dialog_save"
@@ -88,7 +113,8 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Simpan"
-                app:backgroundTint="@color/Secondary_1" />
+                app:backgroundTint="@color/Secondary_1"
+                android:textColor="@android:color/white"/>
         </LinearLayout>
 
     </LinearLayout>

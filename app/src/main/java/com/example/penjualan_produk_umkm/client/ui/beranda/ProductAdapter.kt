@@ -16,7 +16,6 @@ import java.util.*
 class ProductAdapter(
     private var products: List<Produk>,
     private val onItemClick: (String) -> Unit
-    // Callback onAddToCartClick DIHAPUS
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -25,7 +24,7 @@ class ProductAdapter(
         private val productPrice: TextView = itemView.findViewById(R.id.product_price)
         private val productRating: TextView = itemView.findViewById(R.id.product_rating)
         private val productSoldCount: TextView = itemView.findViewById(R.id.product_sold_count)
-        // private val btnQuickAdd DIHAPUS
+        private val lowStockLabel: TextView = itemView.findViewById(R.id.tv_low_stock)
 
         @SuppressLint("SetTextI18n")
         fun bind(produk: Produk) {
@@ -48,8 +47,13 @@ class ProductAdapter(
                 productImage.setImageResource(R.drawable.ic_error_image)
             }
 
+            if (produk.stok > 0 && produk.stok < 5) {
+                lowStockLabel.visibility = View.VISIBLE
+            }else{
+                lowStockLabel.visibility = View.GONE
+            }
+
             itemView.setOnClickListener { onItemClick(produk.id) }
-            // Listener btnQuickAdd DIHAPUS
         }
     }
 

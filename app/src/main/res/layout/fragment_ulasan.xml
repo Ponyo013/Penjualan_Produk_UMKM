@@ -64,7 +64,7 @@
             android:text="Kirim Ulasan"
             android:fontFamily="@font/montserrat_semibold"
             android:textColor="@android:color/white"
-            android:backgroundTint="@color/dark_blue"
+            android:backgroundTint="@color/Secondary_1"
             android:layout_marginTop="12dp"
             android:layout_marginEnd="16dp"
             app:layout_constraintTop_toBottomOf="@id/edit_text_comment"

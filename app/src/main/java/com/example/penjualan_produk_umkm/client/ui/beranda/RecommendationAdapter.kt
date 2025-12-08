@@ -23,7 +23,7 @@ class RecommendationAdapter(
         val price: TextView = itemView.findViewById(R.id.tv_product_price)
         val rating: TextView = itemView.findViewById(R.id.tv_rating)
         val sold: TextView = itemView.findViewById(R.id.tv_sold)
-
+        val lowStockLabel: TextView = itemView.findViewById(R.id.tv_low_stock)
         fun bind(produk: Produk) {
             name.text = produk.nama
             rating.text = produk.rating.toString()
@@ -40,6 +40,12 @@ class RecommendationAdapter(
                 }
             } else {
                 img.setImageResource(R.drawable.ic_error_image)
+            }
+
+            if (produk.stok > 0 && produk.stok < 5) {
+                lowStockLabel.visibility = View.VISIBLE
+            } else {
+                lowStockLabel.visibility = View.GONE
             }
 
             itemView.setOnClickListener { onItemClick(produk.id) }

@@ -77,4 +77,38 @@ class PesananViewModel : ViewModel() {
         // Hapus semua listener saat ViewModel dihancurkan
         listeners.forEach { it.remove() }
     }
+
+    fun cancelPesanan(pesanan: Pesanan, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val batch = db.batch()
+
+        // 1. Update Status Pesanan jadi DIBATALKAN
+        val pesananRef = db.collection("pesanan").document(pesanan.id)
+        batch.update(pesananRef, "status", StatusPesanan.DIBATALKAN.name)
+
+        // 2. Ambil Item Pesanan untuk mengembalikan Stok
+        db.collection("itemPesanan")
+            .whereEqualTo("pesananId", pesanan.id)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot != null) {
+                    val items = snapshot.toObjects(ItemPesanan::class.java)
+
+                    // Loop setiap item, kembalikan stok ke tabel Produk
+                    for (item in items) {
+                        val produkRef = db.collection("produk").document(item.produkId)
+                        // Kembalikan Stok (+), Kurangi Terjual (-)
+                        batch.update(produkRef, mapOf(
+                            "stok" to com.google.firebase.firestore.FieldValue.increment(item.jumlah.toLong()),
+                            "terjual" to com.google.firebase.firestore.FieldValue.increment(-item.jumlah.toLong())
+                        ))
+                    }
+
+                    // Eksekusi Batch
+                    batch.commit()
+                        .addOnSuccessListener { onSuccess() }
+                        .addOnFailureListener { e -> onError(e.message ?: "Gagal membatalkan") }
+                }
+            }
+            .addOnFailureListener { e -> onError(e.message ?: "Gagal mengambil item") }
+    }
 }

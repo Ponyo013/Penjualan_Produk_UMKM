@@ -3,20 +3,19 @@ package com.example.penjualan_produk_umkm.client.ui.detailProduk
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
-// FIX: Gunakan Model Firestore
 import com.example.penjualan_produk_umkm.database.firestore.model.Ulasan
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Hapus parameter 'users: List<User>'
 class ReviewAdapter(
-    private var reviews: List<Ulasan>
+    private var reviews: List<Ulasan>,
+    private val currentUserId: String?, // ID user yang login
+    private val onDeleteClick: (Ulasan) -> Unit // Callback saat tombol hapus diklik
 ) : RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder>() {
-
-    // Hapus userMap karena kita tidak butuh lookup manual lagi
 
     class ReviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val reviewerName: TextView = itemView.findViewById(R.id.reviewer_name)
@@ -24,32 +23,45 @@ class ReviewAdapter(
         val reviewRatingText: TextView = itemView.findViewById(R.id.review_rating_text)
         val reviewDate: TextView = itemView.findViewById(R.id.review_date)
 
-        fun bind(ulasan: Ulasan) {
-            // FIX: Ambil nama langsung dari objek Ulasan (jika ada field userName)
-            // Atau tampilkan ID sebagian jika nama null
-            // Pastikan di Model Ulasan Anda sudah menambahkan field 'var userName: String? = null'
+        // Pastikan di XML item_review.xml ID-nya adalah btn_delete_review dan tipenya ImageButton
+        val btnDelete: ImageButton = itemView.findViewById(R.id.btn_delete_review)
+
+        fun bind(ulasan: Ulasan, userIdLogin: String?, onDeleteClick: (Ulasan) -> Unit) {
+            // 1. Tampilkan Nama
             val nameDisplay = if (!ulasan.userName.isNullOrEmpty()) {
                 ulasan.userName
             } else {
                 "User ${ulasan.userId.take(5)}..."
             }
-
             reviewerName.text = nameDisplay
+
+            // 2. Tampilkan Komentar
             reviewComment.text = ulasan.komentar
 
+            // 3. Tampilkan Rating
             val starString = buildString {
                 repeat(ulasan.rating.toInt()) { append("★") }
                 repeat(5 - ulasan.rating.toInt()) { append("☆") }
             }
             reviewRatingText.text = "$starString ${String.format(Locale.US, "%.1f", ulasan.rating)}"
 
-            // FIX: Format Tanggal dari Timestamp Firebase
+            // 4. Format Tanggal
             try {
-                val date = ulasan.tanggal.toDate() // Konversi Timestamp ke Date
+                val date = ulasan.tanggal.toDate()
                 val formatter = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
                 reviewDate.text = formatter.format(date)
             } catch (e: Exception) {
                 reviewDate.text = "-"
+            }
+
+            // 5. LOGIKA HAPUS (Hanya muncul jika ini ulasan milik user yang sedang login)
+            if (userIdLogin != null && ulasan.userId == userIdLogin) {
+                btnDelete.visibility = View.VISIBLE
+                btnDelete.setOnClickListener {
+                    onDeleteClick(ulasan)
+                }
+            } else {
+                btnDelete.visibility = View.GONE
             }
         }
     }
@@ -61,7 +73,8 @@ class ReviewAdapter(
     }
 
     override fun onBindViewHolder(holder: ReviewViewHolder, position: Int) {
-        holder.bind(reviews[position]) // Hapus parameter userMap
+        // Kita oper currentUserId dan onDeleteClick dari Class Adapter ke dalam fungsi bind ViewHolder
+        holder.bind(reviews[position], currentUserId, onDeleteClick)
     }
 
     override fun getItemCount() = reviews.size

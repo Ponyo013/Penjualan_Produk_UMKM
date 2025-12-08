@@ -19,7 +19,6 @@ import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,12 +33,13 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
     private var produk: Produk? = null
 
     private lateinit var btnAddToCart: Button
-    private lateinit var quantityControls: MaterialCardView
+    private lateinit var quantityControls: android.widget.LinearLayout
     private lateinit var btnIncrease: ImageButton
     private lateinit var btnDecrease: ImageButton
     private lateinit var tvQuantity: TextView
-
-
+    private lateinit var tvEstimatedTotal: TextView
+    private var currentQuantity = 1
+    private var badgeTextView: TextView? = null
     // Inisialisasi ViewModel dengan Factory Kosong (Firebase)
     private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
     private val produkViewModel: ProdukViewModel by viewModels { ViewModelFactory() }
@@ -82,8 +82,17 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         // Observe cart items untuk update UI secara otomatis (Realtime)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                cartViewModel.cartItems.collectLatest { items ->
-                    produk?.let { updateCartControls(it, items) }
+                cartViewModel.totalQuantity.collectLatest { totalQty ->
+                    // Update Badge di Toolbar
+                    if (totalQty > 0) {
+                        badgeTextView?.visibility = View.VISIBLE
+                        badgeTextView?.text = if (totalQty > 99) "99+" else totalQty.toString()
+                    } else {
+                        badgeTextView?.visibility = View.GONE
+                    }
+
+                    // Update logika tombol "Tambah" di bawah juga (kode lama)
+                    produk?.let { updateCartControls(it, cartViewModel.cartItems.value) }
                 }
             }
         }
@@ -98,6 +107,13 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         btnIncrease = view.findViewById(R.id.btn_increase_quantity)
         btnDecrease = view.findViewById(R.id.btn_decrease_quantity)
         tvQuantity = view.findViewById(R.id.tv_quantity)
+        tvEstimatedTotal = view.findViewById(R.id.tv_estimated_total)
+        tvQuantity = view.findViewById(R.id.tv_quantity)
+
+        currentQuantity = 1
+        updateTotalPriceDisplay(produk.harga)
+
+
 
         // Display info produk
         namaProduk.text = produk.nama
@@ -145,44 +161,41 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
 
         // Tombol increase
         btnIncrease.setOnClickListener {
-            val currentItems = cartViewModel.cartItems.value
-            val existingItem = currentItems.find { it.produkId == produk.id }
-            existingItem?.let {
-
-                // Cegah pembelian lebih dari stok
-                if (it.jumlah >= produk.stok) {
-                    Toast.makeText(requireContext(), "Jumlah sudah mencapai stok maksimum", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                cartViewModel.increaseQuantity(it)
+            if (currentQuantity < produk.stok) {
+                currentQuantity++
+                tvQuantity.text = currentQuantity.toString()
+                updateTotalPriceDisplay(produk.harga)
+            } else {
+                Toast.makeText(context, "Stok maksimal tercapai", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Tombol decrease
         btnDecrease.setOnClickListener {
-            val currentItems = cartViewModel.cartItems.value
-            val existingItem = currentItems.find { it.produkId == produk.id }
-            existingItem?.let { cartViewModel.decreaseQuantity(it) }
+            if (currentQuantity > 1) {
+                currentQuantity--
+                tvQuantity.text = currentQuantity.toString()
+                updateTotalPriceDisplay(produk.harga)
+            }
         }
     }
 
     // FIX: Parameter kedua menerima List<ItemPesanan> Firestore
     private fun updateCartControls(produk: Produk, items: List<ItemPesanan>) {
-        // Cari item di keranjang yang produkId-nya sama dengan produk yang sedang dibuka
         val existingItem = items.find { it.produkId == produk.id }
 
         if (existingItem != null) {
-            btnAddToCart.visibility = View.GONE
-            quantityControls.visibility = View.VISIBLE
-            tvQuantity.text = existingItem.jumlah.toString()
-
-            btnIncrease.isEnabled = existingItem.jumlah < produk.stok
-            btnIncrease.alpha = if (existingItem.jumlah < produk.stok) 1f else 0.3f
+            // Jika sudah ada di keranjang, set counter ke jumlah yang ada
+            currentQuantity = existingItem.jumlah
+            tvQuantity.text = currentQuantity.toString()
+            btnAddToCart.text = "Update Keranjang" // Ubah teks tombol biar jelas
         } else {
-            btnAddToCart.visibility = View.VISIBLE
-            quantityControls.visibility = View.GONE
+            // Jika belum ada, reset ke 1
+            currentQuantity = 1
+            tvQuantity.text = "1"
+            btnAddToCart.text = "Tambah ke Keranjang"
         }
+        // Update total harga berdasarkan quantity yang baru diset
+        updateTotalPriceDisplay(produk.harga)
     }
 
     private fun setupRatingInfo(view: View, produk: Produk) {
@@ -213,11 +226,17 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.menu_detailproduk)
         toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
-        toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_cart) {
-                findNavController().navigate(R.id.action_detailProdukFragment_to_CartFragment)
-                true
-            } else false
+
+        // --- SETUP LOGIC BADGE ---
+        val menuItem = toolbar.menu.findItem(R.id.action_cart)
+        val actionView = menuItem.actionView
+
+        // 1. Ambil referensi ke TextView badge
+        badgeTextView = actionView?.findViewById(R.id.tv_cart_badge_toolbar)
+
+        // 2. Pasang Click Listener manual karena pakai actionLayout
+        actionView?.setOnClickListener {
+            findNavController().navigate(R.id.action_detailProdukFragment_to_CartFragment)
         }
     }
 
@@ -239,6 +258,14 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
                 else -> ""
             }
         }.attach()
+    }
+
+    // Fungsi Helper untuk update teks harga
+    private fun updateTotalPriceDisplay(hargaSatuan: Double) {
+        val total = hargaSatuan * currentQuantity
+        val formatRupiah = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
+        formatRupiah.maximumFractionDigits = 0
+        tvEstimatedTotal.text = formatRupiah.format(total).replace("Rp", "Rp ").trim()
     }
 
     private fun setupGallery(view: View, produk: Produk) {

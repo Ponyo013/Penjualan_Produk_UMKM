@@ -62,7 +62,9 @@ android {
 dependencies {
     // Charts
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.1") // Atau versi terbaru
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     // TensorFlow Lite
     implementation("org.tensorflow:tensorflow-lite:2.17.0")
     //Biometric Auth
@@ -75,6 +77,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

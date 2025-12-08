@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm.client.ui.detailProduk
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -30,20 +31,20 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
 
     private val ulasanViewModel: UlasanViewModel by viewModels { ViewModelFactory() }
 
-    // Data User yang sedang login (untuk kirim ulasan)
     private var currentUserName: String? = null
     private var currentUserId: String? = null
+    private var currentRating: Int = 5 // Default rating 5
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            // FIX: Ambil String, bukan Int
             produkId = it.getString(ARG_PRODUK_ID)
         }
 
-        // Ambil info user yang sedang login
+        // Ambil info user
         val auth = FirebaseAuth.getInstance()
         currentUserId = auth.currentUser?.uid
+
         if (currentUserId != null) {
             FirebaseFirestore.getInstance().collection("users").document(currentUserId!!)
                 .get()
@@ -60,16 +61,23 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         recyclerView = view.findViewById(R.id.recycler_reviews)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        reviewAdapter = ReviewAdapter(emptyList())
+        // FIX: Inisialisasi Adapter dengan Parameter Lengkap (List, ID User, Callback Delete)
+        reviewAdapter = ReviewAdapter(
+            reviews = emptyList(),
+            currentUserId = currentUserId,
+            onDeleteClick = { ulasan ->
+                showDeleteConfirmation(ulasan)
+            }
+        )
         recyclerView.adapter = reviewAdapter
 
         setupStarRating(view)
 
         produkId?.let { id ->
-            // Ambil data ulasan dari Firestore via ViewModel
-            ulasanViewModel.getUlasanByProdukId(id) // Picu load data
+            // Load data
+            ulasanViewModel.getUlasanByProdukId(id)
 
-            // Observasi hasilnya
+            // Observe perubahan data
             ulasanViewModel.ulasanList.observe(viewLifecycleOwner) { reviews ->
                 reviewAdapter.updateReviews(reviews)
             }
@@ -78,8 +86,7 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         }
     }
 
-    private var currentRating: Int = 4
-
+    // --- LOGIKA BINTANG ---
     private fun setupStarRating(view: View) {
         starIcons = listOf(
             view.findViewById(R.id.star1),
@@ -102,6 +109,7 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
         }
     }
 
+    // --- LOGIKA KIRIM ---
     private fun setupKirimButton(view: View, produkId: String) {
         val buttonKirim = view.findViewById<Button>(R.id.button_kirim)
         val editTextComment = view.findViewById<EditText>(R.id.edit_text_comment)
@@ -120,10 +128,10 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
             }
 
             val newReview = Ulasan(
-                id = "", // ID di-generate otomatis di ViewModel
+                id = "",
                 produkId = produkId,
                 userId = currentUserId!!,
-                userName = currentUserName ?: "Pengguna", // Sertakan nama agar tidak perlu join table
+                userName = currentUserName ?: "Pengguna",
                 rating = currentRating.toFloat(),
                 komentar = comment,
                 tanggal = Timestamp.now()
@@ -131,11 +139,35 @@ class UlasanFragment : Fragment(R.layout.fragment_ulasan) {
 
             ulasanViewModel.insertUlasan(newReview)
 
-            // Reset input
+            // Reset UI setelah kirim
             editTextComment.setText("")
             setRating(5)
             Toast.makeText(context, "Ulasan terkirim!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // --- LOGIKA DELETE (BARU) ---
+    private fun showDeleteConfirmation(ulasan: Ulasan) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Hapus Ulasan")
+            .setMessage("Apakah Anda yakin ingin menghapus ulasan ini?")
+            .setPositiveButton("Hapus") { dialog, _ ->
+                // Panggil ViewModel untuk hapus
+                ulasanViewModel.deleteUlasan(
+                    ulasan = ulasan,
+                    onSuccess = {
+                        Toast.makeText(context, "Ulasan berhasil dihapus", Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { msg ->
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                )
+                dialog.dismiss()
+            }
+            .setNegativeButton("Batal") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     companion object {

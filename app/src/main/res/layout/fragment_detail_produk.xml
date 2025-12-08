@@ -4,37 +4,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".client.ui.detailProduk.DetailProdukFragment">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="26dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/back_icon"
-        app:title="@null" />
+        app:title="" />
 
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingBottom="65dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_action_bar"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingBottom="24dp">
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/gallery_view_pager"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="320dp"
                 android:layout_marginTop="18dp"
                 android:layout_marginHorizontal="@dimen/default_margin_x"
@@ -44,11 +42,11 @@
 
             <TextView
                 android:id="@+id/nama_produk"
-                android:layout_marginHorizontal="@dimen/default_margin_x"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/nama_produk"
                 android:layout_marginTop="18dp"
+                android:layout_marginHorizontal="@dimen/default_margin_x"
                 android:textSize="24sp"
                 android:textColor="@color/black"
                 android:textAlignment="textStart"
@@ -82,71 +80,7 @@
                     android:textColor="@color/Secondary_1"
                     android:textSize="14sp"
                     tools:text="Tersedia: 8 Buah"/>
-
             </LinearLayout>
-
-            <FrameLayout
-                android:id="@+id/cart_button_container"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/stock_container"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginHorizontal="@dimen/default_margin_x"
-                android:layout_marginTop="12dp">
-
-                <Button
-                    android:id="@+id/btn_add_to_cart"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/add_to_cart"
-                    android:fontFamily="@font/montserrat_semibold"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="@color/Secondary_1"
-                    android:paddingVertical="12dp" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/quantity_controls"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    app:cardElevation="0dp"
-                    android:backgroundTint="@color/grey"
-                    app:strokeWidth="1dp"
-                    app:cardCornerRadius="28dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:id="@+id/btn_decrease_quantity"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_remove" />
-
-                        <TextView
-                            android:id="@+id/tv_quantity"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:text="1"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-
-                        <ImageButton
-                            android:id="@+id/btn_increase_quantity"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_add" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </FrameLayout>
 
             <View
                 android:id="@+id/divider_line"
@@ -157,7 +91,7 @@
                 android:background="@color/grey"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/cart_button_container" />
+                app:layout_constraintTop_toBottomOf="@id/stock_container" />
 
             <LinearLayout
                 android:id="@+id/rating_container"
@@ -214,7 +148,6 @@
                     android:layout_height="24dp"
                     android:contentDescription="@string/desc_chev_icon"
                     android:src="@drawable/chevron_icon" />
-
             </LinearLayout>
 
             <com.google.android.material.tabs.TabLayout
@@ -242,4 +175,88 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/bottom_action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardElevation="16dp"
+        app:cardBackgroundColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:id="@+id/quantity_controls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jumlah:"
+                    android:fontFamily="@font/montserrat_medium"
+                    android:textColor="@color/black"
+                    android:layout_marginEnd="12dp"/>
+
+                <ImageButton
+                    android:id="@+id/btn_decrease_quantity"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_search_input"
+                    android:src="@drawable/ic_remove"
+                    android:contentDescription="Kurang"/>
+
+                <TextView
+                    android:id="@+id/tv_quantity"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:text="1"
+                    android:gravity="center"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"/>
+
+                <ImageButton
+                    android:id="@+id/btn_increase_quantity"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_search_input"
+                    android:src="@drawable/ic_add"
+                    android:contentDescription="Tambah"/>
+
+                <TextView
+                    android:id="@+id/tv_estimated_total"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="Rp 0"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/montserrat_bold"
+                    android:textColor="@color/Secondary_1"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_add_to_cart"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/add_to_cart"
+                android:fontFamily="@font/montserrat_bold"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/Secondary_1"
+                app:cornerRadius="12dp"/>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
