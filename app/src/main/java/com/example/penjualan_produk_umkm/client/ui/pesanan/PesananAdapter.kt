@@ -50,6 +50,10 @@ class PesananAdapter(
             // Tampilkan Total Harga
             val totalFormatted = numberFormat.format(pesanan.totalHarga)
             binding.tvOrderTotal.text = "Total: ${totalFormatted.replace("Rp", "Rp ")}"
+            binding.tvOrderAddress.text = "Alamat: ${pesanan.alamat}"
+
+            binding.tvOrderExpedition.text = "Ekspedisi: ${pesanan.ekspedisiId}"
+
 
             // Tanggal
             try {

@@ -56,16 +56,16 @@ class PesananListFragment : Fragment() {
         // Observe LiveData sesuai status pesanan
         when (status) {
             StatusPesanan.DIPROSES -> viewModel.pesananDiproses.observe(viewLifecycleOwner) { list ->
-                pesananAdapter.submitList(list)
+                pesananAdapter.submitList(list.sortedByDescending { it.tanggal })
             }
             StatusPesanan.DIKIRIM -> viewModel.pesananDikirim.observe(viewLifecycleOwner) { list ->
-                pesananAdapter.submitList(list)
+                pesananAdapter.submitList(list.sortedByDescending { it.tanggal })
             }
             StatusPesanan.SELESAI -> viewModel.pesananSelesai.observe(viewLifecycleOwner) { list ->
-                pesananAdapter.submitList(list)
+                pesananAdapter.submitList(list.sortedByDescending { it.tanggal })
             }
             StatusPesanan.DIBATALKAN -> viewModel.pesananDibatalkan.observe(viewLifecycleOwner) { list ->
-                pesananAdapter.submitList(list)
+                pesananAdapter.submitList(list.sortedByDescending { it.tanggal })
             }
             else -> { /* Status lain (misal Keranjang) tidak ditampilkan di sini */ }
         }

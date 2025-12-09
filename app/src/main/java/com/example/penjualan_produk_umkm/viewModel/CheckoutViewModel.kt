@@ -153,13 +153,16 @@ class CheckoutViewModel : ViewModel() {
                 val subtotal = items.sumOf { it.produkHarga * it.jumlah }
                 val totalFinal = subtotal + ekspedisi.biaya
 
+                val userAddress = _user.value?.alamat ?: ""
+
                 // Update data pesanan di Firestore
                 val updates = mapOf(
                     "status" to StatusPesanan.DIPROSES.name, // Pastikan status "Deal"
                     "ekspedisiId" to ekspedisi.id,
                     "metodePembayaran" to metodePembayaran, // Firestore menyimpan enum sebagai map/string tergantung config, aman pakai object mapper
                     "totalHarga" to totalFinal,
-                    "tanggal" to Timestamp.now() // Update tanggal transaksi
+                    "tanggal" to Timestamp.now(), // Update tanggal transaksi
+                    "alamat" to userAddress
                 )
 
                 // Lakukan update
