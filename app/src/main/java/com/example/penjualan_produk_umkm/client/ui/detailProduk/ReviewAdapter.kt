@@ -23,11 +23,9 @@ class ReviewAdapter(
         val reviewRatingText: TextView = itemView.findViewById(R.id.review_rating_text)
         val reviewDate: TextView = itemView.findViewById(R.id.review_date)
 
-        // Pastikan di XML item_review.xml ID-nya adalah btn_delete_review dan tipenya ImageButton
         val btnDelete: ImageButton = itemView.findViewById(R.id.btn_delete_review)
 
         fun bind(ulasan: Ulasan, userIdLogin: String?, onDeleteClick: (Ulasan) -> Unit) {
-            // 1. Tampilkan Nama
             val nameDisplay = if (!ulasan.userName.isNullOrEmpty()) {
                 ulasan.userName
             } else {
@@ -35,17 +33,14 @@ class ReviewAdapter(
             }
             reviewerName.text = nameDisplay
 
-            // 2. Tampilkan Komentar
             reviewComment.text = ulasan.komentar
 
-            // 3. Tampilkan Rating
             val starString = buildString {
                 repeat(ulasan.rating.toInt()) { append("★") }
                 repeat(5 - ulasan.rating.toInt()) { append("☆") }
             }
             reviewRatingText.text = "$starString ${String.format(Locale.US, "%.1f", ulasan.rating)}"
 
-            // 4. Format Tanggal
             try {
                 val date = ulasan.tanggal.toDate()
                 val formatter = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
@@ -54,7 +49,6 @@ class ReviewAdapter(
                 reviewDate.text = "-"
             }
 
-            // 5. LOGIKA HAPUS (Hanya muncul jika ini ulasan milik user yang sedang login)
             if (userIdLogin != null && ulasan.userId == userIdLogin) {
                 btnDelete.visibility = View.VISIBLE
                 btnDelete.setOnClickListener {
