@@ -64,7 +64,17 @@ object DataSeeder {
     // URL Default jika gambar belum tersedia (Placeholder)
     private const val IMG_DEFAULT = "https://ik.imagekit.io/demo/img/image4.jpeg"
     // -----------------------------------------
-
+    private const val IMG_MARIN_FAIRFAX = "https://ik.imagekit.io/ngj1vwwr8/produk/fairfax.jpg?updatedAt=1765257154818"
+    private const val IMG_GILI_MIXTE = "https://ik.imagekit.io/ngj1vwwr8/produk/GiliMixte.jpg?updatedAt=1765257187913"
+    private const val IMG_GILI_FITTE = "https://ik.imagekit.io/ngj1vwwr8/produk/GiliFite.jpg?updatedAt=1765257210013"
+    private const val IMG_GILI_DASH = "https://ik.imagekit.io/ngj1vwwr8/produk/GiliDash.jpg?updatedAt=1765257232033"
+    private const val IMG_KALOSI_ACTIVE = "https://ik.imagekit.io/ngj1vwwr8/produk/Kalosi.jpg?updatedAt=1765257260844"
+    private const val IMG_WIMCYCLE_BIGFOOT = "https://ik.imagekit.io/ngj1vwwr8/produk/AnakBigFoot.jpg?updatedAt=1765257286896"
+    private const val IMG_WIMCYCLE_LABRADOR = "https://ik.imagekit.io/ngj1vwwr8/produk/AnakLabrador.jpg?updatedAt=1765257305315"
+    private const val IMG_WIMCYCLE_DRAGSTER = "https://ik.imagekit.io/ngj1vwwr8/produk/AnakDragster.jpg?updatedAt=1765257323117"
+    private const val IMG_WIMCYCLE_SHOTGUN = "https://ik.imagekit.io/ngj1vwwr8/produk/AnakDragster.jpg?updatedAt=1765257323117"
+    private const val IMG_STRATTOS_S4 = "https://ik.imagekit.io/ngj1vwwr8/produk/BalapStrattos.jpg?updatedAt=1765257362259"
+    private const val IMG_TAMBORA_A4 = "https://ik.imagekit.io/ngj1vwwr8/produk/GravelTrambora.jpg?updatedAt=1765257382570"
     fun seedProducts(context: Context) {
         // Gunakan versi v5 agar seeding berjalan ulang jika sebelumnya v4/v3 sudah ada
         val prefs = context.getSharedPreferences("seeder_prefs", Context.MODE_PRIVATE)
@@ -174,6 +184,133 @@ object DataSeeder {
                 168000.0, 10, "Perawatan", IMG_FL_FIBER_GRIP, 4.9f, 15,
                 "Pasta khusus (Assembly Gel) untuk komponen Carbon Fiber. Fiber Grip menciptakan gesekan tambahan pada permukaan karbon (seatpost, stang, stem) sehingga tidak perlu dikencangkan berlebihan yang bisa merusak frame. Wajib punya untuk pemilik sepeda karbon.",
                 "Volume: 50g (1.75oz)\nFungsi: Meningkatkan friksi/grip\nAplikasi: Seatpost karbon, Stang karbon\nBenefit: Mencegah slip & over-tightening"
+            ),
+
+            // 1. E-Bike (Sepeda Listrik)
+            createProduct(
+                "Marin Sepeda Elektrik Fairfax E",
+                19000000.0,
+                5,
+                "Sepeda",
+                if (IMG_MARIN_FAIRFAX.isEmpty()) IMG_DEFAULT else IMG_MARIN_FAIRFAX,
+                5.0f,
+                12,
+                "Marin Fairfax E adalah solusi mobilitas urban terbaik bagi Anda yang menginginkan kecepatan dan efisiensi tanpa keringat berlebih. Dilengkapi motor Bafang 250W yang bertenaga namun senyap, sepeda ini siap melibas tanjakan kota dengan mudah. Geometri 'Fitness' memberikan posisi berkendara yang tegak namun tetap aerodinamis untuk kenyamanan jarak jauh.",
+                "Frame: Series 2 E-Bike Specific 6061 Aluminum\nMotor: Bafang 250 Watt Rear Hub Motor\nBattery: Bafang 340Wh In-tube (Terintegrasi)\nDrivetrain: Shimano Altus 8-Speed RapidFire\nBrakes: Tektro Hydraulic Disc 160mm\nTire: Vee Tire City Cruz 700x40mm w/ Puncture Protection"
+            ),
+            createProduct(
+                "Polygon Sepeda Elektrik Gili Mixte",
+                12800000.0,
+                8,
+                "Sepeda",
+                if (IMG_GILI_MIXTE.isEmpty()) IMG_DEFAULT else IMG_GILI_MIXTE,
+                4.8f,
+                25,
+                "Tampil beda dengan Polygon Gili Mixte, e-bike minivelo yang memadukan gaya retro-futuristik. Desain frame 'Mixte' yang rendah memudahkan akses naik-turun (step-through), sangat cocok untuk *commuting* santai di perkotaan. Dilengkapi fitur *Pedal Assist* 5 mode yang membuat gowes terasa ringan seperti ditiup angin.",
+                "Frame: ALX Alloy Classic Mixte Frame\nMotor: Bafang Rear Hub Motor 36V 250W\nBattery: Lithium-Ion 36V 7Ah (Jarak tempuh up to 30-50km)\nDrivetrain: Shimano Altus 8-Speed\nBrakes: Tektro Hydraulic Disc Brake\nWheel: 20 Inch Alloy Double Wall"
+            ),
+            createProduct(
+                "Polygon Sepeda Elektrik Gili Fitte",
+                13500000.0,
+                6,
+                "Sepeda",
+                if (IMG_GILI_FITTE.isEmpty()) IMG_DEFAULT else IMG_GILI_FITTE,
+                4.9f,
+                18,
+                "Versi *sporty* dari seri Gili. Polygon Gili Fitte hadir dengan *Drop Bar* (stang balap) untuk posisi berkendara yang lebih agresif dan aerodinamis. Cocok untuk Anda yang ingin *speed* lebih tinggi saat *commuting* atau berolahraga ringan dengan bantuan tenaga listrik. Lincah, cepat, dan *stylish*.",
+                "Frame: ALX Commuting Alloy Frame\nHandlebar: Drop Bar Entity Sport Alloy\nMotor: Bafang Rear Hub Motor 36V 250W\nDrivetrain: Shimano Sora 9-Speed\nBrakes: Tektro Mechanical Disc Brake\nTire: Vee Tire Speedster 20x2.0"
+            ),
+            createProduct(
+                "Polygon Sepeda Elektrik Gili Dash",
+                13200000.0,
+                7,
+                "Sepeda",
+                if (IMG_GILI_DASH.isEmpty()) IMG_DEFAULT else IMG_GILI_DASH,
+                4.7f,
+                20,
+                "Gili Dash dirancang untuk petualang urban yang dinamis. Menggunakan *Flat Bar* yang memberikan kontrol kemudi maksimal dan manuver lincah di tengah kemacetan. Desain frame yang *compact* dan kokoh menjadikannya pilihan tepat untuk mobilitas harian yang praktis namun tetap bertenaga.",
+                "Frame: ALX E-Commuting Alloy\nHandlebar: Flat Bar Entity Sport\nMotor: Bafang DC Motor 36V 250W\nDrivetrain: Shimano Sora 9-Speed\nBattery: Lithium-Ion Smart BMS 7Ah\nBrakes: Hydraulic Disc Brake"
+            ),
+            createProduct(
+                "Polygon Sepeda Elektrik Kalosi Active",
+                12000000.0,
+                10,
+                "Sepeda",
+                if (IMG_KALOSI_ACTIVE.isEmpty()) IMG_DEFAULT else IMG_KALOSI_ACTIVE,
+                4.6f,
+                35,
+                "Kalosi Active adalah definisi kenyamanan bersepeda listrik. Dengan geometri *upright* (tegak), punggung dan bahu Anda tidak akan cepat lelah. Dilengkapi suspensi depan Suntour untuk meredam getaran jalanan rusak. Pilihan paling masuk akal untuk transportasi harian yang santai dan bebas polusi.",
+                "Frame: ALX Urban Alloy Frame\nFork: SR Suntour NEX Travel 63mm\nMotor: Bafang Rear Motor 36V 250W\nBattery: High Capacity Lithium-Ion (Jarak tempuh ~80km max)\nDrivetrain: Shimano Altus 1x8 Speed\nBrakes: Tektro Hydraulic Disc Brake"
+            ),
+
+            // 2. Sepeda Anak (Wimcycle)
+            createProduct(
+                "Wimcycle Sepeda Anak Big Foot 16",
+                1425000.0,
+                15,
+                "Sepeda",
+                if (IMG_WIMCYCLE_BIGFOOT.isEmpty()) IMG_DEFAULT else IMG_WIMCYCLE_BIGFOOT,
+                4.8f,
+                50,
+                "Biarkan si kecil tampil gagah dengan Wimcycle Big Foot! Sesuai namanya, sepeda ini dilengkapi ban berukuran jumbo (3.0) yang memberikan kestabilan ekstra dan tampilan 'Monster Truck' yang pasti disukai anak-anak. Rangka besi Hi-Ten yang sangat kuat menjamin keamanan dan ketahanan untuk pemakaian jangka panjang.",
+                "Frame: Hi-Ten Steel BMX Style\nWheel Size: 16 Inch\nTire: 16 x 3.0 (Extra Wide/Fat Tire)\nBrakes: V-Brake (Depan & Belakang)\nFitur: Roda bantu samping (Training Wheels) & Pelindung Rantai Full"
+            ),
+            createProduct(
+                "Wimcycle Sepeda BMX Anak Labrador Arrow 20",
+                1390000.0,
+                20,
+                "Sepeda",
+                if (IMG_WIMCYCLE_LABRADOR.isEmpty()) IMG_DEFAULT else IMG_WIMCYCLE_LABRADOR,
+                4.7f,
+                45,
+                "Sepeda BMX tangguh untuk anak yang aktif. Wimcycle Labrador Arrow didesain dengan geometri BMX klasik yang lincah untuk bermanuver. Cocok untuk anak usia 6-9 tahun yang mulai belajar trik dasar atau sekadar bermain di lingkungan rumah dengan gaya.",
+                "Frame: Hi-Ten Steel BMX\nFork: Hi-Ten Steel Rigid\nWheel Size: 20 Inch\nDrivetrain: Single Speed (Gear ratio ringan)\nBrakes: V-Brake Alloy\nSaddle: Wimcycle BMX Components"
+            ),
+            createProduct(
+                "Wimcycle Sepeda Anak Dragster 16",
+                1375000.0,
+                12,
+                "Sepeda",
+                if (IMG_WIMCYCLE_DRAGSTER.isEmpty()) IMG_DEFAULT else IMG_WIMCYCLE_DRAGSTER,
+                4.6f,
+                30,
+                "Terinspirasi dari dunia balap, Wimcycle Dragster hadir dengan grafis yang *sporty* dan *race-ready*. Dilengkapi dengan spatbor bergaya motorcross dan pelindung rantai penuh untuk keamanan maksimal. Pilihan tepat untuk pembalap cilik masa depan.",
+                "Frame: Hi-Ten Steel Junior\nWheel Size: 16 Inch\nAccessories: Spatbor gaya Motocross & Roda Bantu\nBrakes: Caliper Brake (Depan), Tromol/Band Brake (Belakang)\nColor: Racing Red / Blue"
+            ),
+            createProduct(
+                "Wimcycle Sepeda Anak Shotgun 18",
+                1235000.0,
+                10,
+                "Sepeda",
+                if (IMG_WIMCYCLE_SHOTGUN.isEmpty()) IMG_DEFAULT else IMG_WIMCYCLE_SHOTGUN,
+                4.5f,
+                28,
+                "Ukuran unik 18 inci, sempurna untuk anak yang merasa 16 inci terlalu kecil tapi 20 inci masih terlalu besar. Wimcycle Shotgun menawarkan transisi yang pas dengan desain frame BMX yang rendah (low-step) agar anak mudah menapakkan kaki.",
+                "Frame: Hi-Ten Steel BMX\nWheel Size: 18 Inch (Rare Size)\nTire: 18 x 2.125\nBrakes: V-Brake System\nFitur: Standar samping (Kickstand) & Reflektor"
+            ),
+
+            // 3. Road Bike & Gravel (Polygon)
+            createProduct(
+                "Polygon Sepeda Balap Strattos S4 Disc",
+                14100000.0,
+                5,
+                "Sepeda",
+                if (IMG_STRATTOS_S4.isEmpty()) IMG_DEFAULT else IMG_STRATTOS_S4,
+                4.9f,
+                105,
+                "Raja jalanan di kelasnya. Polygon Strattos S4 Disc mendefinisikan ulang standar *road bike* *all-rounder*. Frame alloy ALX yang super ringan dipadukan dengan *carbon fork* untuk meredam getaran aspal. Kini hadir dengan rem cakram hidrolik Tiagra untuk pengereman presisi di segala cuaca.",
+                "Frame: ALX All-Round Performance Alloy\nFork: ACX All-Round Carbon Tapered\nGroupset: Shimano Tiagra 4700 2x10 Speed\nBrakes: Shimano Tiagra Hydraulic Disc Brake\nWheelset: Entity XL3 Disc\nTire: Performance Tire 700x28C"
+            ),
+            createProduct(
+                "Polygon Sepeda Gravel Tambora A4",
+                16500000.0,
+                4,
+                "Sepeda",
+                if (IMG_TAMBORA_A4.isEmpty()) IMG_DEFAULT else IMG_TAMBORA_A4,
+                5.0f,
+                60,
+                "Jelajahi batas baru di luar aspal. Polygon Tambora A4 adalah sepeda Gravel serba bisa dengan fitur inovatif *Flip Chip* yang memungkinkan Anda mengubah geometri frame untuk kecepatan atau stabilitas. Dilengkapi *mounting* berlimpah untuk tas *touring*, siap menemani petualangan jarak jauh Anda.",
+                "Frame: ALX Gravel Frame with Flip Chip Technology\nFork: Carbon Rigid Fork with Flatmount\nGroupset: Shimano GRX 2x11 Speed (Gravel Specific)\nBrakes: Shimano GRX Hydraulic Disc\nTire: Vee Tire Rail 700x40C (Tubeless Ready)\nFeature: Many eyelets for bikepacking"
             )
         )
 

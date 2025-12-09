@@ -2,6 +2,8 @@ package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,11 +17,14 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.ViewModelFactory
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
@@ -28,10 +33,8 @@ import com.example.penjualan_produk_umkm.database.model.Artikel
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
@@ -39,7 +42,14 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     private lateinit var bestSellerAdapter: ProductAdapter
     private lateinit var rvRecommendation: RecyclerView
     private lateinit var recommendationAdapter: RecommendationAdapter
-    private lateinit var rvArticles: RecyclerView
+
+    // --- GANTI RecyclerView MENJADI ViewPager2 ---
+    private lateinit var vpArticles: ViewPager2
+
+    // --- VARIABEL AUTO SLIDE ---
+    private val sliderHandler = Handler(Looper.getMainLooper())
+    private lateinit var sliderRunnable: Runnable
+
     private lateinit var header: ConstraintLayout
     private lateinit var nestedScrollView: NestedScrollView
     private lateinit var notificationIcon: FrameLayout
@@ -60,15 +70,18 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_beranda, container, false)
 
+        // Inisialisasi View
         header = view.findViewById(R.id.header)
         nestedScrollView = view.findViewById(R.id.nested_scroll_view)
         notificationIcon = view.findViewById(R.id.notification_icon)
         cartIcon = view.findViewById(R.id.cart_icon)
         statusBarBackground = view.findViewById(R.id.status_bar_background)
 
-        rvArticles = view.findViewById(R.id.rv_articles)
+        // Inisialisasi ViewPager Artikel
+        vpArticles = view.findViewById(R.id.vp_articles)
         setupArticleSection()
 
+        // Inisialisasi Rekomendasi
         rvRecommendation = view.findViewById(R.id.rv_recommendation)
         rvRecommendation.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         recommendationAdapter = RecommendationAdapter(emptyList()) { productId ->
@@ -76,9 +89,9 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         }
         rvRecommendation.adapter = recommendationAdapter
 
+        // Inisialisasi Best Seller
         rvBestSeller = view.findViewById(R.id.recycler_popular_products)
         rvBestSeller.layoutManager = GridLayoutManager(context, 2)
-
         bestSellerAdapter = ProductAdapter(
             products = emptyList(),
             onItemClick = { productId ->
@@ -87,6 +100,7 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         )
         rvBestSeller.adapter = bestSellerAdapter
 
+        // Inisialisasi Search Bar Compose
         val composeView = view.findViewById<ComposeView>(R.id.compose_search_bar)
         composeView.setContent {
             SearchBar(
@@ -103,17 +117,38 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     private fun setupArticleSection() {
         val articles = listOf(
             Artikel(1, "Tips Merawat Gear Sepeda Agar Awet", "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?q=80&w=2000&auto=format&fit=crop", "https://www.rodalink.com/id/blog"),
-            Artikel(2, "Rute Gowes Terbaik di Jakarta", "https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=1000&auto=format&fit=crop", "https://www.google.com"),
+            // Artikel ke-2 (Sepeda Listrik Hujan)
+            Artikel(2, "Aman Bersepeda Listrik Saat Hujan?", "https://ik.imagekit.io/ngj1vwwr8/produk/id-bisakah_menggunakan_sepeda_listrik_saat_hujan-header.jpg", "https://www.rodalink.com/id/blog"),
             Artikel(3, "Review: Polygon Siskiu D6", "https://ik.imagekit.io/ngj1vwwr8/produk/siskiud6.webp", "https://www.polygonbikes.com")
         )
 
+        // Setup Adapter ViewPager
         val adapter = ArtikelAdapter(articles)
-        val layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        rvArticles.layoutManager = layoutManager
-        rvArticles.adapter = adapter
+        vpArticles.adapter = adapter
 
-        val snapHelper = PagerSnapHelper()
-        snapHelper.attachToRecyclerView(rvArticles)
+        // --- LOGIKA AUTO SLIDE (4 DETIK) ---
+        sliderRunnable = Runnable {
+            val itemCount = vpArticles.adapter?.itemCount ?: 0
+            if (itemCount > 0) {
+                // Pindah ke item berikutnya. Jika sudah di akhir, balik ke 0.
+                val nextItem = (vpArticles.currentItem + 1) % itemCount
+                vpArticles.setCurrentItem(nextItem, true)
+
+                // Jadwalkan ulang
+                sliderHandler.postDelayed(sliderRunnable, 4000)
+            }
+        }
+
+        // Mulai Slide
+        sliderHandler.postDelayed(sliderRunnable, 4000)
+
+        vpArticles.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                sliderHandler.removeCallbacks(sliderRunnable)
+                sliderHandler.postDelayed(sliderRunnable, 4000)
+            }
+        })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -137,14 +172,24 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     }
 
     private fun setupHeaderScroll() {
+        // Ambil referensi ke view yang perlu diubah warnanya
+        // Pastikan Anda sudah menginisialisasi view ini di onCreateView
+        // header, notificationIcon, cartIcon, statusBarBackground
+
         nestedScrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            val shouldShowWhiteBackground = scrollY > rvArticles.height
-            if (shouldShowWhiteBackground) {
+            val threshold = vpArticles.height - 100
+
+            // Logika Transisi Warna
+            if (scrollY > threshold) {
+                // --- KONDISI: SUDAH DI-SCROLL KE BAWAH (Mode Putih) ---
                 header.setBackgroundColor(Color.WHITE)
+                statusBarBackground.setBackgroundColor(Color.WHITE)
                 notificationIcon.setBackgroundResource(R.drawable.circle_frame)
                 cartIcon.setBackgroundResource(R.drawable.circle_frame)
+
             } else {
                 header.setBackgroundColor(Color.TRANSPARENT)
+                statusBarBackground.setBackgroundColor(Color.TRANSPARENT)
                 notificationIcon.setBackgroundResource(R.drawable.circle_frame_transparent)
                 cartIcon.setBackgroundResource(R.drawable.circle_frame_transparent)
             }
@@ -166,16 +211,17 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 cartViewModel.totalQuantity.collectLatest { totalQty ->
                     val badge = view?.findViewById<android.widget.TextView>(R.id.tv_cart_badge)
 
-                    if (totalQty > 0) {
-                        badge?.visibility = View.VISIBLE
-                        // Jika lebih dari 99, tampilkan "99+" agar rapi
-                        badge?.text = if (totalQty > 99) "99+" else totalQty.toString()
-                    } else {
-                        badge?.visibility = View.GONE
+                    if (badge != null) {
+                        if (totalQty > 0) {
+                            badge.visibility = View.VISIBLE
+                            badge.text = if (totalQty > 99) "99+" else totalQty.toString()
+                        } else {
+                            badge.visibility = View.GONE
+                        }
                     }
                 }
             }
@@ -187,23 +233,13 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         findNavController().navigate(R.id.action_BerandaFragment_to_detailProdukFragment, bundle)
     }
 
-    private fun addToCart(produk: Produk) {
-        if (produk.stok <= 0) {
-            Toast.makeText(context, "Stok habis!", Toast.LENGTH_SHORT).show()
-            return
-        }
+    override fun onPause() {
+        super.onPause()
+        sliderHandler.removeCallbacks(sliderRunnable)
+    }
 
-        val item = ItemPesanan(
-            id = "",
-            produkId = produk.id,
-            produkNama = produk.nama,
-            produkHarga = produk.harga,
-            gambarUrl = produk.gambarUrl,
-            jumlah = 1,
-            isSelected = true
-        )
-
-        cartViewModel.insertItem(item)
-        Toast.makeText(context, "Berhasil masuk keranjang!", Toast.LENGTH_SHORT).show()
+    override fun onResume() {
+        super.onResume()
+        sliderHandler.postDelayed(sliderRunnable, 4000)
     }
 }
