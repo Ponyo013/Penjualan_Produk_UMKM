@@ -137,7 +137,10 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
             val existingItem = currentItems.find { it.produkId == produk.id }
 
             if (existingItem != null) {
-                cartViewModel.increaseQuantity(existingItem)
+                val updatedItem = existingItem.copy(jumlah = currentQuantity)
+                cartViewModel.updateItem(updatedItem)
+
+                Toast.makeText(requireContext(), "Keranjang diperbarui menjadi $currentQuantity items", Toast.LENGTH_SHORT).show()
             } else {
                 // Insert Item Baru
                 // ID pesanan akan dihandle otomatis oleh ViewModel (mencari pesanan aktif)
@@ -151,12 +154,13 @@ class DetailProdukFragment : Fragment(R.layout.fragment_detail_produk) {
                     produkNama = produk.nama,
                     produkHarga = produk.harga,
                     gambarUrl = produk.gambarUrl,
-                    jumlah = 1,
+                    jumlah = currentQuantity,
                     isSelected = true
                 )
                 cartViewModel.insertItem(newItem)
+                Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
             }
-            Toast.makeText(requireContext(), "Produk ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
+
         }
 
         // Tombol increase

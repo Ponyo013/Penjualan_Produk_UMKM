@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"> <com.google.android.material.card.MaterialCardView
+    android:id="@+id/card_article"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     app:cardElevation="0dp"
-    app:cardCornerRadius="0dp">
+    app:cardCornerRadius="0dp"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -13,10 +20,9 @@
         <ImageView
             android:id="@+id/iv_article_image"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:scaleType="fitXY"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
             android:src="@color/grey"
-            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -24,20 +30,18 @@
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:background="@drawable/bg_gradient_black"
-            app:layout_constraintHeight_percent="0.5"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_gradient_black" />
 
         <TextView
             android:id="@+id/tv_article_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:padding="16dp"
             android:text="Judul Artikel Disini"
             android:textColor="@android:color/white"
             android:fontFamily="@font/montserrat_bold"
-            android:textSize="14sp"
+            android:textSize="20sp"
             android:maxLines="2"
             android:ellipsize="end"
             app:layout_constraintBottom_toBottomOf="parent"/>
@@ -45,3 +49,5 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

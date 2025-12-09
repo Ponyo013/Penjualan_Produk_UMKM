@@ -124,6 +124,33 @@ class ArticleDetailFragment : Fragment() {
                 relatedProductAdapter.updateData(reviewProduct)
             }
 
+        } else if (contentId == 2) {
+            // === ARTIKEL BARU: E-BIKE SAAT HUJAN (ID 2) ===
+
+            tvCategory?.text = "E-Bike Corner"
+            tvTitle.text = getString(R.string.article_title_ebike)
+            tvDate?.text = getString(R.string.article_date_ebike)
+            tvIntro?.text = getString(R.string.article_intro_ebike)
+//
+//            // Section Body
+//            tvSection1Title?.text = getString(R.string.article_section_1_title_ebike)
+//            tvSection1Body?.text = getString(R.string.article_section_1_body_ebike)
+//
+//            tvSection2Title?.text = getString(R.string.article_section_2_title_ebike)
+//            tvSection2Body?.text = getString(R.string.article_section_2_body_ebike)
+
+            cvTipsContainer?.visibility = View.GONE
+
+            tvRelatedTitle?.text = "Sepeda Listrik Pilihan"
+
+            // FILTER PRODUK: ELEKTRIK / E-BIKE
+            viewModel.allProduk.observe(viewLifecycleOwner) { allProducts ->
+                val ebikeProducts = allProducts.filter {
+                    val name = it.nama.lowercase()
+                    name.contains("elektrik") || name.contains("e-bike") || name.contains("marin")
+                }
+                relatedProductAdapter.updateData(ebikeProducts)
+            }
         } else {
             // === ARTIKEL DEFAULT (PERAWATAN) ===
 

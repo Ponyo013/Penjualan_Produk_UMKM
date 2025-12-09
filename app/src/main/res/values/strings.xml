@@ -168,4 +168,21 @@
         Jika Anda mencari sepeda *do-it-all* yang nyaman dipakai gowes santai di CFD namun garang saat diajak "blusukan" ke hutan, Polygon Siskiu D6 adalah raja di kelasnya. Investasi ini bukan hanya tentang membeli sepeda, tapi membeli pengalaman petualangan baru yang lebih seru.\n\n
         <b>Kabar baiknya?</b> Unit ini tersedia *Ready Stock* di Dwi Usaha dengan garansi resmi dan jaminan servis gratis. Jangan tunggu sampai kehabisan.
     </string>
+
+
+    <string name="article_title_ebike">Aman Bersepeda Listrik Saat Hujan?</string>
+    <string name="article_date_ebike">09 Desember 2025</string>
+    <string name="article_intro_ebike">Hujan seringkali menjadi dilema bagi para komuter urban. Amankah menunggangi \'kuda besi\' bertenaga baterai ini di tengah guyuran hujan? Jawabannya tidak sesederhana ya atau tidak.</string>
+
+    <string name="article_section_1_title_ebike">Pahami Rating IP (Ingress Protection)</string>
+    <string name="article_section_1_body_ebike">Sebagian besar e-bike modern dirancang tahan cipratan air (water-resistant), bukan kedap air (waterproof). Perhatikan rating IPX4 atau IPX5 pada motor dan baterai Anda. Hindari genangan air yang tingginya melebihi as roda karena dapat merendam motor.</string>
+
+    <string name="article_section_2_title_ebike">Perawatan Pasca Hujan</string>
+    <string name="article_section_2_body_ebike">Jangan langsung mengisi daya (charge) saat sepeda basah! Keringkan seluruh permukaan sepeda dengan lap kering, terutama area baterai dan controller. Bersihkan dan beri pelumas rantai untuk mencegah karat.</string>
+
+    <string name="article_tips_ebike_1_title">Hindari Genangan</string>
+    <string name="article_tips_ebike_1_desc">Jangan nekat menerobos banjir yang merendam motor/baterai.</string>
+
+    <string name="article_tips_ebike_2_title">Keringkan Segera</string>
+    <string name="article_tips_ebike_2_desc">Lap kering sepeda sebelum di-charge untuk hindari korsleting.</string>
 </resources>
