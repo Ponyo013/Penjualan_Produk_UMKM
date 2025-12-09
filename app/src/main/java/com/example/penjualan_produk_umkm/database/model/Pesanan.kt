@@ -13,6 +13,8 @@ data class Pesanan(
     // Gunakan Timestamp, bukan LocalDate
     var tanggal: Timestamp = Timestamp.now(),
 
+    var alamat: String = "",
+
     var ekspedisiId: String? = null,
     var metodePembayaran: MetodePembayaran = MetodePembayaran.CASH
 )
