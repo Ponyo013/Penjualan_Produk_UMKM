@@ -1,15 +1,20 @@
 package com.example.penjualan_produk_umkm.owner.dashboard.produkScreen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,10 +22,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,14 +54,32 @@ fun ProdukManage(
     produkViewModel: ProdukViewModel
 ) {
     val produkList by produkViewModel.allProduk.observeAsState(initial = emptyList())
+
+
     UMKMTheme {
 
         var searchText by remember { mutableStateOf("") }
-        val filteredProduk = if (searchText.isEmpty()) {
-            produkList
-        } else {
-            produkList.filter { it.nama.contains(searchText, ignoreCase = true) }
-        }
+        var showFilter by remember { mutableStateOf(false) }
+        var selectedFilters by remember { mutableStateOf(setOf<String>()) }
+        var pendingFilters by remember { mutableStateOf(setOf<String>()) }
+
+        val filteredProduk = produkList
+            .filter { it.nama.contains(searchText, ignoreCase = true) }
+            .let { list ->
+                var result = list
+
+                if ("stok_terendah" in selectedFilters) result = result.sortedBy { it.stok }
+                if ("stok_tertinggi" in selectedFilters) result = result.sortedByDescending { it.stok }
+
+                if ("terjual_terendah" in selectedFilters) result = result.sortedBy { it.terjual }
+                if ("terjual_tertinggi" in selectedFilters) result = result.sortedByDescending { it.terjual }
+
+                if ("rating_terendah" in selectedFilters) result = result.sortedBy { it.rating }
+                if ("rating_tertinggi" in selectedFilters) result = result.sortedByDescending { it.rating }
+
+                result
+            }
+
 
         Scaffold(
             topBar = {
@@ -100,13 +123,29 @@ fun ProdukManage(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Search bar
-                    SearchBar(
-                        value = searchText,
-                        onValueChange = { newText ->
-                            searchText = newText
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SearchBar(
+                            value = searchText,
+                            onValueChange = { searchText = it },
+                            modifier = Modifier
+                                .weight(1f).height(48.dp)
+                        )
+
+                        Button(
+                            onClick = { showFilter = true },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.height(48.dp),
+                            contentPadding = PaddingValues(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FilterList,
+                                contentDescription = "Filter",
+                            )
                         }
-                    )
+                    }
 
                     // Produk List
                     ProdukList(
@@ -118,8 +157,184 @@ fun ProdukManage(
                 }
             }
         }
+
+        if (showFilter) {
+            ModalBottomSheet(
+                onDismissRequest = { showFilter = false }
+            ) {
+                FilterSheetContent(
+                    pendingFilters = pendingFilters,
+                    onToggle = { filterKey ->
+                        pendingFilters = if (pendingFilters.contains(filterKey)) {
+                            pendingFilters - filterKey
+                        } else {
+                            pendingFilters + filterKey
+                        }
+                    },
+                    onApply = {
+                        selectedFilters = pendingFilters
+                        showFilter = false
+                    },
+                    onClose = { showFilter = false }
+                )
+            }
+        }
+
     }
 }
+
+@Composable
+fun FilterSheetContent(
+    pendingFilters: Set<String>,
+    onToggle: (String) -> Unit,
+    onApply: () -> Unit,
+    onClose: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+
+        Text("Filter Produk", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text("Stok", fontWeight = FontWeight.SemiBold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SelectableFilterButton(
+                    text = "Terendah",
+                    selected = "stok_terendah" in pendingFilters,
+                    onClick = { onToggle("stok_terendah") }
+                )
+
+                SelectableFilterButton(
+                    text = "Tertinggi",
+                    selected = "stok_tertinggi" in pendingFilters,
+                    onClick = { onToggle("stok_tertinggi") }
+                )
+
+            }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text("Terjual", fontWeight = FontWeight.SemiBold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                SelectableFilterButton(
+                    text = "Terendah",
+                    selected = "terjual_terendah" in pendingFilters,
+                    onClick = { onToggle("terjual_terendah") }
+                )
+
+                SelectableFilterButton(
+                    text = "Tertinggi",
+                    selected = "terjual_tertinggi" in pendingFilters,
+                    onClick = { onToggle("terjual_tertinggi") }
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+
+            Text("Rating", fontWeight = FontWeight.SemiBold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SelectableFilterButton(
+                    text = "Terendah",
+                    selected = "rating_terendah" in pendingFilters,
+                    onClick = { onToggle("rating_terendah") }
+                )
+                SelectableFilterButton(
+                    text = "Tertinggi",
+                    selected = "rating_tertinggi" in pendingFilters,
+                    onClick = { onToggle("rating_tertinggi") }
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // APPLY BUTTON
+            Button(
+                onClick = onApply,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text("Apply Filter")
+            }
+
+            Button(
+                onClick = onClose,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Text("Close")
+            }
+
+        }
+
+    }
+}
+
+@Composable
+fun SelectableFilterButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+
+
+    if (selected) {
+        Button(
+            onClick = onClick,
+            shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Text(text)
+        }
+
+    } else {
+        // Unselected → Putih + border biru
+        OutlinedButton(
+            onClick = onClick,
+            shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        ) {
+            Text(text)
+        }
+    }
+}
+
 
 @Composable
 fun SearchBar(
@@ -127,49 +342,50 @@ fun SearchBar(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
+    BasicTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        placeholder = {
-            Text(
-                text = "Cari produk...",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        },
-        shape = RoundedCornerShape(16.dp),
-        textStyle = MaterialTheme.typography.bodyMedium,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface
+        ),
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            .height(44.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
 
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            disabledContainerColor = MaterialTheme.colorScheme.surface,
+        decorationBox = { innerTextField ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
 
-            cursorColor = MaterialTheme.colorScheme.primary,
+                Spacer(modifier = Modifier.width(8.dp))
 
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
-            disabledIndicatorColor = MaterialTheme.colorScheme.outlineVariant
-        )
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (value.isEmpty()) {
+                        Text(
+                            "Cari produk...",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        }
     )
-}
 
+}
 
 
 @Composable
@@ -191,7 +407,10 @@ fun ProdukList(
         }
     } else {
         Column(
-            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             produkItems.forEach { produk ->
@@ -204,16 +423,19 @@ fun ProdukList(
                     onClick = { onProdukClick(produk) }
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ){
+                    ) {
                         // Gambar Barang
-                        val imageModel = produk.gambarUrl.ifEmpty {  R.drawable.ic_error_image  }
+                        val imageModel = produk.gambarUrl.ifEmpty { R.drawable.ic_error_image }
 
                         AsyncImage(
                             model = imageModel,
                             contentDescription = "Gambar Produk",
-                            modifier = Modifier.size(90.dp)
+                            modifier = Modifier
+                                .size(90.dp)
                                 .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Crop
                         )
@@ -234,7 +456,13 @@ fun ProdukList(
 
                             // Harga Produk
                             Text(
-                                text = "Rp ${String.format(Locale("in", "ID"), "%,.0f", produk.harga)}",
+                                text = "Rp ${
+                                    String.format(
+                                        Locale("in", "ID"),
+                                        "%,.0f",
+                                        produk.harga
+                                    )
+                                }",
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold

@@ -63,7 +63,7 @@ class OwnerActivity : AppCompatActivity() {
                 )
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    NavHost(navController = navController, startDestination = "dashboard") {
+                    NavHost(navController = navController, startDestination = "produkManage") {
 
                         // --- HALAMAN UTAMA ---
                         composable("dashboard") { DashboardScreen(navController) }
