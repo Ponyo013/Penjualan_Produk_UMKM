@@ -47,8 +47,6 @@ class OwnerActivity : AppCompatActivity() {
         setContent {
             UMKMTheme {
                 val navController = rememberNavController()
-                // Factory Kosong untuk ViewModel Firebase
-                val factory = ViewModelFactory()
                 val produkViewModel: ProdukViewModel = viewModel(
                     factory = ViewModelFactory()
                 )
@@ -63,7 +61,7 @@ class OwnerActivity : AppCompatActivity() {
                 )
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    NavHost(navController = navController, startDestination = "produkManage") {
+                    NavHost(navController = navController, startDestination = "dashboard") {
 
                         // --- HALAMAN UTAMA ---
                         composable("dashboard") { DashboardScreen(navController) }
