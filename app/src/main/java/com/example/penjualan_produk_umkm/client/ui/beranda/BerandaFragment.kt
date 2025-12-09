@@ -33,36 +33,38 @@ import com.example.penjualan_produk_umkm.database.model.Artikel
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
+import com.example.penjualan_produk_umkm.database.model.Koleksi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class BerandaFragment : Fragment(R.layout.fragment_beranda) {
-
-    private lateinit var rvBestSeller: RecyclerView
-    private lateinit var bestSellerAdapter: ProductAdapter
-    private lateinit var rvRecommendation: RecyclerView
-    private lateinit var recommendationAdapter: RecommendationAdapter
-
-    // --- GANTI RecyclerView MENJADI ViewPager2 ---
-    private lateinit var vpArticles: ViewPager2
-
-    // --- VARIABEL AUTO SLIDE ---
-    private val sliderHandler = Handler(Looper.getMainLooper())
-    private lateinit var sliderRunnable: Runnable
-
+    // --- UI Components ---
     private lateinit var header: ConstraintLayout
     private lateinit var nestedScrollView: NestedScrollView
     private lateinit var notificationIcon: FrameLayout
     private lateinit var cartIcon: FrameLayout
     private lateinit var statusBarBackground: View
 
-    private val viewModel: ProdukViewModel by viewModels {
-        ViewModelFactory()
-    }
+    // --- Adapters & RecyclerViews ---
+    private lateinit var rvBestSeller: RecyclerView
+    private lateinit var bestSellerAdapter: ProductAdapter
+    private lateinit var rvRecommendation: RecyclerView
+    private lateinit var recommendationAdapter: RecommendationAdapter
 
-    private val cartViewModel: CartViewModel by viewModels {
-        ViewModelFactory()
-    }
+    // --- ViewPagers (Carousel) ---
+    private lateinit var vpArticles: ViewPager2
+    private lateinit var rvCollections: RecyclerView
+
+    // HAPUS collectionHandler & collectionRunnable
+
+    // --- Auto Slide Handlers ---
+    private val sliderHandler = Handler(Looper.getMainLooper())
+    private lateinit var sliderRunnable: Runnable
+
+
+    // --- ViewModels ---
+    private val viewModel: ProdukViewModel by viewModels { ViewModelFactory() }
+    private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,6 +82,10 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         // Inisialisasi ViewPager Artikel
         vpArticles = view.findViewById(R.id.vp_articles)
         setupArticleSection()
+
+        // Inisialisasi ViewPager Koleksi
+        rvCollections = view.findViewById(R.id.rv_collections) // Pastikan ID XML sudah diganti
+        setupCollectionSection()
 
         // Inisialisasi Rekomendasi
         rvRecommendation = view.findViewById(R.id.rv_recommendation)
@@ -114,43 +120,6 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         return view
     }
 
-    private fun setupArticleSection() {
-        val articles = listOf(
-            Artikel(1, "Tips Merawat Gear Sepeda Agar Awet", "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?q=80&w=2000&auto=format&fit=crop", "https://www.rodalink.com/id/blog"),
-            // Artikel ke-2 (Sepeda Listrik Hujan)
-            Artikel(2, "Aman Bersepeda Listrik Saat Hujan?", "https://ik.imagekit.io/ngj1vwwr8/produk/id-bisakah_menggunakan_sepeda_listrik_saat_hujan-header.jpg", "https://www.rodalink.com/id/blog"),
-            Artikel(3, "Review: Polygon Siskiu D6", "https://ik.imagekit.io/ngj1vwwr8/produk/siskiud6.webp", "https://www.polygonbikes.com")
-        )
-
-        // Setup Adapter ViewPager
-        val adapter = ArtikelAdapter(articles)
-        vpArticles.adapter = adapter
-
-        // --- LOGIKA AUTO SLIDE (4 DETIK) ---
-        sliderRunnable = Runnable {
-            val itemCount = vpArticles.adapter?.itemCount ?: 0
-            if (itemCount > 0) {
-                // Pindah ke item berikutnya. Jika sudah di akhir, balik ke 0.
-                val nextItem = (vpArticles.currentItem + 1) % itemCount
-                vpArticles.setCurrentItem(nextItem, true)
-
-                // Jadwalkan ulang
-                sliderHandler.postDelayed(sliderRunnable, 4000)
-            }
-        }
-
-        // Mulai Slide
-        sliderHandler.postDelayed(sliderRunnable, 4000)
-
-        vpArticles.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                sliderHandler.removeCallbacks(sliderRunnable)
-                sliderHandler.postDelayed(sliderRunnable, 4000)
-            }
-        })
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -170,18 +139,68 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         setupObservers()
         setupHeaderScroll()
     }
+    private fun setupArticleSection() {
+        val articles = listOf(
+            Artikel(1, "Tips Merawat Gear Sepeda Agar Awet", "https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?q=80&w=2000&auto=format&fit=crop", "https://www.rodalink.com/id/blog"),
+            Artikel(2, "Aman Bersepeda Listrik Saat Hujan?", "https://ik.imagekit.io/ngj1vwwr8/produk/id-bisakah_menggunakan_sepeda_listrik_saat_hujan-header.jpg", "https://www.rodalink.com/id/blog"),
+            Artikel(3, "Review: Polygon Siskiu D6", "https://ik.imagekit.io/ngj1vwwr8/produk/siskiud6.webp", "https://www.polygonbikes.com")
+        )
 
+        // Setup Adapter ViewPager
+        val adapter = ArtikelAdapter(articles)
+        vpArticles.adapter = adapter
+
+        // Auto Slide Logic for Articles
+        sliderRunnable = Runnable {
+            val itemCount = vpArticles.adapter?.itemCount ?: 0
+            if (itemCount > 0) {
+                // Pindah ke item berikutnya. Jika sudah di akhir, balik ke 0.
+                val nextItem = (vpArticles.currentItem + 1) % itemCount
+                vpArticles.setCurrentItem(nextItem, true)
+                sliderHandler.postDelayed(sliderRunnable, 4000)
+            }
+        }
+        // Mulai Slide
+        sliderHandler.postDelayed(sliderRunnable, 4000)
+
+        vpArticles.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                sliderHandler.removeCallbacks(sliderRunnable)
+                sliderHandler.postDelayed(sliderRunnable, 4000)
+            }
+        })
+    }
+
+    private fun setupCollectionSection() {
+        val collections = listOf(
+            Koleksi(1, "SEPEDA", "", R.drawable.c_sepeda, "Sepeda"),
+            Koleksi(2, "SPARE PARTS", "", R.drawable.c_spareparts, "Spare Parts"),
+            Koleksi(3, "AKSESORIS", "", R.drawable.c_aksesoris, "Aksesoris"),
+            Koleksi(4, "PERAWATAN", "", R.drawable.c_perawatan, "Perawatan")
+        )
+
+        val adapter = CollectionAdapter(collections) { category ->
+            openCategoryList(category)
+        }
+
+        // --- KONFIGURASI SCROLL HORIZONTAL (SEPERTI GAMBAR 2) ---
+        // Gunakan LinearLayoutManager Horizontal
+        val layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        rvCollections.layoutManager = layoutManager
+        rvCollections.adapter = adapter
+
+        // Aktifkan scroll (hapus isNestedScrollingEnabled = false jika sebelumnya ada)
+        rvCollections.isNestedScrollingEnabled = true
+        // --------------------------------------------------------
+    }
     private fun setupHeaderScroll() {
-        // Ambil referensi ke view yang perlu diubah warnanya
-        // Pastikan Anda sudah menginisialisasi view ini di onCreateView
-        // header, notificationIcon, cartIcon, statusBarBackground
-
         nestedScrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            // Threshold based on Article Banner height
             val threshold = vpArticles.height - 100
-
             // Logika Transisi Warna
             if (scrollY > threshold) {
-                // --- KONDISI: SUDAH DI-SCROLL KE BAWAH (Mode Putih) ---
+                // KONDISI: SUDAH DI-SCROLL KE BAWAH (Mode Putih)
                 header.setBackgroundColor(Color.WHITE)
                 statusBarBackground.setBackgroundColor(Color.WHITE)
                 notificationIcon.setBackgroundResource(R.drawable.circle_frame)
@@ -204,7 +223,6 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
             val bestSellers = produkList
                 .filter { it.stok > 0 }
-                .sortedByDescending { it.terjual }
 
             recommendationAdapter.updateData(recommendations)
             bestSellerAdapter.updateProducts(bestSellers)
@@ -228,9 +246,31 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         }
     }
 
+    // --- NAVIGATION HELPERS ---
+
     private fun openDetail(productId: String) {
         val bundle = Bundle().apply { putString("productId", productId) }
         findNavController().navigate(R.id.action_BerandaFragment_to_detailProdukFragment, bundle)
+    }
+
+    private fun openCategoryList(categoryName: String) {
+        // Menggunakan bundle manual karena safeargs mungkin belum di-generate
+        val bundle = Bundle().apply {
+            putString("parentCategoryName", categoryName)
+        }
+        // Pastikan ID ini sesuai dengan ID fragment di nav_graph_client.xml
+        // Jika belum ada action global, gunakan ID tujuannya langsung
+        try {
+            findNavController().navigate(R.id.action_global_to_categoryListFragment, bundle)
+        } catch (e: Exception) {
+            // Fallback jika action global tidak ditemukan, coba navigasi langsung ke ID fragment
+            // Pastikan ID 'categoryListFragment' ada di nav graph Anda
+            try {
+                findNavController().navigate(R.id.categoryListFragment, bundle)
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+            }
+        }
     }
 
     override fun onPause() {
@@ -242,4 +282,5 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
         super.onResume()
         sliderHandler.postDelayed(sliderRunnable, 4000)
     }
+
 }

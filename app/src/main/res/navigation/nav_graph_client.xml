@@ -136,14 +136,10 @@
     <fragment
         android:id="@+id/categoryListFragment"
         android:name="com.example.penjualan_produk_umkm.client.ui.beranda.CategoryListFragment"
-        android:label="Kategori Produk"
-        tools:layout="@layout/fragment_category_list">
+        android:label="CategoryListFragment" >
         <argument
             android:name="parentCategoryName"
             app:argType="string" />
-        <action
-            android:id="@+id/action_categoryListFragment_to_searchFragment"
-            app:destination="@id/searchFragment" />
     </fragment>
 
     <fragment
@@ -163,11 +159,17 @@
         app:destination="@id/detailProdukFragment" />
 
     <action
-        android:id="@+id/action_BerandaFragment_to_categoryListFragment"
-        app:destination="@id/categoryListFragment" />
+        android:id="@+id/action_global_to_categoryListFragment"
+        app:destination="@id/categoryListFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 
     <action
         android:id="@+id/action_global_to_searchFragment"
         app:destination="@id/searchFragment" />
+
+
 
 </navigation>

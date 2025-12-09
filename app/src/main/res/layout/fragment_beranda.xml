@@ -39,6 +39,31 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
+                android:id="@+id/tv_collection_title_section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Koleksi Pilihan"
+                android:fontFamily="@font/montserrat_bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:layout_marginStart="@dimen/default_margin_x"
+                android:layout_marginTop="24dp"
+                app:layout_constraintTop_toBottomOf="@+id/section_articles"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_collections"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="4dp"
+                android:clipToPadding="false"
+                app:layout_constraintTop_toBottomOf="@id/tv_collection_title_section"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <TextView
                 android:id="@+id/tv_rekomendasi_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -49,7 +74,7 @@
                 android:paddingStart="@dimen/default_margin_x"
                 android:paddingEnd="@dimen/default_margin_x"
                 android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@+id/section_articles"
+                app:layout_constraintTop_toBottomOf="@+id/rv_collections"
                 app:layout_constraintStart_toStartOf="parent"/>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -69,7 +94,7 @@
                 android:id="@+id/tv_terlaris_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Produk Terlaris"
+                android:text="Semua Produk"
                 android:fontFamily="@font/montserrat_bold"
                 android:textSize="18sp"
                 android:textColor="@color/black"
