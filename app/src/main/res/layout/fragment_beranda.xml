@@ -31,9 +31,11 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_articles"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:clipToPadding="false"
                     android:orientation="horizontal"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
@@ -45,13 +47,14 @@
 
             <TextView
                 android:id="@+id/tv_rekomendasi_title"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Rekomendasi Produk"
                 android:fontFamily="@font/montserrat_bold"
                 android:textSize="18sp"
                 android:textColor="@color/black"
-                android:layout_marginStart="@dimen/default_margin_x"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="@dimen/default_margin_x"
                 android:layout_marginTop="24dp"
                 app:layout_constraintTop_toBottomOf="@+id/section_articles"
                 app:layout_constraintStart_toStartOf="parent"/>
@@ -71,13 +74,14 @@
 
             <TextView
                 android:id="@+id/tv_terlaris_title"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Produk Terlaris"
                 android:fontFamily="@font/montserrat_bold"
                 android:textSize="18sp"
                 android:textColor="@color/black"
-                android:layout_marginStart="@dimen/default_margin_x"
+                android:paddingStart="@dimen/default_margin_x"
+                android:paddingEnd="@dimen/default_margin_x"
                 android:layout_marginTop="24dp"
                 app:layout_constraintTop_toBottomOf="@id/rv_recommendation"
                 app:layout_constraintStart_toStartOf="parent"/>
@@ -89,6 +93,7 @@
                 android:layout_marginTop="12dp"
                 android:paddingStart="@dimen/default_margin_x"
                 android:paddingEnd="@dimen/default_margin_x"
+                android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
                 app:layout_constraintTop_toBottomOf="@id/tv_terlaris_title"
                 tools:listitem="@layout/item_product"
