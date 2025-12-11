@@ -31,6 +31,7 @@ import kotlin.math.abs
 import androidx.core.view.updateLayoutParams
 import android.graphics.Color
 import kotlin.math.abs
+import androidx.fragment.app.activityViewModels
 
 private const val ARG_PARENT_CATEGORY = "parentCategoryName"
 
@@ -54,7 +55,7 @@ class CategoryListFragment : Fragment(R.layout.fragment_category_list) {
     private var baseCategoryProducts: List<Produk> = emptyList()
 
     private val viewModel: ProdukViewModel by viewModels { ViewModelFactory() }
-    private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
+    private val cartViewModel: CartViewModel by activityViewModels { ViewModelFactory() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

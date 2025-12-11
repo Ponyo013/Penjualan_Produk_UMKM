@@ -32,11 +32,12 @@ class CartViewModel : ViewModel() {
     private var cartListener: ListenerRegistration? = null
     private var pesananListener: ListenerRegistration? = null
 
+    // Di CartViewModel.kt (Sudah Benar)
     val totalQuantity: StateFlow<Int> = _cartItems.map { list ->
         list.sumOf { it.jumlah }
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(5000), // Timeout 5 detik agar tidak mati saat rotasi
         initialValue = 0
     )
 

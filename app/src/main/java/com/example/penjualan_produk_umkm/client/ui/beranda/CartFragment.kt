@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.fragment.app.activityViewModels
 
 class CartFragment : Fragment() {
 
@@ -37,9 +38,7 @@ class CartFragment : Fragment() {
 
     // FIX 1: Gunakan Factory Kosong (Firebase)
     // ViewModel akan otomatis mencari keranjang aktif user dari Firestore
-    private val cartViewModel: CartViewModel by viewModels {
-        ViewModelFactory()
-    }
+    private val cartViewModel: CartViewModel by activityViewModels { ViewModelFactory() }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

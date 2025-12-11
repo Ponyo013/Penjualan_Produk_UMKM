@@ -38,6 +38,7 @@ import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.example.penjualan_produk_umkm.database.model.Koleksi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.fragment.app.activityViewModels
 
 class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     // --- UI Components ---
@@ -66,7 +67,7 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
     // --- ViewModels ---
     private val viewModel: ProdukViewModel by viewModels { ViewModelFactory() }
-    private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
+    private val cartViewModel: CartViewModel by activityViewModels { ViewModelFactory() }
     private val notificationViewModel: NotificationViewModel by viewModels()
 
     override fun onCreateView(
