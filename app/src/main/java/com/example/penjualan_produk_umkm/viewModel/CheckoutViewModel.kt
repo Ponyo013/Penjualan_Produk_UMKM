@@ -2,6 +2,7 @@ package com.example.penjualan_produk_umkm.viewModel
 
 import android.util.Log
 import androidx.lifecycle.*
+import com.example.penjualan_produk_umkm.database.Notification
 import com.example.penjualan_produk_umkm.database.firestore.model.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -205,25 +206,30 @@ class CheckoutViewModel : ViewModel() {
             try {
                 val formattedTotal = "Rp ${String.format("%,.2f", totalHarga)}"
                 val notificationMessage = if (userName != null) {
-                    "Pesanan baru dari $userName sejumlah $formattedTotal dengan ID: $pesananId"
+                    "Pesanan baru dari $userName sejumlah $formattedTotal"
                 } else {
-                    "Pesanan baru sejumlah $formattedTotal dengan ID: $pesananId"
+                    "Pesanan baru sejumlah $formattedTotal"
                 }
 
-                val notification = hashMapOf(
-                    "title" to "Pesanan Baru Diterima",
-                    "message" to notificationMessage,
-                    "timestamp" to System.currentTimeMillis(),
-                    "readStatus" to false,
-                    "recipient" to "admin" // To identify this is for admin
+                // 1. Buat referensi dokumen baru untuk mendapatkan ID
+                val newNotificationRef = db.collection("notifications").document()
+
+                // 2. Buat objek notifikasi dengan ID tersebut
+                val notification = Notification(
+                    notificationId = newNotificationRef.id, // ID dari dokumen baru
+                    title = "Pesanan Baru Diterima",
+                    message = notificationMessage,
+                    timestamp = System.currentTimeMillis(),
+                    readStatus = false,
+                    recipient = "admin",
+                    pesananId = pesananId
                 )
 
-                db.collection("notifications")
-                    .add(notification)
-                    .await()
+                // 3. Simpan objek ke Firestore
+                newNotificationRef.set(notification).await()
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Log the error but don't block the UI
                 Log.e("CheckoutViewModel", "Gagal mengirim notifikasi admin", e)
             }
         }
