@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.penjualan_produk_umkm.database.Notification
+import com.example.penjualan_produk_umkm.database.NotificationType
 import com.example.penjualan_produk_umkm.database.firestore.model.Ekspedisi
 import com.example.penjualan_produk_umkm.database.firestore.model.ItemPesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
@@ -101,12 +103,36 @@ class OwnerPesananViewModel : ViewModel() {
         }
     }
 
+    // 4. Update Status dan Kirim Notifikasi
+    fun updateStatus(pesananId: String, newStatus: StatusPesanan) {
+        viewModelScope.launch {
+            db.collection("pesanan").document(pesananId).update("status", newStatus.name).await()
 
+            val pesanan = _pesananList.value.find { it.pesanan.id == pesananId }?.pesanan
+            if (pesanan != null) {
+                sendNotificationToUser(pesanan.userId, pesananId, newStatus)
+            }
+        }
+    }
 
-    // 4. Update Status (ID String)
-    fun updateStatus(id: String, newStatus: StatusPesanan) {
-        db.collection("pesanan").document(id)
-            .update("status", newStatus.name)
+    // 5. Kirim Notifikasi ke User
+    private fun sendNotificationToUser(userId: String, pesananId: String, newStatus: StatusPesanan) {
+        val title = "Status Pesanan Anda Berubah"
+        val message = "Kabar baik! Status pesanan Anda dengan ID #${pesananId.take(6).uppercase()} telah diubah menjadi ${newStatus.name}."
+
+        val newNotificationRef = db.collection("notifications").document()
+        val notification = Notification(
+            notificationId = newNotificationRef.id,
+            title = title,
+            message = message,
+            timestamp = System.currentTimeMillis(),
+            readStatus = false,
+            recipient = userId,
+            pesananId = pesananId,
+            type = NotificationType.PESANAN.name
+        )
+
+        newNotificationRef.set(notification)
     }
 
 

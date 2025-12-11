@@ -8,12 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
 import com.example.penjualan_produk_umkm.database.Notification
-import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
 
 class NotificationAdapter(
-    private val notifications: List<Notification>,
+    private var notifications: List<Notification>,
+    private var seenGeneralNotificationIds: Set<String>,
     private val onNotificationClicked: (Notification) -> Unit
 ) : RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
@@ -24,7 +24,8 @@ class NotificationAdapter(
 
     override fun onBindViewHolder(holder: NotificationViewHolder, position: Int) {
         val notification = notifications[position]
-        holder.bind(notification)
+        val isSeen = notification.recipient == "all_users" && seenGeneralNotificationIds.contains(notification.notificationId)
+        holder.bind(notification, isSeen)
         holder.itemView.setOnClickListener {
             onNotificationClicked(notification)
         }
@@ -32,25 +33,38 @@ class NotificationAdapter(
 
     override fun getItemCount() = notifications.size
 
+    fun updateNotifications(newNotifications: List<Notification>) {
+        this.notifications = newNotifications
+        notifyDataSetChanged()
+    }
+
+    fun updateSeenIds(newSeenIds: Set<String>) {
+        this.seenGeneralNotificationIds = newSeenIds
+        notifyDataSetChanged()
+    }
+
     class NotificationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.tv_notification_title)
         private val messageTextView: TextView = itemView.findViewById(R.id.tv_notification_message)
         private val timestampTextView: TextView = itemView.findViewById(R.id.tv_notification_timestamp)
         private val readStatusTextView: TextView = itemView.findViewById(R.id.tv_read_status)
 
-        fun bind(notification: Notification) {
+        fun bind(notification: Notification, isSeen: Boolean) {
             titleTextView.text = notification.title
             messageTextView.text = notification.message
             timestampTextView.text = formatTimestamp(notification.timestamp)
 
-            if (notification.readStatus) {
+            val isRead = notification.readStatus || isSeen
+
+            if (isRead) {
                 titleTextView.setTypeface(null, Typeface.NORMAL)
                 messageTextView.setTypeface(null, Typeface.NORMAL)
-                readStatusTextView.text = "Dibaca"
+                readStatusTextView.visibility = View.GONE
             } else {
                 titleTextView.setTypeface(null, Typeface.BOLD)
                 messageTextView.setTypeface(null, Typeface.BOLD)
-                readStatusTextView.text = "Belum Dibaca"
+                readStatusTextView.visibility = View.VISIBLE
+                readStatusTextView.text = "Baru"
             }
         }
 

@@ -38,6 +38,7 @@ import com.example.penjualan_produk_umkm.database.firestore.model.Pesanan
 import com.example.penjualan_produk_umkm.database.firestore.model.StatusPesanan
 import com.example.penjualan_produk_umkm.ml.SentimentAnalyzer
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.example.penjualan_produk_umkm.viewModel.AdminNotificationViewModel
 import com.example.penjualan_produk_umkm.viewModel.DashboardViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
@@ -55,7 +56,8 @@ import java.util.Locale
 @Composable
 fun DashboardScreen(
     navController: NavController,
-    dashboardViewModel: DashboardViewModel = viewModel(factory = ViewModelFactory())
+    dashboardViewModel: DashboardViewModel = viewModel(factory = ViewModelFactory()),
+    adminNotificationViewModel: AdminNotificationViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -63,6 +65,7 @@ fun DashboardScreen(
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     val allPesanan by dashboardViewModel.allPesanan.collectAsState(initial = emptyList())
+    val unreadNotifications by adminNotificationViewModel.unreadCount.collectAsState()
 
     // Sentiment Analysis States
     var analyzer: SentimentAnalyzer? by remember { mutableStateOf(null) }
@@ -118,25 +121,30 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            IconButton(
-                                onClick = { navController.navigate("adminNotification") },
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.notification_icon),
-                                    contentDescription = "Icon Notifikasi",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                            BadgedBox(badge = {
+                                if (unreadNotifications > 0) {
+                                    Badge { Text(unreadNotifications.toString()) }
+                                }
+                            }) {
+                                IconButton(
+                                    onClick = { navController.navigate("adminNotification") },
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.notification_icon),
+                                        contentDescription = "Icon Notifikasi",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
 
-                            Box(
+                            IconButton(
+                                onClick = { showLogoutDialog = true },
                                 modifier = Modifier
                                     .size(40.dp)
                                     .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                    .clickable { showLogoutDialog = true },
-                                contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Outlined.Logout,

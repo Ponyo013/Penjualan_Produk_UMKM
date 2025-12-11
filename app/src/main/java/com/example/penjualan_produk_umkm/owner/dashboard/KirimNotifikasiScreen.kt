@@ -74,13 +74,13 @@ fun KirimNotifikasiScreen(navController: NavController) {
     UMKMTheme {
         Scaffold(
             topBar = {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = { Text("Kirim Notifikasi") },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = "Kembali"
                             )
                         }
                     }
@@ -186,29 +186,38 @@ fun sendNotificationSafe(context: Context, judul: String, pesan: String) {
             .setAutoCancel(true)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
 
-        NotificationManagerCompat.from(context).notify(1, builder.build())
-        saveNotificationToDatabase(judul, pesan)
+        NotificationManagerCompat.from(context).notify(System.currentTimeMillis().toInt(), builder.build())
+        saveNotificationToDatabase(context, judul, pesan)
     } catch (e: SecurityException) {
         e.printStackTrace()
         Toast.makeText(context, "Gagal mengirim notifikasi: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
 
-private fun saveNotificationToDatabase(title: String, message: String) {
+private fun saveNotificationToDatabase(context: Context, title: String, message: String) {
     val db = FirebaseFirestore.getInstance()
-    val notification = hashMapOf(
-        "title" to title,
-        "message" to message,
-        "timestamp" to System.currentTimeMillis(),
-        "readStatus" to false
+    // 1. Buat referensi dokumen baru untuk mendapatkan ID
+    val newNotificationRef = db.collection("notifications").document()
+
+    // 2. Buat objek notifikasi dengan ID dan recipient yang benar
+    val notification = Notification(
+        notificationId = newNotificationRef.id,
+        title = title,
+        message = message,
+        timestamp = System.currentTimeMillis(),
+        readStatus = false,
+        recipient = "all_users", // Kirim ke semua user
+        pesananId = null // Bukan notifikasi pesanan
     )
 
-    db.collection("notifications")
-        .add(notification)
-        .addOnSuccessListener { documentReference ->
-            Log.d(TAG, "Notification added with ID: ${documentReference.id}")
+    // 3. Simpan objek ke Firestore
+    newNotificationRef.set(notification)
+        .addOnSuccessListener {
+            Log.d(TAG, "Notification saved with ID: ${newNotificationRef.id}")
+            Toast.makeText(context, "Notifikasi berhasil disimpan ke database", Toast.LENGTH_SHORT).show()
         }
         .addOnFailureListener { e ->
-            Log.e(TAG, "Error adding notification", e)
+            Log.e(TAG, "Error saving notification", e)
+            Toast.makeText(context, "Gagal menyimpan notifikasi ke database", Toast.LENGTH_SHORT).show()
         }
 }

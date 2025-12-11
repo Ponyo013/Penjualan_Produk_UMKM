@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.compose.ui.platform.ComposeView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -32,6 +33,7 @@ import com.example.penjualan_produk_umkm.database.firestore.model.Produk
 import com.example.penjualan_produk_umkm.database.model.Artikel
 import com.example.penjualan_produk_umkm.uiComponent.SearchBar
 import com.example.penjualan_produk_umkm.viewModel.CartViewModel
+import com.example.penjualan_produk_umkm.viewModel.NotificationViewModel
 import com.example.penjualan_produk_umkm.viewModel.ProdukViewModel
 import com.example.penjualan_produk_umkm.database.model.Koleksi
 import kotlinx.coroutines.flow.collectLatest
@@ -65,6 +67,7 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
     // --- ViewModels ---
     private val viewModel: ProdukViewModel by viewModels { ViewModelFactory() }
     private val cartViewModel: CartViewModel by viewModels { ViewModelFactory() }
+    private val notificationViewModel: NotificationViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -230,15 +233,30 @@ class BerandaFragment : Fragment(R.layout.fragment_beranda) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                cartViewModel.totalQuantity.collectLatest { totalQty ->
-                    val badge = view?.findViewById<android.widget.TextView>(R.id.tv_cart_badge)
+                launch {
+                    cartViewModel.totalQuantity.collectLatest { totalQty ->
+                        val badge = view?.findViewById<TextView>(R.id.tv_cart_badge)
 
-                    if (badge != null) {
-                        if (totalQty > 0) {
-                            badge.visibility = View.VISIBLE
-                            badge.text = if (totalQty > 99) "99+" else totalQty.toString()
-                        } else {
-                            badge.visibility = View.GONE
+                        if (badge != null) {
+                            if (totalQty > 0) {
+                                badge.visibility = View.VISIBLE
+                                badge.text = if (totalQty > 99) "99+" else totalQty.toString()
+                            } else {
+                                badge.visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+                launch {
+                    notificationViewModel.unreadNotificationCount.collectLatest { count ->
+                        val badge = view?.findViewById<TextView>(R.id.tv_notification_badge)
+                        if (badge != null) {
+                            if (count > 0) {
+                                badge.visibility = View.VISIBLE
+                                badge.text = if (count > 99) "99+" else count.toString()
+                            } else {
+                                badge.visibility = View.GONE
+                            }
                         }
                     }
                 }

@@ -87,7 +87,12 @@ fun AdminNotificationScreen(
                 ) {
                     items(notifications) { notification ->
                         NotificationItem(notification) {
-                            viewModel.markAsRead(notification.id)
+                            // Navigasi dulu jika ini notifikasi pesanan
+                            if (notification.pesananId != null) {
+                                navController.navigate("listpesanan")
+                            }
+                            // Lalu, tandai sudah dibaca di latar belakang
+                            viewModel.markAsRead(notification.notificationId)
                         }
                     }
                 }
