@@ -66,6 +66,8 @@ class OwnerActivity : AppCompatActivity() {
                         // --- HALAMAN UTAMA ---
                         composable("dashboard") { DashboardScreen(navController) }
 
+                        composable("adminNotification") { AdminNotificationScreen(navController) }
+
                         composable("produkManage") {
                             ProdukManage(navController, produkViewModel)
                         }

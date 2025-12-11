@@ -118,15 +118,16 @@ fun DashboardScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(
+                            IconButton(
+                                onClick = { navController.navigate("adminNotification") },
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                                contentAlignment = Alignment.Center
+                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                             ) {
-                                Image(
+                                Icon(
                                     painter = painterResource(id = R.drawable.notification_icon),
-                                    contentDescription = "Icon Notifikasi"
+                                    contentDescription = "Icon Notifikasi",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
 

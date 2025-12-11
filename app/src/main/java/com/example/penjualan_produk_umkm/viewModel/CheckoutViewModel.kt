@@ -1,5 +1,6 @@
 package com.example.penjualan_produk_umkm.viewModel
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.penjualan_produk_umkm.database.firestore.model.*
 import com.google.firebase.Timestamp
@@ -183,6 +184,9 @@ class CheckoutViewModel : ViewModel() {
 
                 batch.commit().await()
 
+                // Kirim notifikasi ke admin
+                sendNotificationToAdmin(currentPesananId, totalFinal, _user.value?.nama)
+
                 // Kembali ke UI Thread
                 launch(Dispatchers.Main) { onSuccess() }
 
@@ -192,6 +196,35 @@ class CheckoutViewModel : ViewModel() {
                 launch(Dispatchers.Main) { onError(e.message ?: "Gagal checkout") }
             } finally {
                 _loading.postValue(false)
+            }
+        }
+    }
+
+    private fun sendNotificationToAdmin(pesananId: String, totalHarga: Double, userName: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val formattedTotal = "Rp ${String.format("%,.2f", totalHarga)}"
+                val notificationMessage = if (userName != null) {
+                    "Pesanan baru dari $userName sejumlah $formattedTotal dengan ID: $pesananId"
+                } else {
+                    "Pesanan baru sejumlah $formattedTotal dengan ID: $pesananId"
+                }
+
+                val notification = hashMapOf(
+                    "title" to "Pesanan Baru Diterima",
+                    "message" to notificationMessage,
+                    "timestamp" to System.currentTimeMillis(),
+                    "readStatus" to false,
+                    "recipient" to "admin" // To identify this is for admin
+                )
+
+                db.collection("notifications")
+                    .add(notification)
+                    .await()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Log the error but don't block the UI
+                Log.e("CheckoutViewModel", "Gagal mengirim notifikasi admin", e)
             }
         }
     }

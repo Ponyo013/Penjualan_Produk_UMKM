@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,7 +28,11 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.penjualan_produk_umkm.database.Notification
 import com.example.penjualan_produk_umkm.style.UMKMTheme
+import com.google.firebase.firestore.FirebaseFirestore
+
+private const val TAG = "KirimNotifikasiScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,7 +115,7 @@ fun KirimNotifikasiScreen(navController: NavController) {
                     label = { Text("Isi Pesan") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f, fill = false)
+                        .height(150.dp)
                 )
 
                 Button(
@@ -142,10 +147,24 @@ fun KirimNotifikasiScreen(navController: NavController) {
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = "Notifikasi Terkirim!", fontWeight = FontWeight.Bold)
-                            Text("Judul: $judul")
-                            Text("Pesan: $pesan")
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Notifikasi Terkirim!",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row {
+                                Text("Judul: ", fontWeight = FontWeight.Bold)
+                                Text(judul)
+                            }
+                            Row {
+                                Text("Pesan: ", fontWeight = FontWeight.Bold)
+                                Text(pesan)
+                            }
                         }
                     }
                 }
@@ -168,8 +187,28 @@ fun sendNotificationSafe(context: Context, judul: String, pesan: String) {
             .setDefaults(NotificationCompat.DEFAULT_ALL)
 
         NotificationManagerCompat.from(context).notify(1, builder.build())
+        saveNotificationToDatabase(judul, pesan)
     } catch (e: SecurityException) {
         e.printStackTrace()
         Toast.makeText(context, "Gagal mengirim notifikasi: ${e.message}", Toast.LENGTH_SHORT).show()
     }
+}
+
+private fun saveNotificationToDatabase(title: String, message: String) {
+    val db = FirebaseFirestore.getInstance()
+    val notification = hashMapOf(
+        "title" to title,
+        "message" to message,
+        "timestamp" to System.currentTimeMillis(),
+        "readStatus" to false
+    )
+
+    db.collection("notifications")
+        .add(notification)
+        .addOnSuccessListener { documentReference ->
+            Log.d(TAG, "Notification added with ID: ${documentReference.id}")
+        }
+        .addOnFailureListener { e ->
+            Log.e(TAG, "Error adding notification", e)
+        }
 }

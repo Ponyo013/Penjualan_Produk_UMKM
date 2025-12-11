@@ -1,71 +1,92 @@
 package com.example.penjualan_produk_umkm.client.ui.beranda
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.penjualan_produk_umkm.R
+import com.example.penjualan_produk_umkm.database.Notification
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val TAG = "NotificationFragment"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [NotificationFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class NotificationFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var notificationAdapter: NotificationAdapter
+    private val notifications = mutableListOf<Notification>()
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_notification, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize views
+        recyclerView = view.findViewById(R.id.rv_notifications)
+        progressBar = view.findViewById(R.id.progressBar)
+
+        // Setup RecyclerView
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        notificationAdapter = NotificationAdapter(notifications) { notification ->
+            if (!notification.readStatus) {
+                updateReadStatus(notification)
+            }
+        }
+        recyclerView.adapter = notificationAdapter
+
         // Navigate Back
         val toolbar = view.findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
+
+        fetchNotifications()
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NotificationFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            NotificationFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    private fun fetchNotifications() {
+        progressBar.visibility = View.VISIBLE
+        db.collection("notifications")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshots, e ->
+                progressBar.visibility = View.GONE
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e)
+                    return@addSnapshotListener
                 }
+
+                if (snapshots != null) {
+                    notifications.clear()
+                    for (document in snapshots) {
+                        val notification = document.toObject(Notification::class.java).copy(id = document.id)
+                        notifications.add(notification)
+                    }
+                    notificationAdapter.notifyDataSetChanged()
+                }
+            }
+    }
+
+    private fun updateReadStatus(notification: Notification) {
+        db.collection("notifications").document(notification.id)
+            .update("readStatus", true)
+            .addOnSuccessListener {
+                Log.d(TAG, "Notification read status updated successfully.")
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error updating notification read status.", e)
             }
     }
 }
